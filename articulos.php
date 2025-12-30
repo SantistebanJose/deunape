@@ -1,5 +1,6 @@
 <?php
 include("cabecera.php");
+$sucursal_id = isset($_SESSION['sucursal_id']) ? $_SESSION['sucursal_id'] : null;
 ?>
 
 <style>
@@ -399,7 +400,7 @@ include("cabecera.php");
         html += '<label class="form-label"><strong>Categoría</strong></label>';
         html += '<select class="form-select form-select-sm" id="idRegistoCategoria">';
         html += '<option value="">Seleccione Categoría</option>';
-        html += '<?php foreach (listarCategoria() as $datos) { ?>';
+        html += '<?php foreach (listarCategoria($sucursal_id) as $datos) { ?>';
         html += '<option value="<?php echo $datos["id"] ?>"><?php echo $datos["abreviatura"] ?></option>';
         html += '<?php } ?>';
         html += '</select>';
@@ -409,7 +410,7 @@ include("cabecera.php");
         html += '<label class="form-label"><strong>Tipo de Artículo</strong></label>';
         html += '<select class="form-select form-select-sm" id="idRegistoTipo">';
         html += '<option value="">Seleccione Tipo</option>';
-        html += '<?php foreach (listarTipoArticulos() as $datos) { ?>';
+        html += '<?php foreach (listarTipoArticulos($sucursal_id) as $datos) { ?>';
         html += '<option value="<?php echo $datos["id"] ?>"><?php echo $datos["abreviatura"] ?></option>';
         html += '<?php } ?>';
         html += '</select>';
@@ -420,7 +421,7 @@ include("cabecera.php");
         html += '<label class="form-label"><strong>Dimensión</strong></label>';
         html += '<select class="form-select form-select-sm" id="idRegistroDimension">';
         html += '<option value="">Seleccione Dimensión</option>';
-        html += '<?php foreach (listarDimension() as $datos) { ?>';
+        html += '<?php foreach (listarDimension($sucursal_id) as $datos) { ?>';
         html += '<option value="<?php echo $datos["id"] ?>"><?php echo $datos["medida"] ?></option>';
         html += '<?php } ?>';
         html += '</select>';
@@ -430,7 +431,7 @@ include("cabecera.php");
         html += '<label class="form-label"><strong>Escala</strong></label>';
         html += '<select class="form-select form-select-sm" id="idRegistroEscala">';
         html += '<option value="">Seleccione Escala</option>';
-        html += '<?php foreach (listarEscala() as $datos) { ?>';
+        html += '<?php foreach (listarEscala($sucursal_id) as $datos) { ?>';
         html += '<option value="<?php echo $datos["id"] ?>"><?php echo $datos["abreviatura"] ?></option>';
         html += '<?php } ?>';
         html += '</select>';

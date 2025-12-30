@@ -190,17 +190,18 @@ Circles.create({
 })
 
 
-// Jsvectormap
-var world_map = new jsVectorMap({
-	selector: "#world-map",
-	map: "world",
-	zoomOnScroll: false,
-	regionStyle: {
-		hover: {
-			fill: '#435ebe'
-		}
-	},
-	markers: [
+// Jsvectormap (init only if container exists)
+if (document.getElementById('world-map')) {
+	var world_map = new jsVectorMap({
+		selector: "#world-map",
+		map: "world",
+		zoomOnScroll: false,
+		regionStyle: {
+			hover: {
+				fill: '#435ebe'
+			}
+		},
+		markers: [
 		{
 			name: 'Indonesia',
 			coords: [-6.229728, 106.6894311],
@@ -250,13 +251,17 @@ var world_map = new jsVectorMap({
 	onRegionTooltipShow(event, tooltip) {
 		tooltip.css({ backgroundColor: '#435ebe' })
 	}
-});
+	});
+}
 
 //Chart
 
-var ctx = document.getElementById('statisticsChart').getContext('2d');
+var statsCanvas = document.getElementById('statisticsChart');
+var statisticsChart = null;
+if (statsCanvas && statsCanvas.getContext) {
+	var ctx = statsCanvas.getContext('2d');
 
-var statisticsChart = new Chart(ctx, {
+	statisticsChart = new Chart(ctx, {
 	type: 'line',
 	data: {
 		labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],

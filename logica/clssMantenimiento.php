@@ -80,52 +80,58 @@ function controladorMantenimiento($accion)
 
 function registrar_tipo($datos = array()) {
     global $conectar;
+    // IMPORTANTE: Obtener sucursal_id de la sesión
+    session_start();
+    $sucursal_id = isset($_SESSION["sucursal_id"]) ? $_SESSION["sucursal_id"] : null;
 
     try {
 
-        // Insertar en la tabla usuario
         $conectar->beginTransaction();
-        $orden = $conectar->prepare("INSERT INTO tipo (abreviatura, descripcion)
-                                     VALUES (UPPER(:abreviatura), :descripcion);");
+        $orden = $conectar->prepare("INSERT INTO tipo (abreviatura, descripcion, sucursal_id)
+                                     VALUES (UPPER(:abreviatura), :descripcion, :sucursal_id);");
         $orden->bindParam(":abreviatura", $datos['nombre']);
         $orden->bindParam(":descripcion", $datos['descripcion']);
+        $orden->bindParam(":sucursal_id", $sucursal_id);
 
         $orden->execute();
-        $usuario_id = $conectar->lastInsertId(); // Obtener el ID del usuario recién insertado
+        $tipo_id = $conectar->lastInsertId();
         $orden->closeCursor();
 
         $conectar->commit();
-        echo json_encode(["estado" => true, "mensaje" => "Operación realizada con éxito", "tipo_id" => $usuario_id]);
+        echo json_encode(["estado" => true, "mensaje" => "Operación realizada con éxito", "tipo_id" => $tipo_id]);
 
     } catch (\Throwable $th) {
         $conectar->rollBack();
-        error_log("Error en registrar_usuario: " . $th->getMessage());
+        error_log("Error en registrar_tipo: " . $th->getMessage());
         echo json_encode(["error" => true, "mensaje" => $th->getMessage()]);
     }
 }
 
 function registrar_categoria($datos = array()) {
     global $conectar;
+    // IMPORTANTE: Obtener sucursal_id de la sesión
+    session_start();
+    $sucursal_id = isset($_SESSION["sucursal_id"]) ? $_SESSION["sucursal_id"] : null;
 
     try {
 
-        // Insertar en la tabla usuario
         $conectar->beginTransaction();
-        $orden = $conectar->prepare("INSERT INTO categoria (abreviatura, descripcion)
-                                     VALUES (UPPER(:abreviatura), :descripcion);");
+        $orden = $conectar->prepare("INSERT INTO categoria (abreviatura, descripcion, sucursal_id)
+                                     VALUES (UPPER(:abreviatura), :descripcion, :sucursal_id);");
         $orden->bindParam(":abreviatura", $datos['nombre']);
         $orden->bindParam(":descripcion", $datos['descripcion']);
+        $orden->bindParam(":sucursal_id", $sucursal_id);
 
         $orden->execute();
-        $usuario_id = $conectar->lastInsertId(); // Obtener el ID del usuario recién insertado
+        $categoria_id = $conectar->lastInsertId();
         $orden->closeCursor();
 
         $conectar->commit();
-        echo json_encode(["estado" => true, "mensaje" => "Operación realizada con éxito", "categoria_id" => $usuario_id]);
+        echo json_encode(["estado" => true, "mensaje" => "Operación realizada con éxito", "categoria_id" => $categoria_id]);
 
     } catch (\Throwable $th) {
         $conectar->rollBack();
-        error_log("Error en registrar_usuario: " . $th->getMessage());
+        error_log("Error en registrar_categoria: " . $th->getMessage());
         echo json_encode(["error" => true, "mensaje" => $th->getMessage()]);
     }
 }
@@ -133,52 +139,58 @@ function registrar_categoria($datos = array()) {
 
 function registrar_escala($datos = array()) {
     global $conectar;
+    // IMPORTANTE: Obtener sucursal_id de la sesión
+    session_start();
+    $sucursal_id = isset($_SESSION["sucursal_id"]) ? $_SESSION["sucursal_id"] : null;
 
     try {
 
-        // Insertar en la tabla usuario
         $conectar->beginTransaction();
-        $orden = $conectar->prepare("INSERT INTO escala (abreviatura, descripcion)
-                                     VALUES (UPPER(:abreviatura), :descripcion);");
+        $orden = $conectar->prepare("INSERT INTO escala (abreviatura, descripcion, sucursal_id)
+                                     VALUES (UPPER(:abreviatura), :descripcion, :sucursal_id);");
         $orden->bindParam(":abreviatura", $datos['nombre']);
         $orden->bindParam(":descripcion", $datos['descripcion']);
+        $orden->bindParam(":sucursal_id", $sucursal_id);
 
         $orden->execute();
-        $usuario_id = $conectar->lastInsertId(); // Obtener el ID del usuario recién insertado
+        $escala_id = $conectar->lastInsertId();
         $orden->closeCursor();
 
         $conectar->commit();
-        echo json_encode(["estado" => true, "mensaje" => "Operación realizada con éxito", "escala_id" => $usuario_id]);
+        echo json_encode(["estado" => true, "mensaje" => "Operación realizada con éxito", "escala_id" => $escala_id]);
 
     } catch (\Throwable $th) {
         $conectar->rollBack();
-        error_log("Error en registrar_usuario: " . $th->getMessage());
+        error_log("Error en registrar_escala: " . $th->getMessage());
         echo json_encode(["error" => true, "mensaje" => $th->getMessage()]);
     }
 }
 
 function registrar_dimension($datos = array()) {
     global $conectar;
+    // IMPORTANTE: Obtener sucursal_id de la sesión
+    session_start();
+    $sucursal_id = isset($_SESSION["sucursal_id"]) ? $_SESSION["sucursal_id"] : null;
 
     try {
 
-        // Insertar en la tabla usuario
         $conectar->beginTransaction();
-        $orden = $conectar->prepare("INSERT INTO dimension (medida, descripcion)
-                                     VALUES (UPPER(:medida), :descripcion);");
+        $orden = $conectar->prepare("INSERT INTO dimension (medida, descripcion, sucursal_id)
+                                     VALUES (UPPER(:medida), :descripcion, :sucursal_id);");
         $orden->bindParam(":medida", $datos['nombre']);
         $orden->bindParam(":descripcion", $datos['descripcion']);
+        $orden->bindParam(":sucursal_id", $sucursal_id);
 
         $orden->execute();
-        $usuario_id = $conectar->lastInsertId(); // Obtener el ID del usuario recién insertado
+        $dimension_id = $conectar->lastInsertId();
         $orden->closeCursor();
 
         $conectar->commit();
-        echo json_encode(["estado" => true, "mensaje" => "Operación realizada con éxito", "dimension_id" => $usuario_id]);
+        echo json_encode(["estado" => true, "mensaje" => "Operación realizada con éxito", "dimension_id" => $dimension_id]);
 
     } catch (\Throwable $th) {
         $conectar->rollBack();
-        error_log("Error en registrar_usuario: " . $th->getMessage());
+        error_log("Error en registrar_dimension: " . $th->getMessage());
         echo json_encode(["error" => true, "mensaje" => $th->getMessage()]);
     }
 }

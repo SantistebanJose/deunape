@@ -1,5 +1,6 @@
 <?php
 include("cabecera.php");
+$sucursal_id = isset($_SESSION['sucursal_id']) ? $_SESSION['sucursal_id'] : null;
 ?>
 
 <div
@@ -542,7 +543,7 @@ include("cabecera.php");
                                         name="idRegistoCategoria"
                                         id="idRegistoCategoria">
                                         <option selected>Selccione Categoría</option>
-                                        <?php foreach (listarCategoria() as $datos) {
+                                        <?php foreach (listarCategoria($sucursal_id) as $datos) {
                                         ?>
                                             <option value="<?php echo $datos["id"] ?>"><?php echo $datos["abreviatura"] ?></option>
 
@@ -561,7 +562,7 @@ include("cabecera.php");
                                         name="idRegistoTipo"
                                         id="idRegistoTipo">
                                         <option selected>Selccione Tipo de Articulo</option>
-                                        <?php foreach (listarTipoArticulos() as $datos) {
+                                        <?php foreach (listarTipoArticulos($sucursal_id) as $datos) {
                                         ?>
                                             <option value="<?php echo $datos["id"] ?>"><?php echo $datos["abreviatura"] ?></option>
 
@@ -580,7 +581,7 @@ include("cabecera.php");
                                         name="idRegistroDimension"
                                         id="idRegistroDimension">
                                         <option selected>Selccione Dimensión</option>
-                                        <?php foreach (listarDimension() as $datos) {
+                                        <?php foreach (listarDimension($sucursal_id) as $datos) {
                                         ?>
                                             <option value="<?php echo $datos["id"] ?>"><?php echo $datos["medida"] ?></option>
 
@@ -599,7 +600,7 @@ include("cabecera.php");
                                         name="idRegistroEscala"
                                         id="idRegistroEscala">
                                         <option selected>Selccione Escala</option>
-                                        <?php foreach (listarEscala() as $datos) {
+                                        <?php foreach (listarEscala($sucursal_id) as $datos) {
                                         ?>
                                             <option value="<?php echo $datos["id"] ?>"><?php echo $datos["abreviatura"] ?></option>
 

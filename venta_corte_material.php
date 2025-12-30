@@ -4,6 +4,8 @@ include("logica/clssVenta.php");
 if (isset($_GET['id'])) {
     $id = $_GET['id'];
 }
+
+$sucursal_id = $_SESSION["sucursal_id"];
 ?>
 
 <style>
@@ -207,7 +209,7 @@ if (isset($_GET['id'])) {
                         <div class="d-flex justify-content-center flex-wrap text">
                             <ul class="nav d-flex flex-wrap justify-content-center">
                                 <?php
-                                foreach (listarMovimientos() as $datos) {
+                                foreach (listarMovimientos($sucursal_id) as $datos) {
                                     $datosJSON = json_encode($datos);
                                 ?>
                                     <li class="nav-item me-3 mb-2">

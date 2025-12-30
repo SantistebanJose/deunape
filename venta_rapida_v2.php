@@ -160,7 +160,7 @@ $sucursal_id = $_SESSION["sucursal_id"];
                                 <div class="d-flex justify-content-center flex-wrap">
                                     <ul class="nav d-flex flex-wrap justify-content-center">
                                         <?php
-                                        foreach (listarMovimientos() as $datos) {
+                                        foreach (listarMovimientos($sucursal_id) as $datos) {
                                             $datosJSON = json_encode($datos);
                                         ?>
                                             <li class="nav-item me-3 mb-2">
@@ -3189,16 +3189,19 @@ $sucursal_id = $_SESSION["sucursal_id"];
         const empresaTab = document.getElementById("pills-empresa-tab");
 
         const btnAbrirModalCliente = document.getElementById("btnAbrirModalCliente");
-        const modalCliente = new bootstrap.Modal(document.getElementById("modalCliente"));
+        const modalClienteEl = document.getElementById("modalCliente");
+        const modalCliente = modalClienteEl ? new bootstrap.Modal(modalClienteEl) : null;
 
-        // Agrega un evento click para abrir el modal manualmente
-        btnAbrirModalCliente.addEventListener("click", function() {
-            console.log("click")
+        // Agrega un evento click para abrir el modal manualmente (si existe el botón)
+        if (btnAbrirModalCliente && modalCliente) {
+            btnAbrirModalCliente.addEventListener("click", function() {
+                console.log("click")
+                modalCliente.show(); // Muestra el modal manualmente
+            });
+        }
 
-            modalCliente.show(); // Muestra el modal manualmente
-        });
-
-        personaTab.addEventListener('click', () => {
+        if (personaTab) {
+            personaTab.addEventListener('click', () => {
             // Limpiar datos de la pestaña Empresa
             document.getElementById('numeroDocumentoEmpresa').value = '';
             document.getElementById('nombreComercial').value = '';
@@ -3206,9 +3209,10 @@ $sucursal_id = $_SESSION["sucursal_id"];
             document.getElementById('telefonoEmpresa').value = '';
             document.getElementById('emailEmpresa').value = '';
             resetErrors();
-        });
+        }
 
-        empresaTab.addEventListener('click', () => {
+        if (empresaTab) {
+            empresaTab.addEventListener('click', () => {
             // Limpiar datos de la pestaña Persona
             document.getElementById('numeroDocumentoPersona').value = '';
             document.getElementById('nombresPersona').value = '';

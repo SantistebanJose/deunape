@@ -245,62 +245,72 @@ function listarPostres(): array
     $query = "SELECT id, nombre, descripcion FROM postre WHERE deleted_at IS NULL";
     return executeQuery($query);
 }
-function listarCategoria(): array
+function listarCategoria($sucursal_id): array
 {
-    $query = "SELECT id, abreviatura FROM categoria WHERE deleted_at IS NULL ORDER BY 1";
-    return executeQuery($query);
+    $query = "SELECT id, abreviatura FROM categoria 
+              WHERE deleted_at IS NULL AND sucursal_id = :sucursal_id 
+              ORDER BY 1";
+    return executeQuery($query, ["sucursal_id" => $sucursal_id]);
 }
-function listarDimension(): array
+function listarDimension($sucursal_id): array
 {
-    $query = "SELECT id, medida FROM dimension WHERE deleted_at IS NULL ORDER BY 1";
-    return executeQuery($query);
+    $query = "SELECT id, medida FROM dimension 
+              WHERE deleted_at IS NULL AND sucursal_id = :sucursal_id 
+              ORDER BY 1";
+    return executeQuery($query, ["sucursal_id" => $sucursal_id]);
 }
-function listarEscala(): array
+function listarEscala($sucursal_id): array
 {
-    $query = "SELECT id, abreviatura FROM escala WHERE deleted_at IS NULL ORDER BY 1";
-    return executeQuery($query);
+    $query = "SELECT id, abreviatura FROM escala 
+              WHERE deleted_at IS NULL AND sucursal_id = :sucursal_id 
+              ORDER BY 1";
+    return executeQuery($query, ["sucursal_id" => $sucursal_id]);
 }
-function listarTipoArticulos(): array
+function listarTipoArticulos($sucursal_id): array
 {
-    $query = "SELECT id, abreviatura FROM tipo WHERE deleted_at IS NULL ORDER BY 1";
-    return executeQuery($query);
+    $query = "SELECT id, abreviatura FROM tipo 
+              WHERE deleted_at IS NULL AND sucursal_id = :sucursal_id 
+              ORDER BY 1";
+    return executeQuery($query, ["sucursal_id" => $sucursal_id]);
 }
 
-function listarMovimientos(): array
+function listarMovimientos($sucursal_id): array
 {
-    $query = "SELECT * FROM movimiento WHERE deleted_at IS NULL AND id NOT IN (1,4,6,15) ORDER BY 1";
-    return executeQuery($query);
+    $query = "SELECT * FROM movimiento WHERE deleted_at IS NULL AND sucursal_id = :sucursal_id AND id NOT IN (1,4,6,15) ORDER BY 1";
+    return executeQuery($query, ["sucursal_id" => $sucursal_id]);
 }
 
 function listarProductosVenta1($sucursal_id): array
 {
     $query = "SELECT * FROM view_articulos WHERE precio_venta is not null AND sucursal_id = :sucursal_id; ";
 
-    return executeQuery($query,params:["sucursal_id" => $sucursal_id]);
+    return executeQuery($query, ["sucursal_id" => $sucursal_id]);
 }
 
 function listarTipoArticuloMantenimiento($sucursal_id): array
 {
     $query = "select * from tipo where sucursal_id = :xxx";
-    return executeQuery($query, params:["xxx"=>$sucursal_id]);
+    return executeQuery($query, ["xxx" => $sucursal_id]);
 }
 
-function listarDimensionArticuloMantenimiento(): array
+function listarDimensionArticuloMantenimiento($sucursal_id): array
 {
-    $query = "select * from dimension";
-    return executeQuery($query);
+    $query = "select * from dimension where sucursal_id = :sucursal_id";
+    return executeQuery($query, ["sucursal_id" => $sucursal_id]);
 }
 
-function listarEscalaArticuloMantenimiento(): array
+function listarEscalaArticuloMantenimiento($sucursal_id): array
 {
-    $query = "select * from escala";
-    return executeQuery($query);
+    $query = "select * from escala where sucursal_id = :sucursal_id";
+    return executeQuery($query, ["sucursal_id" => $sucursal_id]);
 }
 
-function listarCategoriaArticuloMantenimiento(): array
+function listarCategoriaArticuloMantenimiento($sucursal_id): array
 {
-    $query = "select * from categoria";
-    return executeQuery($query);
+    $query = "SELECT * FROM categoria 
+              WHERE sucursal_id = :sucursal_id 
+              ORDER BY id";
+    return executeQuery($query, ["sucursal_id" => $sucursal_id]);
 }
 
 function listarArticuloSinview(): array

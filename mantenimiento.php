@@ -102,7 +102,7 @@ $sucursal_id = $_SESSION["sucursal_id"];
                                                 <tbody>
 
                                                     <?php
-                                                    foreach (listarMovimientos() as $datosTipo) {
+                                                    foreach (listarMovimientos($sucursal_id) as $datosTipo) {
                                                         $datos = json_encode($datosTipo);
 
 
@@ -163,7 +163,7 @@ $sucursal_id = $_SESSION["sucursal_id"];
                                                 <tbody>
 
                                                     <?php
-                                                    foreach (listarCategoriaArticuloMantenimiento() as $datosCategoria) {
+                                                    foreach (listarCategoriaArticuloMantenimiento($sucursal_id) as $datosCategoria) {
                                                         $datosCategoriaJSON = json_encode($datosCategoria);
 
 
@@ -310,7 +310,7 @@ $sucursal_id = $_SESSION["sucursal_id"];
                                                 <tbody>
 
                                                     <?php
-                                                    foreach (listarEscalaArticuloMantenimiento() as $datosEscala) {
+                                                    foreach (listarEscalaArticuloMantenimiento($sucursal_id) as $datosEscala) {
                                                         $datosEscalaJSON = json_encode($datosEscala);
 
 
@@ -384,7 +384,7 @@ $sucursal_id = $_SESSION["sucursal_id"];
                                                 <tbody>
 
                                                     <?php
-                                                    foreach (listarDimensionArticuloMantenimiento() as $datosDimension) {
+                                                    foreach (listarDimensionArticuloMantenimiento($sucursal_id) as $datosDimension) {
                                                         $datosDimensionJSON = json_encode($datosDimension);
 
 
