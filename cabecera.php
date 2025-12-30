@@ -91,8 +91,8 @@ if ($flagRespuesta == 0) {
     <link rel="stylesheet" href="assets/css/demo.css" />
     <link rel="stylesheet" href="assets/css/stylePerzo.css" />
     <!-- Efectos Navideños -->
-    <!-- <link rel="stylesheet" href="assets/css/christmas-effects.css" /> -->
-    <link rel="stylesheet" href="assets/css/new-year.css"/>
+    <!-- <link rel="stylesheet" href="assets/css/christmas-effects.css" /> 
+    <link rel="stylesheet" href="assets/css/new-year.css"/> -->
 
 
 
