@@ -112,7 +112,6 @@ if ($flagRespuesta == 0) {
                             alt="navbar brand"
                             class="navbar-brand"
                             height="30" /> <span style="color: white; font-size: 14px;">Caracol Soft - <strong>LB RODRI</strong></span>
-
                     </a>
 
 
@@ -134,7 +133,7 @@ if ($flagRespuesta == 0) {
                 <div class="sidebar-content">
                     <ul class="nav nav-secondary">
 
-                        <?php if ($rol === '1') { ?>
+                        
                             <li class="nav-item ">
                                 <a
                                     data-bs-toggle="collapse"
@@ -304,7 +303,7 @@ if ($flagRespuesta == 0) {
                                     </ul>
                                 </div>
                             </li>
-                        <?php } ?>
+                        
                         
                         <li class="nav-item">
                             <a
@@ -501,7 +500,7 @@ if ($flagRespuesta == 0) {
                                                         <span class="text">Atender Reserva</span>
                                                     </div>
                                                 </a>
-                                                <?php if ($rol === '1') { ?>
+                                                
                                                     <a class="col-6 col-md-4 p-0" href="pagoCredito.php">
                                                         <div class="quick-actions-item">
                                                             <div
@@ -530,7 +529,7 @@ if ($flagRespuesta == 0) {
                                                         </div>
                                                     </a>
 
-                                                <?php } ?>
+                                                
 
                                             </div>
                                         </div>
