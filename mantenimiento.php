@@ -1,5 +1,6 @@
 <?php
 include("cabecera.php");
+$sucursal_id = $_SESSION["sucursal_id"];
 ?>
 <style>
     #sugerencias {
@@ -236,7 +237,7 @@ include("cabecera.php");
                                                 <tbody>
 
                                                     <?php
-                                                    foreach (listarTipoArticuloMantenimiento() as $datosTipo) {
+                                                    foreach (listarTipoArticuloMantenimiento($sucursal_id) as $datosTipo) {
                                                         $datosTipoJSON = json_encode($datosTipo);
 
 

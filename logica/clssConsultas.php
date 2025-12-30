@@ -4,6 +4,7 @@ include("bd.php");
 
 
 
+
 if (isset($_POST["accion"])) {
     $accion = $_POST["accion"];
     controladorConsultasPTMRE($accion);
@@ -271,17 +272,17 @@ function listarMovimientos(): array
     return executeQuery($query);
 }
 
-function listarProductosVenta1(): array
+function listarProductosVenta1($sucursal_id): array
 {
-    $query = "SELECT * FROM view_articulos WHERE precio_venta is not null;";
+    $query = "SELECT * FROM view_articulos WHERE precio_venta is not null AND sucursal_id = :sucursal_id; ";
 
-    return executeQuery($query);
+    return executeQuery($query,params:["sucursal_id" => $sucursal_id]);
 }
 
-function listarTipoArticuloMantenimiento(): array
+function listarTipoArticuloMantenimiento($sucursal_id): array
 {
-    $query = "select * from tipo";
-    return executeQuery($query);
+    $query = "select * from tipo where sucursal_id = :xxx";
+    return executeQuery($query, params:["xxx"=>$sucursal_id]);
 }
 
 function listarDimensionArticuloMantenimiento(): array

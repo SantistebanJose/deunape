@@ -1,4 +1,4 @@
-<?php include("cabecera.php") ?>
+<?php include("cabecera.php")?>
 
 <div class="container">
     <div class="page-inner">
@@ -9,6 +9,10 @@
                 <div class="card-sub">
                     Accede fácilmente a tu proceso de negocio con el menú de acceso rápido. Solo presiona un botón y serás llevado directamente a la acción.
                 </div>
+                <?php
+                echo json_encode($_SESSION)
+                ?>
+                <hr>
                 <div class="row">
                     <div class="col-sm-6 col-md-4">
                         <a href="venta_rapida_v2.php">

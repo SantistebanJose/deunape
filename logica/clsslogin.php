@@ -33,7 +33,7 @@ function login($user, $pass){
 
     try{
         // Prepara la consulta para obtener los datos del usuario
-        $orden = $conectar->prepare("SELECT u.id, u.username, u.rol, p.nombres, p.apellidos, p.email, u.password 
+        $orden = $conectar->prepare("SELECT u.id, u.username, u.rol, p.nombres, p.apellidos, p.email, u.password, u.sucursal_id
                                      FROM usuario AS u 
                                      INNER JOIN persona AS p ON u.persona_id = p.id 
                                      WHERE u.deleted_at IS NULL AND UPPER(u.username) = UPPER(:user);");
@@ -55,6 +55,7 @@ function login($user, $pass){
                 $_SESSION['nombre'] = $lista["nombres"];
                 $_SESSION['ape'] = $lista["apellidos"];
                 $_SESSION['correo'] = $lista["email"];
+                $_SESSION['sucursal_id'] = $lista["sucursal_id"];
 
                 echo json_encode($lista);  // Retorna los datos del usuario en formato JSON
             } else {
