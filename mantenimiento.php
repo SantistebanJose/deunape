@@ -239,8 +239,6 @@ $sucursal_id = $_SESSION["sucursal_id"];
                                                     <?php
                                                     foreach (listarTipoArticuloMantenimiento($sucursal_id) as $datosTipo) {
                                                         $datosTipoJSON = json_encode($datosTipo);
-
-
                                                     ?>
                                                         <tr>
                                                             <td><?php echo $datosTipo["id"] ?></td>
