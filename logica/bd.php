@@ -1,11 +1,19 @@
 <?php
 //para cuando lo subo a hosting
 
-$server = "localhost"; // O la IP del servidor PostgreSQL
-$bd = "sistema_libreria_rodri";      // Nombre de la base de datos
-$user = "postgres";    // Usuario de PostgreSQL (por defecto es "postgres")
-$pass = "76008509"; // Contraseña del usuario
-$port = "5432";        // Puerto de PostgreSQL (por defecto es 5432)
+//$server = "localhost"; 
+//$bd = "sistema_libreria_rodri";
+//$user = "postgres";
+//$pass = "76008509";
+//$port = "5432";
+
+
+$server = "aws-1-us-east-1.pooler.supabase.com";
+$bd = "postgres";
+$user = "postgres.jsrtcyygjhxnrtgbmwrp";
+$pass = "LqBG4VVUrK6_jcy";
+$port = "5432";
+
 
 try {
     // Incluye el puerto en el DSN
