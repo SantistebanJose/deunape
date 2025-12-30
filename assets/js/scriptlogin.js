@@ -12,28 +12,53 @@ async function iniciarSesion() {
     var passLogin = document.getElementById("password").value;
     var errorUserLog = document.getElementById("errorUserLog");
     var errorPassLog = document.getElementById("errorPassLog");
-    //const hashedPassword = await hashPassword(passLogin);
 
     errorUserLog.innerHTML = "";
     errorPassLog.innerHTML = "";
 
+    // Validaciones con SweetAlert
     if(usserLogin.trim() === "" && passLogin.trim() === ""){
-        errorPassLog.innerHTML = "El campo 'Contraseña' es obligatorio.";
-        errorUserLog.innerHTML = "El campo 'Usuario' es obligatorio.";
-        return
-
+        Swal.fire({
+            icon: 'warning',
+            title: 'Campos vacíos',
+            text: 'Por favor, ingresa tu usuario y contraseña',
+            confirmButtonColor: '#3085d6'
+        });
+        return;
     }
+    
     if (usserLogin.trim() === "") {
-        errorUserLog.innerHTML = "El campo 'Usuario' es obligatorio.";
+        Swal.fire({
+            icon: 'warning',
+            title: 'Usuario requerido',
+            text: 'Por favor, ingresa tu usuario',
+            confirmButtonColor: '#3085d6'
+        });
         return; 
     }
 
     if (passLogin.trim() === "") {
-        errorPassLog.innerHTML = "El campo 'Contraseña' es obligatorio.";
+        Swal.fire({
+            icon: 'warning',
+            title: 'Contraseña requerida',
+            text: 'Por favor, ingresa tu contraseña',
+            confirmButtonColor: '#3085d6'
+        });
         return; 
     }
 
-    // Si ambos campos tienen datos, realizar el AJAX
+    // Mostrar loading mientras se procesa
+    Swal.fire({
+        title: 'Iniciando sesión...',
+        text: 'Por favor espera',
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        didOpen: () => {
+            Swal.showLoading();
+        }
+    });
+
+    // Realizar el AJAX
     $.ajax({
         method: "POST",
         url: "logica/clsslogin.php",
@@ -45,22 +70,43 @@ async function iniciarSesion() {
     }).done(async function (text) {
         console.log(text);
         try {
-
             var userData = JSON.parse(text);
             if(userData){
                 if(userData.error){
-                    errorPassLog.innerHTML = userData.error;
-                    errorUserLog.innerHTML = userData.error;
-    
-                }else{
-                    window.location.href = "index.php"; 
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error de autenticación',
+                        text: userData.error,
+                        confirmButtonColor: '#d33'
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'success',
+                        title: '¡Bienvenido!',
+                        text: 'Inicio de sesión exitoso',
+                        timer: 1500,
+                        showConfirmButton: false
+                    }).then(() => {
+                        window.location.href = "index.php"; 
+                    });
                 }
             }
         } catch(e) {
             console.log(e);
-            errorPassLog.innerHTML = "Error al iniciar sesión.";
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Error al iniciar sesión. Intenta nuevamente.',
+                confirmButtonColor: '#d33'
+            });
         }
-
+    }).fail(function() {
+        Swal.fire({
+            icon: 'error',
+            title: 'Error de conexión',
+            text: 'No se pudo conectar con el servidor',
+            confirmButtonColor: '#d33'
+        });
     });
 }
 
