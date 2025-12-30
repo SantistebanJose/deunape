@@ -1,0 +1,329 @@
+/* ========================================
+   DISEÑO PERSONALIZADO - CARACOL SOFT
+   Color Principal: #25b562
+   ======================================== */
+
+/* === CABECERA Y NAVEGACIÓN === */
+.main-header {
+    background: linear-gradient(135deg, #25b562 0%, #1e9550 100%) !important;
+    box-shadow: 0 4px 20px rgba(37, 181, 98, 0.3) !important;
+    border-bottom: none !important;
+}
+
+.navbar-header {
+    background: transparent !important;
+}
+
+/* Usuario en navbar */
+.profile-username {
+    color: #ffffff !important;
+}
+
+.profile-username .op-7 {
+    color: rgba(255, 255, 255, 0.8) !important;
+}
+
+/* === SIDEBAR === */
+.sidebar[data-background-color="dark"] {
+    background: linear-gradient(180deg, #1a1d2e 0%, #252938 100%) !important;
+}
+
+.logo-header[data-background-color="dark"] {
+    background: linear-gradient(135deg, #25b562 0%, #1e9550 100%) !important;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Items del menú */
+.sidebar .nav > li > a {
+    color: #b8bcc8 !important;
+    transition: all 0.3s ease;
+}
+
+.sidebar .nav > li > a p {
+    color: #d1d5db !important;
+    font-weight: 500;
+}
+
+.sidebar .nav > li > a:hover {
+    background: rgba(37, 181, 98, 0.1) !important;
+    color: #25b562 !important;
+}
+
+.sidebar .nav > li > a:hover p {
+    color: #25b562 !important;
+}
+
+.sidebar .nav > li.active > a {
+    background: linear-gradient(90deg, rgba(37, 181, 98, 0.2) 0%, transparent 100%) !important;
+    border-left: 4px solid #25b562;
+    color: #25b562 !important;
+}
+
+.sidebar .nav > li.active > a p {
+    color: #25b562 !important;
+    font-weight: 600;
+}
+
+/* Sub-items del menú */
+.nav-collapse {
+    background-color: rgba(0, 0, 0, 0.2) !important;
+    padding: 10px 0;
+}
+
+.nav-collapse li {
+    padding: 5px 0;
+}
+
+.nav-collapse li a {
+    color: #9da3b0 !important;
+    padding: 8px 20px 8px 55px !important;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.nav-collapse li a::before {
+    content: "•";
+    position: absolute;
+    left: 40px;
+    color: #25b562;
+    font-size: 20px;
+}
+
+.nav-collapse li a .sub-item {
+    color: #b8bcc8 !important;
+    font-size: 14px;
+}
+
+.nav-collapse li a:hover {
+    color: #25b562 !important;
+    padding-left: 60px !important;
+    background: rgba(37, 181, 98, 0.05) !important;
+}
+
+.nav-collapse li a:hover .sub-item {
+    color: #25b562 !important;
+}
+
+.nav-collapse li a:active .sub-item,
+.nav-collapse li.active a .sub-item {
+    color: #25b562 !important;
+    font-weight: 600;
+}
+
+/* Iconos del menú */
+.sidebar .nav > li > a i {
+    color: #25b562;
+    font-size: 18px;
+}
+
+/* === BOTONES === */
+.btn-primary {
+    background: linear-gradient(135deg, #25b562 0%, #1e9550 100%) !important;
+    border: none !important;
+    box-shadow: 0 4px 15px rgba(37, 181, 98, 0.3);
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #1e9550 0%, #178743 100%) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(37, 181, 98, 0.4);
+}
+
+.btn-success {
+    background-color: #25b562 !important;
+    border-color: #25b562 !important;
+}
+
+/* === ACCESOS RÁPIDOS === */
+.quick-actions-header {
+    background: linear-gradient(135deg, #25b562 0%, #1e9550 100%) !important;
+}
+
+.quick-actions-item .avatar-item.bg-primary {
+    background: linear-gradient(135deg, #25b562 0%, #1e9550 100%) !important;
+}
+
+.quick-actions-item:hover {
+    transform: translateY(-5px);
+    transition: all 0.3s ease;
+}
+
+/* === TARJETAS === */
+.card {
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+    border: none;
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    box-shadow: 0 8px 25px rgba(37, 181, 98, 0.15);
+    transform: translateY(-3px);
+}
+
+.card-header {
+    background: linear-gradient(135deg, #25b562 0%, #1e9550 100%) !important;
+    color: white !important;
+    border-radius: 12px 12px 0 0 !important;
+    padding: 20px;
+    border: none;
+}
+
+/* === TABLAS === */
+.table thead th {
+    background: linear-gradient(135deg, #25b562 0%, #1e9550 100%);
+    color: white !important;
+    border: none;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 13px;
+    letter-spacing: 0.5px;
+}
+
+.table tbody tr:hover {
+    background-color: rgba(37, 181, 98, 0.05);
+    transition: all 0.2s ease;
+}
+
+/* === BADGES Y ETIQUETAS === */
+.badge-success {
+    background-color: #25b562 !important;
+}
+
+.badge-primary {
+    background-color: #25b562 !important;
+}
+
+/* === ENLACES === */
+a {
+    color: #25b562;
+    transition: all 0.2s ease;
+}
+
+a:hover {
+    color: #1e9550;
+    text-decoration: none;
+}
+
+/* === FORMULARIOS === */
+.form-control:focus {
+    border-color: #25b562;
+    box-shadow: 0 0 0 0.2rem rgba(37, 181, 98, 0.25);
+}
+
+.form-check-input:checked {
+    background-color: #25b562;
+    border-color: #25b562;
+}
+
+/* === SCROLLBAR PERSONALIZADO === */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #25b562 0%, #1e9550 100%);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #1e9550;
+}
+
+/* === DROPDOWN === */
+.dropdown-menu {
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    border: none;
+}
+
+.dropdown-item:hover {
+    background-color: rgba(37, 181, 98, 0.1);
+    color: #25b562;
+}
+
+/* === ALERTAS === */
+.alert-success {
+    background-color: rgba(37, 181, 98, 0.1);
+    border-left: 4px solid #25b562;
+    color: #1e9550;
+}
+
+/* === ANIMACIONES === */
+@keyframes pulse-green {
+    0%, 100% {
+        box-shadow: 0 0 0 0 rgba(37, 181, 98, 0.7);
+    }
+    50% {
+        box-shadow: 0 0 0 10px rgba(37, 181, 98, 0);
+    }
+}
+
+.btn-primary:active {
+    animation: pulse-green 0.5s ease-out;
+}
+
+/* === ICONOS CON COLOR === */
+.text-primary {
+    color: #25b562 !important;
+}
+
+.bg-primary {
+    background-color: #25b562 !important;
+}
+
+/* === RESPONSIVE === */
+@media (max-width: 768px) {
+    .main-header {
+        padding: 10px;
+    }
+    
+    .sidebar {
+        width: 250px;
+    }
+}
+
+/* === EFECTOS ADICIONALES === */
+.card-header h4,
+.card-header h3 {
+    margin: 0;
+    font-weight: 600;
+}
+
+/* Botones de acción */
+.btn-info {
+    background-color: #25b562 !important;
+    border-color: #25b562 !important;
+}
+
+.btn-info:hover {
+    background-color: #1e9550 !important;
+    border-color: #1e9550 !important;
+}
+
+/* === TOPBAR === */
+.topbar-nav .nav-link {
+    color: rgba(255, 255, 255, 0.9) !important;
+    transition: all 0.3s ease;
+}
+
+.topbar-nav .nav-link:hover {
+    color: #ffffff !important;
+    transform: scale(1.1);
+}
+
+/* === LOGO === */
+.logo span {
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* === DIVIDER === */
+.dropdown-divider {
+    border-color: rgba(37, 181, 98, 0.2);
+}

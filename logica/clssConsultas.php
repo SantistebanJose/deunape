@@ -73,6 +73,10 @@ function controladorConsultasPTMRE($accion)
                 echo json_encode($result ? $result : []);
             }
             break;
+        case 'RANKING_CLIENTES':
+            $datos = fnRankingClientes();
+            echo json_encode($datos);
+            break;
         case 'VENTAS_POR_RANGO':
             $fecha_inicio = $_POST['fecha_inicio'];
             $fecha_fin = $_POST['fecha_fin'];
@@ -1968,4 +1972,25 @@ function fnGenerarTicket($idVenta): void
     // GENERAR PDF
     ob_clean();
     $pdf->Output('I', 'ticket_venta.pdf');
+}
+
+function fnRankingClientes() {
+    $query = "
+        SELECT
+            p.nombres || ' ' || p.apellidos AS nombre_cliente,
+            SUM(v.monto_venta_final) AS total_compras_acumulado
+        FROM
+            public.venta v
+        INNER JOIN
+            public.persona p ON v.cliente_id = p.id
+        WHERE
+            v.estado_venta = 'VR'
+            AND v.deleted_at IS NULL
+        GROUP BY
+            p.id, p.nombres, p.apellidos
+        ORDER BY
+            total_compras_acumulado DESC
+    ";
+    
+    return executeQuery($query);
 }

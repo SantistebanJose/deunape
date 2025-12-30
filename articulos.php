@@ -583,7 +583,7 @@ include("cabecera.php");
         if (imagenesArticulo.length === 0) {
             container.innerHTML = '<div class="no-images-msg">' +
                 '<i class="fas fa-image fa-3x mb-2"></i>' +
-                '<p>No hay imágenes agregadas aún</p>' +
+                '<p>No hay imágenes o videos agregados aún</p>' +
                 '</div>';
             return;
         }
@@ -593,6 +593,7 @@ include("cabecera.php");
             var img = imagenesArticulo[i];
             var esPrincipal = i === imagenPrincipalIndex;
             var source = img.source || 'web';
+            var tipoMedio = img.tipo || 'imagen';
             var sourceLabel = source === 'drive' ? 'Drive' : 'Web';
             var sourceClass = source === 'drive' ? 'drive' : 'web';
             var sourceIcon = source === 'drive' ? 'fab fa-google-drive' : 'fas fa-globe';
@@ -606,6 +607,13 @@ include("cabecera.php");
             html += '<i class="' + sourceIcon + '"></i> ' + sourceLabel;
             html += '</span>';
             
+            // Badge para indicar si es video
+            if (tipoMedio === 'video') {
+                html += '<span class="badge-source" style="left: 140px; background: #e91e63; color: white;">';
+                html += '<i class="fas fa-video"></i> VIDEO';
+                html += '</span>';
+            }
+            
             if (!esPrincipal) {
                 html += '<button class="btn btn-success btn-sm btn-set-principal" onclick="event.stopPropagation(); establecerImagenPrincipal(' + i + ')" title="Marcar como principal">';
                 html += '<i class="fas fa-star"></i>';
@@ -617,15 +625,24 @@ include("cabecera.php");
             html += '</button>';
             
             html += '<div class="mt-4">';
-            html += '<input type="url" class="form-control form-control-sm mb-2" value="' + img.url + '" onchange="actualizarUrlImagen(' + i + ', this.value)" onclick="event.stopPropagation()" placeholder="URL de la imagen" />';
-            html += '<img src="' + img.url + '" class="preview-image" onerror="this.src=\'https://via.placeholder.com/300x200?text=Error+al+cargar\'" alt="Imagen ' + (i + 1) + '" />';
+            html += '<input type="url" class="form-control form-control-sm mb-2" value="' + img.url + '" onchange="actualizarUrlImagen(' + i + ', this.value)" onclick="event.stopPropagation()" placeholder="URL del medio" />';
+            
+            // Mostrar video o imagen según el tipo
+            if (tipoMedio === 'video') {
+                html += '<video controls class="preview-image" style="max-height: 200px;">';
+                html += '<source src="' + img.url + '" type="video/mp4">';
+                html += 'Tu navegador no soporta el elemento de video.';
+                html += '</video>';
+            } else {
+                html += '<img src="' + img.url + '" class="preview-image" onerror="this.src=\'https://via.placeholder.com/300x200?text=Error+al+cargar\'" alt="Imagen ' + (i + 1) + '" />';
+            }
+            
             html += '</div>';
             html += '</div>';
         }
         
         container.innerHTML = html;
     }
-
     // ESTABLECER IMAGEN PRINCIPAL
     function establecerImagenPrincipal(index) {
         if (index >= 0 && index < imagenesArticulo.length) {
@@ -638,6 +655,17 @@ include("cabecera.php");
                 timer: 1000
             });
         }
+    }
+    // Detectar si una URL es de video
+    function esVideo(url) {
+        const extensionesVideo = ['.mp4', '.webm', '.ogg', '.mov', '.avi', '.mkv'];
+        const urlLower = url.toLowerCase();
+        return extensionesVideo.some(ext => urlLower.includes(ext));
+    }
+
+    // Detectar el tipo de medio
+    function detectarTipoMedio(url) {
+        return esVideo(url) ? 'video' : 'imagen';
     }
 
     // AGREGAR IMAGEN
@@ -664,16 +692,20 @@ include("cabecera.php");
         }
         
         var nuevoIndex = imagenesArticulo.length + 1;
+        var tipoMedio = detectarTipoMedio(url);
+        
         imagenesArticulo.push({
             index: nuevoIndex,
             url: url,
-            source: 'web'
+            source: 'web',
+            tipo: tipoMedio  // 'imagen' o 'video'
         });
         
         input.value = '';
         renderizarListaImagenes();
         
-        swal("¡Imagen agregada!", "La imagen web se ha agregado correctamente", {
+        var mensaje = tipoMedio === 'video' ? 'El video se ha agregado correctamente' : 'La imagen web se ha agregado correctamente';
+        swal("¡Medio agregado!", mensaje, {
             icon: "success",
             buttons: false,
             timer: 1000
@@ -696,31 +728,29 @@ include("cabecera.php");
         var urlConvertida = convertirUrlDrive(urlOriginal);
         
         if (!urlConvertida) {
-            swal("Error", "El enlace de Drive no es válido. Asegúrate de:<br>1) Tener permisos públicos<br>2) Copiar el enlace completo", {
+            swal("Error", "El enlace de Drive no es válido...", {
                 icon: "error",
-                buttons: { confirm: { className: "btn btn-danger" } },
-                content: {
-                    element: "div",
-                    attributes: {
-                        innerHTML: "El enlace de Drive no es válido.<br><br><strong>Asegúrate de:</strong><br>1) Hacer clic derecho en la imagen<br>2) Seleccionar 'Obtener enlace'<br>3) Cambiar a 'Cualquier persona con el enlace'<br>4) Copiar y pegar el enlace aquí"
-                    }
-                }
+                buttons: { confirm: { className: "btn btn-danger" } }
             });
             return;
         }
         
         var nuevoIndex = imagenesArticulo.length + 1;
+        var tipoMedio = detectarTipoMedio(urlConvertida);
+        
         imagenesArticulo.push({
             index: nuevoIndex,
             url: urlConvertida,
             source: 'drive',
-            originalUrl: urlOriginal
+            originalUrl: urlOriginal,
+            tipo: tipoMedio  // 'imagen' o 'video'
         });
         
         input.value = '';
         renderizarListaImagenes();
         
-        swal("¡Imagen de Drive agregada!", "La imagen se ha agregado correctamente", {
+        var mensaje = tipoMedio === 'video' ? 'El video de Drive se ha agregado' : 'La imagen de Drive se ha agregado';
+        swal("¡Medio agregado!", mensaje, {
             icon: "success",
             buttons: false,
             timer: 1000

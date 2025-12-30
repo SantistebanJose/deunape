@@ -91,7 +91,9 @@ if ($flagRespuesta == 0) {
     <link rel="stylesheet" href="assets/css/demo.css" />
     <link rel="stylesheet" href="assets/css/stylePerzo.css" />
     <!-- Efectos Navideños -->
-<link rel="stylesheet" href="assets/css/christmas-effects.css" />
+    <!-- <link rel="stylesheet" href="assets/css/christmas-effects.css" /> -->
+    <link rel="stylesheet" href="assets/css/new-year.css"/>
+
 
 
 </head>
@@ -589,7 +591,9 @@ if ($flagRespuesta == 0) {
 
             <br>
 
-            <script src="assets/js/christmas-effects.js"></script>
+           <!-- <script src="assets/js/christmas-effects.js"></script> -->
+                        <script src="assets/js/new-year.js"></script>
+
             <script>
                 
                 document.addEventListener("DOMContentLoaded", function() {
