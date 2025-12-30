@@ -1,10 +1,10 @@
-<?php include("cabecera.php")?>
+<?php include("cabecera.php") ?>
 
 <div class="container">
     <div class="page-inner">
         <div class="card text-start">
             <div class="card-body">
-                
+
                 <h3 class="fw-bold mb-3"><i class="fas fa-reply-all"></i> Acceso Rápido</h3>
                 <div class="card-sub">
                     Accede fácilmente a tu proceso de negocio con el menú de acceso rápido. Solo presiona un botón y serás llevado directamente a la acción.
@@ -41,7 +41,7 @@
                                     <i class="fas fa-luggage-cart"></i>
                                     <i class="fab fa-whatsapp"></i>
                                     <i class="fab fa-telegram-plane"></i>
-                                    
+
                                 </div>
                                 <h6>Atender Reserva</h6>
                             </button>
@@ -50,54 +50,54 @@
                     </div>
                 </div>
                 <br>
-                <?php if ($rol === '1') { ?>
-                    <div class="row">
-                        <div class="col-sm-6 col-md-4">
-                            <a href="cajaChica.php">
-                                <button class="btn btn-danger btn-lg w-100">
-                                    <div class="icon-big text-center">
-                                        <i class="fas fa-box-open"></i>
-                                    </div>
-                                    <h6>Caja Chica</h6>
-                                </button>
-                            </a>
-                        </div>
-                        <div class="col-sm-6 col-md-4">
-                            <a href="manejoCaja.php">
-                                <button class="btn btn-warning btn-lg w-100">
-                                    <div class="icon-big text-center">
-                                        <i class="fas fa-toolbox"></i>
-                                    </div>
-                                    <h6>Manejo de Caja</h6>
-                                </button>
-                            </a>
-                        </div>
-                        <div class="col-sm-6 col-md-4">
-                            <a href="pagoCredito.php">
-                                <button class="btn btn-black btn-lg w-100">
-                                    <div class="icon-big text-center">
-                                        <i class="fas fa-credit-card"></i>
-                                    </div>
-                                    <h6>Pagos al Credito</h6>
-                                </button>
-                            </a>
 
-                        </div>
+                <div class="row">
+                    <div class="col-sm-6 col-md-4">
+                        <a href="cajaChica.php">
+                            <button class="btn btn-danger btn-lg w-100">
+                                <div class="icon-big text-center">
+                                    <i class="fas fa-box-open"></i>
+                                </div>
+                                <h6>Caja Chica</h6>
+                            </button>
+                        </a>
                     </div>
-                    <br>
-                    <div class="row">
-                        <div class="col-sm-6 col-md-4">
-                            <a href="generador_etiquetas.php">
-                                <button class="btn btn-info btn-lg w-100">
-                                    <div class="icon-big text-center">
-                                        <i class="fas fa-tags"></i>
-                                    </div>
-                                    <h6>Etiquetas de precios</h6>
-                                </button>
-                            </a>
-                        </div>
+                    <div class="col-sm-6 col-md-4">
+                        <a href="manejoCaja.php">
+                            <button class="btn btn-warning btn-lg w-100">
+                                <div class="icon-big text-center">
+                                    <i class="fas fa-toolbox"></i>
+                                </div>
+                                <h6>Manejo de Caja</h6>
+                            </button>
+                        </a>
                     </div>
-                <?php } ?>
+                    <div class="col-sm-6 col-md-4">
+                        <a href="pagoCredito.php">
+                            <button class="btn btn-black btn-lg w-100">
+                                <div class="icon-big text-center">
+                                    <i class="fas fa-credit-card"></i>
+                                </div>
+                                <h6>Pagos al Credito</h6>
+                            </button>
+                        </a>
+
+                    </div>
+                </div>
+                <br>
+                <div class="row">
+                    <div class="col-sm-6 col-md-4">
+                        <a href="generador_etiquetas.php">
+                            <button class="btn btn-info btn-lg w-100">
+                                <div class="icon-big text-center">
+                                    <i class="fas fa-tags"></i>
+                                </div>
+                                <h6>Etiquetas de precios</h6>
+                            </button>
+                        </a>
+                    </div>
+                </div>
+
 
 
 
@@ -106,7 +106,7 @@
 
 
         <hr>
-        
+
 
 
     </div>
