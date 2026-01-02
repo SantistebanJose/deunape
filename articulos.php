@@ -184,6 +184,7 @@ if (!$sucursal_id) {
                                 </div>
                             </div>
                         </div>
+                        <hr>
                         <div class="table-responsive">
                             <table id="multi-filter-select" class="display table table-striped table-hover">
                                 <thead>
