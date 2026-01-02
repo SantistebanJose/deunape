@@ -1,6 +1,12 @@
 <?php
 include("cabecera.php");
 $sucursal_id = isset($_SESSION['sucursal_id']) ? $_SESSION['sucursal_id'] : null;
+
+// Verificar que existe sucursal_id
+if (!$sucursal_id) {
+    echo '<div class="alert alert-danger">Error: No se ha establecido una sucursal activa.</div>';
+    exit;
+}
 ?>
 
 <style>
@@ -145,8 +151,8 @@ $sucursal_id = isset($_SESSION['sucursal_id']) ? $_SESSION['sucursal_id'] : null
         <div class="card text-start">
             <div class="card-body">
                 <div class="d-flex align-items-center justify-content-between">
-                    <h4 class="card-title"><i class="fas fa-chess-queen"> </i> Articulos</h4>
-                    <button class="btn btn-success rounded-5" id="btnAbrirModalGenerico"> <i class="fas fa-plus-circle"> </i> Agregar Articulo </button>
+                    <h4 class="card-title"><i class="fas fa-chess-queen"> </i> Artículos</h4>
+                    <button class="btn btn-success rounded-5" id="btnAbrirModalGenerico"> <i class="fas fa-plus-circle"> </i> Agregar Artículo </button>
                 </div>
                 <hr>
                 <div class="row justify-content-center align-items-center md-2">
@@ -183,19 +189,19 @@ $sucursal_id = isset($_SESSION['sucursal_id']) ? $_SESSION['sucursal_id'] : null
                                 <thead>
                                     <tr>
                                         <th>ID</th>
-                                        <th>Articulo</th>
-                                        <th>Categoria</th>
+                                        <th>Artículo</th>
+                                        <th>Categoría</th>
                                         <th>Tipo</th>
-                                        <th>Dimension</th>
-                                        <th>color</th>
+                                        <th>Dimensión</th>
+                                        <th>Color</th>
                                         <th>Stock</th>
                                         <th>Precio de Venta</th>
-                                        <th>Accion</th>
+                                        <th>Acción</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <?php
-                                    foreach (listarArticuloSinview() as $datosArticulo) {
+                                    foreach (listarArticuloSinview($sucursal_id) as $datosArticulo) {
                                         $datosArticuloJSON = json_encode($datosArticulo);
                                     ?>
                                         <tr>
@@ -258,7 +264,10 @@ $sucursal_id = isset($_SESSION['sucursal_id']) ? $_SESSION['sucursal_id'] : null
 <script src="assets/js/scriptNotify.js"></script>
 
 <script>
-    // Variable global para almacenar las imágenes
+    // Variable global para almacenar la sucursal_id
+    var SUCURSAL_ID = <?php echo json_encode($sucursal_id); ?>;
+    
+    // Variables globales para almacenar las imágenes
     let imagenesArticulo = [];
     let imagenPrincipalIndex = 0;
 
@@ -290,7 +299,7 @@ $sucursal_id = isset($_SESSION['sucursal_id']) ? $_SESSION['sucursal_id'] : null
             }
         });
 
-        // Filtros
+        // Filtros dinámicos
         table.column(2).data().unique().sort().each(function(d, j) {
             if (d !== "" && d !== "-") $('#filterCategoria').append('<option value="' + d + '">' + d + '</option>');
         });
@@ -332,38 +341,25 @@ $sucursal_id = isset($_SESSION['sucursal_id']) ? $_SESSION['sucursal_id'] : null
             table.columns().search('').draw();
         });
     });
+
     function extraerIdDrive(url) {
-        // Eliminar espacios
         url = url.trim();
-        
-        // Patrón 1: https://drive.google.com/file/d/FILE_ID/view
         let match = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
         if (match) return match[1];
-        
-        // Patrón 2: https://drive.google.com/open?id=FILE_ID
         match = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
         if (match) return match[1];
-        
-        // Patrón 3: Ya es un ID directo (sin / ni ?)
         if (url.length > 20 && !url.includes('/') && !url.includes('?')) {
             return url;
         }
-        
         return null;
     }
 
     function convertirUrlDrive(url) {
         const fileId = extraerIdDrive(url);
-        
-        if (!fileId) {
-            return null;
-        }
-        
-        // Formato para visualización directa
+        if (!fileId) return null;
         return `https://drive.google.com/uc?export=view&id=${fileId}`;
     }
 
-    // FUNCIÓN PARA GENERAR EL FORMULARIO
     function generarFormularioArticulo(isEdit, datosArticulo) {
         isEdit = isEdit || false;
         datosArticulo = datosArticulo || null;
@@ -372,7 +368,7 @@ $sucursal_id = isset($_SESSION['sucursal_id']) ? $_SESSION['sucursal_id'] : null
         html += '<button type="button" class="btn-close position-absolute top-0 end-0 m-2" data-bs-dismiss="modal" aria-label="Close" style="z-index: 1000;"></button>';
         html += '<div class="card-body">';
         html += '<h4 class="card-title text-center mb-3" style="font-size: 28px;">';
-        html += '<i class="fas fa-shopping-bag"></i> ' + (isEdit ? 'Modificar' : 'Registro de') + ' Articulos';
+        html += '<i class="fas fa-shopping-bag"></i> ' + (isEdit ? 'Modificar' : 'Registro de') + ' Artículos';
         html += '</h4>';
         html += '<div class="card-sub text-center mb-3">';
         html += isEdit ? 'Modifica los datos del artículo' : 'Aquí podrás <strong>registrar</strong> los Artículos <strong>NUEVOS.</strong>';
@@ -389,13 +385,11 @@ $sucursal_id = isset($_SESSION['sucursal_id']) ? $_SESSION['sucursal_id'] : null
         html += '<div class="card-body">';
         html += '<div class="row g-3">';
         
-        // Nombre
         html += '<div class="col-12">';
-        html += '<label class="form-label"><strong>Nombre de Articulo</strong> <span class="text-danger">*</span></label>';
-        html += '<input type="text" class="form-control" id="idRegistroNombreArticulo" placeholder="Articulo 1" />';
+        html += '<label class="form-label"><strong>Nombre de Artículo</strong> <span class="text-danger">*</span></label>';
+        html += '<input type="text" class="form-control" id="idRegistroNombreArticulo" placeholder="Artículo 1" />';
         html += '</div>';
         
-        // Categoría y Tipo
         html += '<div class="col-md-6">';
         html += '<label class="form-label"><strong>Categoría</strong></label>';
         html += '<select class="form-select form-select-sm" id="idRegistoCategoria">';
@@ -416,7 +410,6 @@ $sucursal_id = isset($_SESSION['sucursal_id']) ? $_SESSION['sucursal_id'] : null
         html += '</select>';
         html += '</div>';
         
-        // Dimensión y Escala
         html += '<div class="col-md-6">';
         html += '<label class="form-label"><strong>Dimensión</strong></label>';
         html += '<select class="form-select form-select-sm" id="idRegistroDimension">';
@@ -437,7 +430,6 @@ $sucursal_id = isset($_SESSION['sucursal_id']) ? $_SESSION['sucursal_id'] : null
         html += '</select>';
         html += '</div>';
         
-        // Marca y Color
         html += '<div class="col-md-6">';
         html += '<label class="form-label"><strong>Marca</strong></label>';
         html += '<input type="text" class="form-control" id="idRegistroMarca" placeholder="Ej: Artesco" />';
@@ -448,7 +440,6 @@ $sucursal_id = isset($_SESSION['sucursal_id']) ? $_SESSION['sucursal_id'] : null
         html += '<input type="text" class="form-control" id="idRegistroColor" placeholder="Rojo, verde, azul..." />';
         html += '</div>';
         
-        // Stock y Precios
         html += '<div class="col-md-4">';
         html += '<label class="form-label"><strong>Stock</strong></label>';
         html += '<input type="number" class="form-control" id="idRegistrarStock" placeholder="0" value="0" />';
@@ -464,13 +455,12 @@ $sucursal_id = isset($_SESSION['sucursal_id']) ? $_SESSION['sucursal_id'] : null
         html += '<input type="number" step="0.01" class="form-control" id="idRegistrarPrecioVenta" placeholder="0.00" value="0" />';
         html += '</div>';
         
-        // Requiere Corte
         html += '<div class="col-12">';
         html += '<label class="form-label"><strong>Requiere Corte</strong></label>';
         html += '<div class="d-flex gap-3">';
         html += '<div class="form-check">';
         html += '<input class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault1" value="Si" />';
-        html += '<label class="form-check-label" for="flexRadioDefault1">Si</label>';
+        html += '<label class="form-check-label" for="flexRadioDefault1">Sí</label>';
         html += '</div>';
         html += '<div class="form-check">';
         html += '<input class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault2" value="No" checked />';
@@ -479,12 +469,12 @@ $sucursal_id = isset($_SESSION['sucursal_id']) ? $_SESSION['sucursal_id'] : null
         html += '</div>';
         html += '</div>';
         
-        html += '</div>'; // row g-3
-        html += '</div>'; // card-body
-        html += '</div>'; // card
-        html += '</div>'; // col-md-7
+        html += '</div>';
+        html += '</div>';
+        html += '</div>';
+        html += '</div>';
         
-        // COLUMNA DERECHA - IMÁGENES CON TABS
+        // COLUMNA DERECHA - IMÁGENES
         html += '<div class="col-md-5">';
         html += '<div class="card">';
         html += '<div class="card-header bg-success text-white">';
@@ -492,7 +482,6 @@ $sucursal_id = isset($_SESSION['sucursal_id']) ? $_SESSION['sucursal_id'] : null
         html += '</div>';
         html += '<div class="card-body">';
         
-        // TABS
         html += '<ul class="nav nav-tabs mb-3" role="tablist">';
         html += '<li class="nav-item" role="presentation">';
         html += '<button class="nav-link active" id="url-tab" data-bs-toggle="tab" data-bs-target="#url-panel" type="button" role="tab">';
@@ -506,10 +495,8 @@ $sucursal_id = isset($_SESSION['sucursal_id']) ? $_SESSION['sucursal_id'] : null
         html += '</li>';
         html += '</ul>';
         
-        // TAB CONTENT
         html += '<div class="tab-content">';
         
-        // PANEL URL WEB
         html += '<div class="tab-pane fade show active" id="url-panel" role="tabpanel">';
         html += '<label class="form-label"><strong>URL de Imagen Web</strong></label>';
         html += '<div class="input-group mb-2">';
@@ -522,7 +509,6 @@ $sucursal_id = isset($_SESSION['sucursal_id']) ? $_SESSION['sucursal_id'] : null
         html += '<small class="form-text text-muted">Ingrese la URL completa de una imagen en internet</small>';
         html += '</div>';
         
-        // PANEL GOOGLE DRIVE
         html += '<div class="tab-pane fade" id="drive-panel" role="tabpanel">';
         html += '<label class="form-label"><strong>Enlace de Google Drive</strong></label>';
         html += '<div class="input-group mb-2">';
@@ -537,7 +523,7 @@ $sucursal_id = isset($_SESSION['sucursal_id']) ? $_SESSION['sucursal_id'] : null
         html += '</small>';
         html += '</div>';
         
-        html += '</div>'; // tab-content
+        html += '</div>';
         
         html += '<hr>';
         
@@ -551,13 +537,12 @@ $sucursal_id = isset($_SESSION['sucursal_id']) ? $_SESSION['sucursal_id'] : null
         html += '</div>';
         html += '</div>';
         
-        html += '</div>'; // card-body
-        html += '</div>'; // card
-        html += '</div>'; // col-md-5
+        html += '</div>';
+        html += '</div>';
+        html += '</div>';
         
-        html += '</div>'; // row principal
+        html += '</div>';
         
-        // Botón de acción
         html += '<div class="row mt-3">';
         html += '<div class="col-12 text-center">';
         html += '<button id="' + (isEdit ? 'btnEditarArticulo' : 'btnRegistrarArticulo') + '" class="btn btn-success btn-lg btn-round">';
@@ -566,13 +551,12 @@ $sucursal_id = isset($_SESSION['sucursal_id']) ? $_SESSION['sucursal_id'] : null
         html += '</div>';
         html += '</div>';
         
-        html += '</div>'; // card-body
-        html += '</div>'; // card
+        html += '</div>';
+        html += '</div>';
         
         return html;
     }
 
-    // FUNCIÓN PARA RENDERIZAR LISTA DE IMÁGENES
     function renderizarListaImagenes() {
         var container = document.getElementById('listaImagenes');
         var contador = document.getElementById('contadorImagenes');
@@ -608,7 +592,6 @@ $sucursal_id = isset($_SESSION['sucursal_id']) ? $_SESSION['sucursal_id'] : null
             html += '<i class="' + sourceIcon + '"></i> ' + sourceLabel;
             html += '</span>';
             
-            // Badge para indicar si es video
             if (tipoMedio === 'video') {
                 html += '<span class="badge-source" style="left: 140px; background: #e91e63; color: white;">';
                 html += '<i class="fas fa-video"></i> VIDEO';
@@ -628,7 +611,6 @@ $sucursal_id = isset($_SESSION['sucursal_id']) ? $_SESSION['sucursal_id'] : null
             html += '<div class="mt-4">';
             html += '<input type="url" class="form-control form-control-sm mb-2" value="' + img.url + '" onchange="actualizarUrlImagen(' + i + ', this.value)" onclick="event.stopPropagation()" placeholder="URL del medio" />';
             
-            // Mostrar video o imagen según el tipo
             if (tipoMedio === 'video') {
                 html += '<video controls class="preview-image" style="max-height: 200px;">';
                 html += '<source src="' + img.url + '" type="video/mp4">';
@@ -644,7 +626,7 @@ $sucursal_id = isset($_SESSION['sucursal_id']) ? $_SESSION['sucursal_id'] : null
         
         container.innerHTML = html;
     }
-    // ESTABLECER IMAGEN PRINCIPAL
+
     function establecerImagenPrincipal(index) {
         if (index >= 0 && index < imagenesArticulo.length) {
             imagenPrincipalIndex = index;
@@ -657,19 +639,17 @@ $sucursal_id = isset($_SESSION['sucursal_id']) ? $_SESSION['sucursal_id'] : null
             });
         }
     }
-    // Detectar si una URL es de video
+
     function esVideo(url) {
         const extensionesVideo = ['.mp4', '.webm', '.ogg', '.mov', '.avi', '.mkv'];
         const urlLower = url.toLowerCase();
         return extensionesVideo.some(ext => urlLower.includes(ext));
     }
 
-    // Detectar el tipo de medio
     function detectarTipoMedio(url) {
         return esVideo(url) ? 'video' : 'imagen';
     }
 
-    // AGREGAR IMAGEN
     function agregarImagen() {
         var input = document.getElementById('idNuevaUrlImagen');
         if (!input) return;
@@ -699,7 +679,7 @@ $sucursal_id = isset($_SESSION['sucursal_id']) ? $_SESSION['sucursal_id'] : null
             index: nuevoIndex,
             url: url,
             source: 'web',
-            tipo: tipoMedio  // 'imagen' o 'video'
+            tipo: tipoMedio
         });
         
         input.value = '';
@@ -712,6 +692,7 @@ $sucursal_id = isset($_SESSION['sucursal_id']) ? $_SESSION['sucursal_id'] : null
             timer: 1000
         });
     }
+
     function agregarImagenDrive() {
         var input = document.getElementById('idNuevaUrlDrive');
         if (!input) return;
@@ -744,7 +725,7 @@ $sucursal_id = isset($_SESSION['sucursal_id']) ? $_SESSION['sucursal_id'] : null
             url: urlConvertida,
             source: 'drive',
             originalUrl: urlOriginal,
-            tipo: tipoMedio  // 'imagen' o 'video'
+            tipo: tipoMedio
         });
         
         input.value = '';
@@ -758,7 +739,6 @@ $sucursal_id = isset($_SESSION['sucursal_id']) ? $_SESSION['sucursal_id'] : null
         });
     }
 
-    // ELIMINAR IMAGEN
     function eliminarImagen(index) {
         Swal.fire({
             title: '¿Eliminar imagen?',
@@ -787,7 +767,7 @@ $sucursal_id = isset($_SESSION['sucursal_id']) ? $_SESSION['sucursal_id'] : null
             }
         });
     }
-    // ACTUALIZAR URL
+
     function actualizarUrlImagen(index, nuevaUrl) {
         if (imagenesArticulo[index]) {
             imagenesArticulo[index].url = nuevaUrl;
@@ -795,7 +775,6 @@ $sucursal_id = isset($_SESSION['sucursal_id']) ? $_SESSION['sucursal_id'] : null
         }
     }
 
-    // OBTENER JSON DE IMÁGENES
     function obtenerJsonImagenes() {
         if (imagenesArticulo.length === 0) {
             return null;
@@ -812,14 +791,14 @@ $sucursal_id = isset($_SESSION['sucursal_id']) ? $_SESSION['sucursal_id'] : null
             imagenesConIndice.push({
                 index: i + 1,
                 url: imagenesOrdenadas[i].url,
-                source: imagenesOrdenadas[i].source || 'web'
+                source: imagenesOrdenadas[i].source || 'web',
+                tipo: imagenesOrdenadas[i].tipo || 'imagen'
             });
         }
         
         return JSON.stringify(imagenesConIndice);
     }
 
-    // CARGAR IMÁGENES DESDE JSON
     function cargarImagenesDesdeJson(jsonString) {
         imagenesArticulo = [];
         imagenPrincipalIndex = 0;
@@ -842,7 +821,6 @@ $sucursal_id = isset($_SESSION['sucursal_id']) ? $_SESSION['sucursal_id'] : null
         renderizarListaImagenes();
     }
 
-    // CONFIGURAR EVENTOS DE IMÁGENES
     function configurarEventosImagenes() {
         var btnAgregar = document.getElementById('btnAgregarImagen');
         var inputUrl = document.getElementById('idNuevaUrlImagen');
@@ -877,7 +855,6 @@ $sucursal_id = isset($_SESSION['sucursal_id']) ? $_SESSION['sucursal_id'] : null
         }
     }
 
-    // MODAL PARA AGREGAR NUEVO ARTÍCULO
     document.addEventListener("DOMContentLoaded", function() {
         document.getElementById("btnAbrirModalGenerico").addEventListener("click", function() {
             imagenesArticulo = [];
@@ -890,12 +867,11 @@ $sucursal_id = isset($_SESSION['sucursal_id']) ? $_SESSION['sucursal_id'] : null
             configurarEventosImagenes();
             renderizarListaImagenes();
 
-            // Evento del botón registrar
             document.getElementById("btnRegistrarArticulo").addEventListener("click", function() {
                 var nombreArticulo = document.getElementById("idRegistroNombreArticulo");
                 
                 if (!nombreArticulo || nombreArticulo.value.trim().length === 0) {
-                    swal("Ups!, Debes ingresar el nombre del Articulo", {
+                    swal("Ups!, Debes ingresar el nombre del Artículo", {
                         icon: "error",
                         buttons: { confirm: { className: "btn btn-danger" } }
                     });
@@ -905,7 +881,7 @@ $sucursal_id = isset($_SESSION['sucursal_id']) ? $_SESSION['sucursal_id'] : null
                 var categoriaSelect = document.getElementById("idRegistoCategoria");
                 
                 if (!categoriaSelect || categoriaSelect.value === "") {
-                    swal("Ups!, Para registrar un Articulo, debes elegir una Categoría", {
+                    swal("Ups!, Para registrar un Artículo, debes elegir una Categoría", {
                         icon: "error",
                         buttons: { confirm: { className: "btn btn-danger" } }
                     });
@@ -943,6 +919,7 @@ $sucursal_id = isset($_SESSION['sucursal_id']) ? $_SESSION['sucursal_id'] : null
                     "precio_venta": precioVenta && precioVenta.value !== "" ? parseFloat(precioVenta.value) : 0,
                     "precio_compra": precioCompra && precioCompra.value !== "" ? parseFloat(precioCompra.value) : 0,
                     "marca": marca && marca.value.trim() !== "" ? marca.value.trim() : null,
+                    "sucursal_id": SUCURSAL_ID,
                     "json_url_img": obtenerJsonImagenes()
                 };
 
@@ -998,7 +975,6 @@ $sucursal_id = isset($_SESSION['sucursal_id']) ? $_SESSION['sucursal_id'] : null
         });
     });
 
-    // FUNCIÓN PARA EDITAR ARTÍCULO
     function fn_editar_articulo(datosArticulo) {
         console.log("=== DATOS RECIBIDOS PARA EDITAR ===");
         console.log("Datos completos:", datosArticulo);
@@ -1007,7 +983,6 @@ $sucursal_id = isset($_SESSION['sucursal_id']) ? $_SESSION['sucursal_id'] : null
         imagenPrincipalIndex = 0;
         document.getElementById("contenidoArticulo").innerHTML = generarFormularioArticulo(true, datosArticulo);
 
-        // Función auxiliar para establecer valor de select
         var setSelectValueById = function(elementId, value) {
             var select = document.getElementById(elementId);
             if (select) {
@@ -1019,7 +994,6 @@ $sucursal_id = isset($_SESSION['sucursal_id']) ? $_SESSION['sucursal_id'] : null
             }
         };
 
-        // Rellenar campos
         setTimeout(function() {
             setSelectValueById("idRegistoCategoria", datosArticulo.categoria_id);
             setSelectValueById("idRegistoTipo", datosArticulo.tipo_id);
@@ -1052,7 +1026,6 @@ $sucursal_id = isset($_SESSION['sucursal_id']) ? $_SESSION['sucursal_id'] : null
                 if (radioNo) radioNo.checked = true;
             }
 
-            // Cargar imágenes existentes
             cargarImagenesDesdeJson(datosArticulo.json_url_img);
         }, 100);
 
@@ -1063,7 +1036,6 @@ $sucursal_id = isset($_SESSION['sucursal_id']) ? $_SESSION['sucursal_id'] : null
             configurarEventosImagenes();
         }, 150);
 
-        // Evento del botón editar
         setTimeout(function() {
             var btnEditar = document.getElementById("btnEditarArticulo");
             if (btnEditar) {
@@ -1071,7 +1043,7 @@ $sucursal_id = isset($_SESSION['sucursal_id']) ? $_SESSION['sucursal_id'] : null
                     var nombreArticulo = document.getElementById("idRegistroNombreArticulo");
                     
                     if (!nombreArticulo || nombreArticulo.value.trim().length === 0) {
-                        swal("Ups!, Debes ingresar el nombre del Articulo", {
+                        swal("Ups!, Debes ingresar el nombre del Artículo", {
                             icon: "error",
                             buttons: { confirm: { className: "btn btn-danger" } }
                         });
@@ -1111,6 +1083,7 @@ $sucursal_id = isset($_SESSION['sucursal_id']) ? $_SESSION['sucursal_id'] : null
                         "precio_venta": precioVenta && precioVenta.value !== "" ? parseFloat(precioVenta.value) : 0,
                         "precio_compra": precioCompra && precioCompra.value !== "" ? parseFloat(precioCompra.value) : 0,
                         "marca": marca && marca.value.trim() !== "" ? marca.value.trim() : null,
+                        "sucursal_id": SUCURSAL_ID,
                         "json_url_img": obtenerJsonImagenes()
                     };
 
@@ -1166,11 +1139,10 @@ $sucursal_id = isset($_SESSION['sucursal_id']) ? $_SESSION['sucursal_id'] : null
         }, 150);
     }
 
-    // FUNCIÓN PARA BLOQUEAR ARTÍCULO
     function fn_bloquear_articulo(datosArticulo) {
         Swal.fire({
             title: '¿Estás seguro?',
-            text: "Esta acción quitara la disponibilidad para venta del articulo.",
+            text: "Esta acción quitará la disponibilidad para venta del artículo.",
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#3085d6',
@@ -1184,7 +1156,8 @@ $sucursal_id = isset($_SESSION['sucursal_id']) ? $_SESSION['sucursal_id'] : null
                     url: "logica/clssInsertPA.php",
                     data: {
                         "accion": "BLOQUEAR_ARTICULO",
-                        "id": datosArticulo
+                        "id": datosArticulo,
+                        "sucursal_id": SUCURSAL_ID
                     }
                 }).done(function(response) {
                     var result = JSON.parse(response);
@@ -1205,11 +1178,10 @@ $sucursal_id = isset($_SESSION['sucursal_id']) ? $_SESSION['sucursal_id'] : null
         });
     }
 
-    // FUNCIÓN PARA ELIMINAR ARTÍCULO
     function fn_eliminar_articulo(idArticulo) {
         Swal.fire({
             title: '¿Estás seguro?',
-            text: "Esta acción eliminará al articulo.",
+            text: "Esta acción eliminará el artículo.",
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#3085d6',
@@ -1223,14 +1195,15 @@ $sucursal_id = isset($_SESSION['sucursal_id']) ? $_SESSION['sucursal_id'] : null
                     url: "logica/clssInsertPA.php",
                     data: {
                         "accion": "ELIMINAR_ARTICULO",
-                        "id": idArticulo
+                        "id": idArticulo,
+                        "sucursal_id": SUCURSAL_ID
                     }
                 }).done(function(response) {
                     var result = JSON.parse(response);
                     console.log(response);
 
                     if (result.estado === true) {
-                        swal("Articulo Eliminado!, No podrás volver a usarlo", {
+                        swal("Artículo Eliminado!, No podrás volver a usarlo", {
                             icon: "error",
                             buttons: { confirm: { className: "btn btn-danger" } }
                         }).then(function() {
@@ -1249,11 +1222,10 @@ $sucursal_id = isset($_SESSION['sucursal_id']) ? $_SESSION['sucursal_id'] : null
         });
     }
 
-    // FUNCIÓN PARA DESBLOQUEAR ARTÍCULO
     function fn_desbloquear_articulo(datosArticulo) {
         Swal.fire({
             title: '¿Estás seguro?',
-            text: "Esta acción habilitara la disponibilidad para venta del articulo.",
+            text: "Esta acción habilitará la disponibilidad para venta del artículo.",
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#3085d6',
@@ -1267,7 +1239,8 @@ $sucursal_id = isset($_SESSION['sucursal_id']) ? $_SESSION['sucursal_id'] : null
                     url: "logica/clssInsertPA.php",
                     data: {
                         "accion": "DESBLOQUEAR_ARTICULO",
-                        "id": datosArticulo
+                        "id": datosArticulo,
+                        "sucursal_id": SUCURSAL_ID
                     }
                 }).done(function(response) {
                     var result = JSON.parse(response);

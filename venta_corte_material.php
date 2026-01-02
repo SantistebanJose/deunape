@@ -136,7 +136,8 @@ $sucursal_id = $_SESSION["sucursal_id"];
                                         <tbody>
 
                                             <?php
-                                            foreach (listarVentaReservaCorte() as $datosReserva) {
+                                            $sucursal_id = isset($_SESSION['sucursal_id']) ? $_SESSION['sucursal_id'] : null;
+                                            foreach (listarVentaReservaCorte($sucursal_id) as $datosReserva) {
                                                 $datosReservaJSON = json_encode($datosReserva);
                                             ?>
                                                 <tr>
@@ -287,7 +288,7 @@ $sucursal_id = $_SESSION["sucursal_id"];
 
 
                         <script>
-                            const products = <?php echo json_encode(listarProductosVenta1()); ?>;
+                            const products = <?php echo json_encode(listarProductosVenta1($sucursal_id)); ?>;
                             let currentPage = 1;
                             const itemsPerPage = 6;
                             let filteredProducts = products; // Productos que se mostrarán después del filtro

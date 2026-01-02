@@ -1,5 +1,7 @@
 <?php
 include("bd.php");
+session_start();
+
 
 if (isset($_POST["accion"])) {
     $accion = $_POST["accion"];
@@ -9,6 +11,18 @@ if (isset($_POST["accion"])) {
 function controladorMantenimiento($accion)
 {
     switch ($accion) {
+        case 'INSERT_SERVICIOS':  // ← AGREGAR ESTE CASO
+            $data = json_decode($_POST["jsDatos"], true);
+            registrar_servicio($data);
+            break;
+        case 'REGISTAR_SERVICIO':
+            $data = json_decode($_POST["jsDatos"], true);
+            registrar_servicio($data);
+            break;
+        case 'EDITAR_SERVICIO':
+            $data = json_decode($_POST["jsDatos"], true);
+            editar_servicio($data);
+            break;
         case 'REGISTAR_TIPO_ARTICULO':
             $data = json_decode($_POST["jsDatos"], true); // Decodificar JSON
             registrar_tipo($data);
@@ -81,7 +95,6 @@ function controladorMantenimiento($accion)
 function registrar_tipo($datos = array()) {
     global $conectar;
     // IMPORTANTE: Obtener sucursal_id de la sesión
-    session_start();
     $sucursal_id = isset($_SESSION["sucursal_id"]) ? $_SESSION["sucursal_id"] : null;
 
     try {
@@ -110,7 +123,6 @@ function registrar_tipo($datos = array()) {
 function registrar_categoria($datos = array()) {
     global $conectar;
     // IMPORTANTE: Obtener sucursal_id de la sesión
-    session_start();
     $sucursal_id = isset($_SESSION["sucursal_id"]) ? $_SESSION["sucursal_id"] : null;
 
     try {
@@ -140,7 +152,6 @@ function registrar_categoria($datos = array()) {
 function registrar_escala($datos = array()) {
     global $conectar;
     // IMPORTANTE: Obtener sucursal_id de la sesión
-    session_start();
     $sucursal_id = isset($_SESSION["sucursal_id"]) ? $_SESSION["sucursal_id"] : null;
 
     try {
@@ -169,7 +180,6 @@ function registrar_escala($datos = array()) {
 function registrar_dimension($datos = array()) {
     global $conectar;
     // IMPORTANTE: Obtener sucursal_id de la sesión
-    session_start();
     $sucursal_id = isset($_SESSION["sucursal_id"]) ? $_SESSION["sucursal_id"] : null;
 
     try {
@@ -198,32 +208,33 @@ function registrar_dimension($datos = array()) {
 
 function editar_tipo($datos = array()) {
     global $conectar;
+    // Obtener sucursal actual
+    $sucursal_id = isset($_SESSION["sucursal_id"]) ? $_SESSION["sucursal_id"] : null;
 
     try {
-        // Verificar si el usuario existe
-        $verificarGenerico = $conectar->prepare("SELECT COUNT(*) FROM tipo WHERE id = :id");
+        // Verificar si el tipo existe en la sucursal
+        $verificarGenerico = $conectar->prepare("SELECT COUNT(*) FROM tipo WHERE id = :id AND sucursal_id = :sucursal_id");
         $verificarGenerico->bindParam(":id", $datos['id']);
+        $verificarGenerico->bindParam(":sucursal_id", $sucursal_id);
         $verificarGenerico->execute();
         $Existente = $verificarGenerico->fetchColumn();
 
         if ($Existente == 0) {
-            // Si no existe el usuario, retornar un error
             echo json_encode(["error" => true, "mensaje" => "Tipo no encontrado"]);
             return;
         }
 
         // Iniciar transacción
         $conectar->beginTransaction();
-        
-        // Preparar la consulta para actualizar los datos
-        $sql = "UPDATE tipo SET abreviatura = UPPER(:abreviatura), descripcion = :descripcion";
-        $sql .= " WHERE id = :id";
-        
+
+        // Preparar la consulta para actualizar los datos (limitada a la sucursal)
+        $sql = "UPDATE tipo SET abreviatura = UPPER(:abreviatura), descripcion = :descripcion WHERE id = :id AND sucursal_id = :sucursal_id";
+
         $orden = $conectar->prepare($sql);
         $orden->bindParam(":abreviatura", $datos['nombre']);
         $orden->bindParam(":descripcion", $datos['descripcion']);
         $orden->bindParam(":id", $datos['id']);
-        
+        $orden->bindParam(":sucursal_id", $sucursal_id);
 
         $orden->execute();
         $conectar->commit();
@@ -232,39 +243,41 @@ function editar_tipo($datos = array()) {
 
     } catch (\Throwable $th) {
         $conectar->rollBack();
-        error_log("Error en editar_usuario: " . $th->getMessage());
+        error_log("Error en editar_tipo: " . $th->getMessage());
         echo json_encode(["error" => true, "mensaje" => $th->getMessage()]);
     }
 }
 
 function editar_categoria($datos = array()) {
     global $conectar;
+    // Obtener sucursal actual
+    session_start();
+    $sucursal_id = isset($_SESSION["sucursal_id"]) ? $_SESSION["sucursal_id"] : null;
 
     try {
-        // Verificar si el usuario existe
-        $verificarGenerico = $conectar->prepare("SELECT COUNT(*) FROM categoria WHERE id = :id");
+        // Verificar si la categoría existe en la sucursal
+        $verificarGenerico = $conectar->prepare("SELECT COUNT(*) FROM categoria WHERE id = :id AND sucursal_id = :sucursal_id");
         $verificarGenerico->bindParam(":id", $datos['id']);
+        $verificarGenerico->bindParam(":sucursal_id", $sucursal_id);
         $verificarGenerico->execute();
         $Existente = $verificarGenerico->fetchColumn();
 
         if ($Existente == 0) {
-            // Si no existe el usuario, retornar un error
             echo json_encode(["error" => true,  "mensaje" => "Categoria no encontrada"]);
             return;
         }
 
         // Iniciar transacción
         $conectar->beginTransaction();
-        
-        // Preparar la consulta para actualizar los datos
-        $sql = "UPDATE categoria SET abreviatura = UPPER(:abreviatura), descripcion = :descripcion";
-        $sql .= " WHERE id = :id";
-        
+
+        // Preparar la consulta para actualizar los datos (limitada a la sucursal)
+        $sql = "UPDATE categoria SET abreviatura = UPPER(:abreviatura), descripcion = :descripcion WHERE id = :id AND sucursal_id = :sucursal_id";
+
         $orden = $conectar->prepare($sql);
         $orden->bindParam(":abreviatura", $datos['nombre']);
         $orden->bindParam(":descripcion", $datos['descripcion']);
         $orden->bindParam(":id", $datos['id']);
-        
+        $orden->bindParam(":sucursal_id", $sucursal_id);
 
         $orden->execute();
         $conectar->commit();
@@ -273,39 +286,40 @@ function editar_categoria($datos = array()) {
 
     } catch (\Throwable $th) {
         $conectar->rollBack();
-        error_log("Error en editar_usuario: " . $th->getMessage());
+        error_log("Error en editar_categoria: " . $th->getMessage());
         echo json_encode(["error" => true, "mensaje" => $th->getMessage()]);
     }
 }
 
 function editar_escala($datos = array()) {
     global $conectar;
+    // Obtener sucursal actual
+    $sucursal_id = isset($_SESSION["sucursal_id"]) ? $_SESSION["sucursal_id"] : null;
 
     try {
-        // Verificar si el usuario existe
-        $verificarGenerico = $conectar->prepare("SELECT COUNT(*) FROM escala WHERE id = :id");
+        // Verificar si la escala existe en la sucursal
+        $verificarGenerico = $conectar->prepare("SELECT COUNT(*) FROM escala WHERE id = :id AND sucursal_id = :sucursal_id");
         $verificarGenerico->bindParam(":id", $datos['id']);
+        $verificarGenerico->bindParam(":sucursal_id", $sucursal_id);
         $verificarGenerico->execute();
         $Existente = $verificarGenerico->fetchColumn();
 
         if ($Existente == 0) {
-            // Si no existe el usuario, retornar un error
-            echo json_encode(["error" => true, "mensaje" => "Escala no encontrado."]);
+            echo json_encode(["error" => true, "mensaje" => "Escala no encontrada."]);
             return;
         }
 
         // Iniciar transacción
         $conectar->beginTransaction();
-        
-        // Preparar la consulta para actualizar los datos
-        $sql = "UPDATE escala SET abreviatura = UPPER(:abreviatura), descripcion = :descripcion";
-        $sql .= " WHERE id = :id";
-        
+
+        // Preparar la consulta para actualizar los datos (limitada a la sucursal)
+        $sql = "UPDATE escala SET abreviatura = UPPER(:abreviatura), descripcion = :descripcion WHERE id = :id AND sucursal_id = :sucursal_id";
+
         $orden = $conectar->prepare($sql);
         $orden->bindParam(":abreviatura", $datos['nombre']);
         $orden->bindParam(":descripcion", $datos['descripcion']);
         $orden->bindParam(":id", $datos['id']);
-        
+        $orden->bindParam(":sucursal_id", $sucursal_id);
 
         $orden->execute();
         $conectar->commit();
@@ -314,39 +328,40 @@ function editar_escala($datos = array()) {
 
     } catch (\Throwable $th) {
         $conectar->rollBack();
-        error_log("Error en editar_usuario: " . $th->getMessage());
+        error_log("Error en editar_escala: " . $th->getMessage());
         echo json_encode(["error" => true, "mensaje" => $th->getMessage()]);
     }
 }
 
 function editar_dimension($datos = array()) {
     global $conectar;
+    // Obtener sucursal actual
+    $sucursal_id = isset($_SESSION["sucursal_id"]) ? $_SESSION["sucursal_id"] : null;
 
     try {
-        // Verificar si el usuario existe
-        $verificarGenerico = $conectar->prepare("SELECT COUNT(*) FROM dimension WHERE id = :id");
+        // Verificar si la dimensión existe en la sucursal
+        $verificarGenerico = $conectar->prepare("SELECT COUNT(*) FROM dimension WHERE id = :id AND sucursal_id = :sucursal_id");
         $verificarGenerico->bindParam(":id", $datos['id']);
+        $verificarGenerico->bindParam(":sucursal_id", $sucursal_id);
         $verificarGenerico->execute();
         $Existente = $verificarGenerico->fetchColumn();
 
         if ($Existente == 0) {
-            // Si no existe el usuario, retornar un error
             echo json_encode(["error" => true, "mensaje" => "Dimension no encontrado."]);
             return;
         }
 
         // Iniciar transacción
         $conectar->beginTransaction();
-        
-        // Preparar la consulta para actualizar los datos
-        $sql = "UPDATE dimension SET medida = UPPER(:medida), descripcion = :descripcion";
-        $sql .= " WHERE id = :id";
-        
+
+        // Preparar la consulta para actualizar los datos (limitada a la sucursal)
+        $sql = "UPDATE dimension SET medida = UPPER(:medida), descripcion = :descripcion WHERE id = :id AND sucursal_id = :sucursal_id";
+
         $orden = $conectar->prepare($sql);
         $orden->bindParam(":medida", $datos['nombre']);
         $orden->bindParam(":descripcion", $datos['descripcion']);
         $orden->bindParam(":id", $datos['id']);
-        
+        $orden->bindParam(":sucursal_id", $sucursal_id);
 
         $orden->execute();
         $conectar->commit();
@@ -355,7 +370,7 @@ function editar_dimension($datos = array()) {
 
     } catch (\Throwable $th) {
         $conectar->rollBack();
-        error_log("Error en editar_usuario: " . $th->getMessage());
+        error_log("Error en editar_dimension: " . $th->getMessage());
         echo json_encode(["error" => true, "message" => $th->getMessage()]);
     }
 }
@@ -364,27 +379,28 @@ function editar_dimension($datos = array()) {
 
 function toggle_estado_tipo($id, $accion) {
     global $conectar;
+    // Obtener sucursal actual
+    session_start();
+    $sucursal_id = isset($_SESSION["sucursal_id"]) ? $_SESSION["sucursal_id"] : null;
 
     try {
-        // Verificar si el usuario existe
-        $verificarUsuario = $conectar->prepare("SELECT COUNT(*) FROM tipo WHERE id = :id");
+        // Verificar si el tipo existe en la sucursal
+        $verificarUsuario = $conectar->prepare("SELECT COUNT(*) FROM tipo WHERE id = :id AND sucursal_id = :sucursal_id");
         $verificarUsuario->bindParam(":id", $id);
+        $verificarUsuario->bindParam(":sucursal_id", $sucursal_id);
         $verificarUsuario->execute();
         $usuarioExistente = $verificarUsuario->fetchColumn();
 
         if ($usuarioExistente == 0) {
-            // Si no existe el usuario, retornar un error
-            echo json_encode(["error" => true, "message" => "Usuario no encontrado."]);
+            echo json_encode(["error" => true, "message" => "Tipo no encontrado."]);
             return;
         }
 
-        // Determinar la acción
+        // Determinar la acción y limitar por sucursal
         if ($accion == "BLOQUEAR_TIPO") {
-            // Bloquear usuario (poner deleted_at)
-            $sql = "UPDATE tipo SET deleted_at = NOW() WHERE id = :id";
+            $sql = "UPDATE tipo SET deleted_at = NOW() WHERE id = :id AND sucursal_id = :sucursal_id";
         } elseif ($accion == "DESBLOQUEAR_TIPO") {
-            // Desbloquear usuario (eliminar deleted_at)
-            $sql = "UPDATE tipo SET deleted_at = NULL WHERE id = :id";
+            $sql = "UPDATE tipo SET deleted_at = NULL WHERE id = :id AND sucursal_id = :sucursal_id";
         } else {
             echo json_encode(["error" => true, "message" => "Acción no válida."]);
             return;
@@ -393,135 +409,219 @@ function toggle_estado_tipo($id, $accion) {
         // Ejecutar la actualización
         $orden = $conectar->prepare($sql);
         $orden->bindParam(":id", $id);
+        $orden->bindParam(":sucursal_id", $sucursal_id);
         $orden->execute();
 
-        echo json_encode(["success" => true, "message" => "Estado del usuario actualizado."]);
+        echo json_encode(["success" => true, "message" => "Estado del tipo actualizado."]);
 
     } catch (\Throwable $th) {
-        error_log("Error en toggle_estado_usuario: " . $th->getMessage());
+        error_log("Error en toggle_estado_tipo: " . $th->getMessage());
         echo json_encode(["error" => true, "message" => $th->getMessage()]);
     }
 }
 
 function toggle_estado_categoria($id, $accion) {
     global $conectar;
+    // Obtener sucursal actual
+    session_start();
+    $sucursal_id = isset($_SESSION["sucursal_id"]) ? $_SESSION["sucursal_id"] : null;
 
     try {
-        // Verificar si el usuario existe
-        $verificarUsuario = $conectar->prepare("SELECT COUNT(*) FROM categoria WHERE id = :id");
+        // Verificar si la categoría existe en la sucursal
+        $verificarUsuario = $conectar->prepare("SELECT COUNT(*) FROM categoria WHERE id = :id AND sucursal_id = :sucursal_id");
         $verificarUsuario->bindParam(":id", $id);
+        $verificarUsuario->bindParam(":sucursal_id", $sucursal_id);
         $verificarUsuario->execute();
         $usuarioExistente = $verificarUsuario->fetchColumn();
 
         if ($usuarioExistente == 0) {
-            // Si no existe el usuario, retornar un error
-            echo json_encode(["error" => true, "message" => "Usuario no encontrado."]);
+            echo json_encode(["error" => true, "message" => "Categoria no encontrada."]);
             return;
         }
 
-        // Determinar la acción
         if ($accion == "BLOQUEAR_CATEGORIA") {
-            // Bloquear usuario (poner deleted_at)
-            $sql = "UPDATE categoria SET deleted_at = NOW() WHERE id = :id";
+            $sql = "UPDATE categoria SET deleted_at = NOW() WHERE id = :id AND sucursal_id = :sucursal_id";
         } elseif ($accion == "DESBLOQUEAR_CATEGORIA") {
-            // Desbloquear usuario (eliminar deleted_at)
-            $sql = "UPDATE categoria SET deleted_at = NULL WHERE id = :id";
+            $sql = "UPDATE categoria SET deleted_at = NULL WHERE id = :id AND sucursal_id = :sucursal_id";
         } else {
             echo json_encode(["error" => true, "message" => "Acción no válida."]);
             return;
         }
 
-        // Ejecutar la actualización
         $orden = $conectar->prepare($sql);
         $orden->bindParam(":id", $id);
+        $orden->bindParam(":sucursal_id", $sucursal_id);
         $orden->execute();
 
-        echo json_encode(["success" => true, "message" => "Estado del usuario actualizado."]);
+        echo json_encode(["success" => true, "message" => "Estado de la categoría actualizado."]);
 
     } catch (\Throwable $th) {
-        error_log("Error en toggle_estado_usuario: " . $th->getMessage());
+        error_log("Error en toggle_estado_categoria: " . $th->getMessage());
         echo json_encode(["error" => true, "message" => $th->getMessage()]);
     }
 }
 
 function toggle_estado_escala($id, $accion) {
     global $conectar;
+    // Obtener sucursal actual
+    session_start();
+    $sucursal_id = isset($_SESSION["sucursal_id"]) ? $_SESSION["sucursal_id"] : null;
 
     try {
-        // Verificar si el usuario existe
-        $verificarUsuario = $conectar->prepare("SELECT COUNT(*) FROM escala WHERE id = :id");
+        $verificarUsuario = $conectar->prepare("SELECT COUNT(*) FROM escala WHERE id = :id AND sucursal_id = :sucursal_id");
         $verificarUsuario->bindParam(":id", $id);
+        $verificarUsuario->bindParam(":sucursal_id", $sucursal_id);
         $verificarUsuario->execute();
         $usuarioExistente = $verificarUsuario->fetchColumn();
 
         if ($usuarioExistente == 0) {
-            // Si no existe el usuario, retornar un error
-            echo json_encode(["error" => true, "message" => "Usuario no encontrado."]);
+            echo json_encode(["error" => true, "message" => "Escala no encontrada."]);
             return;
         }
 
-        // Determinar la acción
         if ($accion == "BLOQUEAR_ESCALA") {
-            // Bloquear usuario (poner deleted_at)
-            $sql = "UPDATE escala SET deleted_at = NOW() WHERE id = :id";
+            $sql = "UPDATE escala SET deleted_at = NOW() WHERE id = :id AND sucursal_id = :sucursal_id";
         } elseif ($accion == "DESBLOQUEAR_ESCALA") {
-            // Desbloquear usuario (eliminar deleted_at)
-            $sql = "UPDATE escala SET deleted_at = NULL WHERE id = :id";
+            $sql = "UPDATE escala SET deleted_at = NULL WHERE id = :id AND sucursal_id = :sucursal_id";
         } else {
             echo json_encode(["error" => true, "message" => "Acción no válida."]);
             return;
         }
 
-        // Ejecutar la actualización
         $orden = $conectar->prepare($sql);
         $orden->bindParam(":id", $id);
+        $orden->bindParam(":sucursal_id", $sucursal_id);
         $orden->execute();
 
-        echo json_encode(["success" => true, "message" => "Estado del usuario actualizado."]);
+        echo json_encode(["success" => true, "message" => "Estado de la escala actualizado."]);
 
     } catch (\Throwable $th) {
-        error_log("Error en toggle_estado_usuario: " . $th->getMessage());
+        error_log("Error en toggle_estado_escala: " . $th->getMessage());
         echo json_encode(["error" => true, "message" => $th->getMessage()]);
     }
 }
 
 function toggle_estado_dimension($id, $accion) {
     global $conectar;
+    // Obtener sucursal actual
+    session_start();
+    $sucursal_id = isset($_SESSION["sucursal_id"]) ? $_SESSION["sucursal_id"] : null;
 
     try {
-        // Verificar si el usuario existe
-        $verificarUsuario = $conectar->prepare("SELECT COUNT(*) FROM dimension WHERE id = :id");
+        $verificarUsuario = $conectar->prepare("SELECT COUNT(*) FROM dimension WHERE id = :id AND sucursal_id = :sucursal_id");
         $verificarUsuario->bindParam(":id", $id);
+        $verificarUsuario->bindParam(":sucursal_id", $sucursal_id);
         $verificarUsuario->execute();
         $usuarioExistente = $verificarUsuario->fetchColumn();
 
         if ($usuarioExistente == 0) {
-            // Si no existe el usuario, retornar un error
-            echo json_encode(["error" => true, "message" => "Usuario no encontrado."]);
+            echo json_encode(["error" => true, "message" => "Dimension no encontrada."]);
             return;
         }
 
-        // Determinar la acción
         if ($accion == "BLOQUEAR_DIMENSION") {
-            // Bloquear usuario (poner deleted_at)
-            $sql = "UPDATE dimension SET deleted_at = NOW() WHERE id = :id";
+            $sql = "UPDATE dimension SET deleted_at = NOW() WHERE id = :id AND sucursal_id = :sucursal_id";
         } elseif ($accion == "DESBLOQUEAR_DIMENSION") {
-            // Desbloquear usuario (eliminar deleted_at)
-            $sql = "UPDATE dimension SET deleted_at = NULL WHERE id = :id";
+            $sql = "UPDATE dimension SET deleted_at = NULL WHERE id = :id AND sucursal_id = :sucursal_id";
         } else {
             echo json_encode(["error" => true, "message" => "Acción no válida."]);
             return;
         }
 
-        // Ejecutar la actualización
         $orden = $conectar->prepare($sql);
         $orden->bindParam(":id", $id);
+        $orden->bindParam(":sucursal_id", $sucursal_id);
         $orden->execute();
 
-        echo json_encode(["success" => true, "message" => "Estado del usuario actualizado."]);
+        echo json_encode(["success" => true, "message" => "Estado de la dimensión actualizado."]);
 
     } catch (\Throwable $th) {
-        error_log("Error en toggle_estado_usuario: " . $th->getMessage());
+        error_log("Error en toggle_estado_dimension: " . $th->getMessage());
         echo json_encode(["error" => true, "message" => $th->getMessage()]);
+    }
+
+    
+}
+function registrar_servicio($datos = array()) {
+    global $conectar;
+    // NO llamar session_start() aquí, ya está iniciada en el archivo principal
+    
+    try {
+        $conectar->beginTransaction();
+        
+        // Convertir array de medidas a formato PostgreSQL array
+        $medidas_str = '{' . implode(',', $datos['medidas']) . '}';
+        
+        // Asegurarse de que sucursal_id existe
+        $sucursal_id = isset($datos['sucursal_id']) ? $datos['sucursal_id'] : null;
+        
+        if (!$sucursal_id) {
+            throw new Exception("sucursal_id es requerido");
+        }
+        
+        $orden = $conectar->prepare("INSERT INTO movimiento (descripcion, medidas, sucursal_id)
+                                     VALUES (:descripcion, :medidas::text[], :sucursal_id);");
+        $orden->bindParam(":descripcion", $datos['descripcion']);
+        $orden->bindParam(":medidas", $medidas_str);
+        $orden->bindParam(":sucursal_id", $sucursal_id);
+
+        $orden->execute();
+        $servicio_id = $conectar->lastInsertId();
+        $orden->closeCursor();
+
+        $conectar->commit();
+        echo json_encode(["estado" => true, "mensaje" => "Servicio registrado con éxito", "servicio_id" => $servicio_id]);
+
+    } catch (\Throwable $th) {
+        $conectar->rollBack();
+        error_log("Error en registrar_servicio: " . $th->getMessage());
+        echo json_encode(["estado" => false, "mensaje" => $th->getMessage()]);
+    }
+}
+
+function editar_servicio($datos = array()) {
+    global $conectar;
+    $sucursal_id = isset($_SESSION["sucursal_id"]) ? $_SESSION["sucursal_id"] : null;
+
+    try {
+        // Verificar si el servicio existe en la sucursal
+        $verificar = $conectar->prepare("SELECT COUNT(*) FROM movimiento WHERE id = :id AND sucursal_id = :sucursal_id");
+        $verificar->bindParam(":id", $datos['id']);
+        $verificar->bindParam(":sucursal_id", $sucursal_id);
+        $verificar->execute();
+        $existe = $verificar->fetchColumn();
+
+        if ($existe == 0) {
+            echo json_encode(["estado" => false, "mensaje" => "Servicio no encontrado"]);
+            return;
+        }
+
+        $conectar->beginTransaction();
+        
+        // Convertir array de medidas a formato PostgreSQL array
+        // Si el array está vacío, usar array vacío de PostgreSQL
+        if (empty($datos['medidas'])) {
+            $medidas_str = '{}';
+        } else {
+            $medidas_str = '{' . implode(',', $datos['medidas']) . '}';
+        }
+        
+        $sql = "UPDATE movimiento SET descripcion = :descripcion, medidas = :medidas::text[] WHERE id = :id AND sucursal_id = :sucursal_id";
+        
+        $orden = $conectar->prepare($sql);
+        $orden->bindParam(":descripcion", $datos['descripcion']);
+        $orden->bindParam(":medidas", $medidas_str);
+        $orden->bindParam(":id", $datos['id']);
+        $orden->bindParam(":sucursal_id", $sucursal_id);
+
+        $orden->execute();
+        $conectar->commit();
+
+        echo json_encode(["estado" => true, "mensaje" => "Servicio actualizado con éxito"]);
+
+    } catch (\Throwable $th) {
+        $conectar->rollBack();
+        error_log("Error en editar_servicio: " . $th->getMessage());
+        echo json_encode(["estado" => false, "mensaje" => $th->getMessage()]);
     }
 }

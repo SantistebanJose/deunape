@@ -1,5 +1,6 @@
 <?php
 include("cabecera.php");
+$sucursal_id = isset($_SESSION['sucursal_id']) ? $_SESSION['sucursal_id'] : null;
 include("logica/clssVenta.php");
 
 
@@ -223,7 +224,7 @@ if (isset($_GET['id'])) {
                                         <tbody>
 
                                             <?php
-                                            foreach (listarProductosVenta1() as $datosArticulo) {
+                                            foreach (listarProductosVenta1($sucursal_id) as $datosArticulo) {
                                                 $datosArticuloJSON = json_encode($datosArticulo);
 
 

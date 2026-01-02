@@ -400,9 +400,18 @@ function paRegistrarArticuloCompleto($jsDatosArticulo)
 
     $data = json_decode($jsDatosArticulo, true);
 
+    // ✅ Agregar validación de sucursal_id
+    if (!isset($data['sucursal_id']) || empty($data['sucursal_id'])) {
+        echo json_encode([
+            'estado' => false,
+            'mensaje' => 'Error: sucursal_id no proporcionado o inválido'
+        ]);
+        return;
+    }
+
     $categoria_id = $data['categoria_id'];
     $color = $data['color'];
-    $corte = $data['corte']; // Mantener como booleano
+    $corte = $data['corte'];
     $dimension_id = $data['dimension_id'];
     $escala_id = $data['escala_id'];
     $stock = $data['stock'];
@@ -412,8 +421,10 @@ function paRegistrarArticuloCompleto($jsDatosArticulo)
     $nombre = $data['nombre'];
     $tipo_id = $data['tipo_id'];
     $json_url_img = $data['json_url_img'];
+    $sucursal_id = $data['sucursal_id']; // ✅ NUEVO
 
     try {
+        // ✅ Agregar sucursal_id a la llamada de función
         $sql = "SELECT * FROM fn_registrar_articulo_completo(
             :nombre, 
             :categoria_id, 
@@ -426,7 +437,8 @@ function paRegistrarArticuloCompleto($jsDatosArticulo)
             :precio_venta, 
             :precio_compra,
             :marca,
-            :json_url_img
+            :json_url_img,
+            :sucursal_id
         )";
 
         $stmt = $conectar->prepare($sql);
@@ -437,7 +449,6 @@ function paRegistrarArticuloCompleto($jsDatosArticulo)
         $stmt->bindParam(':dimension_id', $dimension_id);
         $stmt->bindParam(':escala_id', $escala_id);
         
-        // ✅ Convertir booleano a string 'true'/'false' para PostgreSQL
         $corte_str = $corte ? 'true' : 'false';
         $stmt->bindParam(':corte', $corte_str);
         
@@ -447,12 +458,12 @@ function paRegistrarArticuloCompleto($jsDatosArticulo)
         $stmt->bindParam(':precio_compra', $precio_compra);
         $stmt->bindParam(':marca', $marca);
         $stmt->bindParam(':json_url_img', $json_url_img);
+        $stmt->bindParam(':sucursal_id', $sucursal_id, PDO::PARAM_INT); // ✅ NUEVO
 
         $stmt->execute();
 
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
         
-        // ✅ La función retorna una tabla, necesitamos acceder a las columnas
         if ($row) {
             echo json_encode([
                 'estado' => $row['estado'],
@@ -478,31 +489,49 @@ function paRegistrarArticuloCompleto($jsDatosArticulo)
 function fnElimarArticulo($id)
 {
     global $conectar;
+    
     try {
-        $sql = "
-        update articulo set deleted_at =  CURRENT_TIMESTAMP where id = :id;
-        ";
+        // ✅ Agregar verificación de sucursal_id
+        $sucursal_id = isset($_POST['sucursal_id']) ? $_POST['sucursal_id'] : null;
+        
+        if (!$sucursal_id) {
+            echo json_encode(['estado' => false, 'mensaje' => 'sucursal_id no proporcionado']);
+            return;
+        }
+        
+        $sql = "UPDATE articulo SET deleted_at = CURRENT_TIMESTAMP 
+                WHERE id = :id AND sucursal_id = :sucursal_id";
+        
         $stmt = $conectar->prepare($sql);
         $stmt->bindParam(":id", $id);
+        $stmt->bindParam(":sucursal_id", $sucursal_id, PDO::PARAM_INT);
         $stmt->execute();
 
-
         if ($stmt->rowCount() > 0) {
-
-            echo json_encode(['estado' => true, 'mensaje' => 'Artículo actualizado con éxito']);
+            echo json_encode(['estado' => true, 'mensaje' => 'Artículo eliminado con éxito']);
         } else {
-
             echo json_encode(['estado' => false, 'mensaje' => 'No se realizó ninguna actualización. Verifique los datos']);
         }
     } catch (\Throwable $th) {
         echo json_encode(['estado' => false, 'mensaje' => $th->getMessage()]);
     }
 }
+
+
 function paEditarArticuloCompleto($jsDatosArticulo)
 {
     global $conectar;
 
     $data = json_decode($jsDatosArticulo, true);
+    
+    // ✅ Agregar validación de sucursal_id
+    if (!isset($data['sucursal_id']) || empty($data['sucursal_id'])) {
+        echo json_encode([
+            'estado' => false,
+            'mensaje' => 'Error: sucursal_id no proporcionado o inválido'
+        ]);
+        return;
+    }
     
     $id = $data['id'];
     $categoria_id = $data['categoria_id'];
@@ -517,8 +546,10 @@ function paEditarArticuloCompleto($jsDatosArticulo)
     $nombre = $data['nombre'];
     $tipo_id = $data['tipo_id'];
     $json_url_img = $data['json_url_img'];
+    $sucursal_id = $data['sucursal_id']; // ✅ NUEVO
 
     try {
+        // ✅ Agregar sucursal_id a la llamada de función
         $sql = "SELECT * FROM fn_editar_articulo_completo(
             :id,
             :nombre,
@@ -532,7 +563,8 @@ function paEditarArticuloCompleto($jsDatosArticulo)
             :precio_venta,
             :precio_compra,
             :marca,
-            :json_url_img
+            :json_url_img,
+            :sucursal_id
         )";
 
         $stmt = $conectar->prepare($sql);
@@ -544,7 +576,6 @@ function paEditarArticuloCompleto($jsDatosArticulo)
         $stmt->bindParam(':dimension_id', $dimension_id);
         $stmt->bindParam(':escala_id', $escala_id);
         
-        // ✅ Convertir booleano a string para PostgreSQL
         $corte_str = $corte ? 'true' : 'false';
         $stmt->bindParam(':corte', $corte_str);
         
@@ -554,6 +585,7 @@ function paEditarArticuloCompleto($jsDatosArticulo)
         $stmt->bindParam(':precio_compra', $precio_compra);
         $stmt->bindParam(':marca', $marca);
         $stmt->bindParam(':json_url_img', $json_url_img);
+        $stmt->bindParam(':sucursal_id', $sucursal_id, PDO::PARAM_INT); // ✅ NUEVO
 
         $stmt->execute();
 
@@ -584,36 +616,44 @@ function toggle_estado_articulo_completo($id, $accion)
     global $conectar;
 
     try {
-        // Verificar si el usuario existe
-        $verificarUsuario = $conectar->prepare("SELECT COUNT(*) FROM articulo WHERE id = :id");
-        $verificarUsuario->bindParam(":id", $id);
-        $verificarUsuario->execute();
-        $usuarioExistente = $verificarUsuario->fetchColumn();
+        // ✅ Agregar verificación de sucursal_id
+        $sucursal_id = isset($_POST['sucursal_id']) ? $_POST['sucursal_id'] : null;
+        
+        if (!$sucursal_id) {
+            echo json_encode(["error" => true, "message" => "sucursal_id no proporcionado."]);
+            return;
+        }
 
-        if ($usuarioExistente == 0) {
-            // Si no existe el usuario, retornar un error
-            echo json_encode(["error" => true, "message" => "Articulo no encontrado."]);
+        // Verificar si el artículo existe EN LA SUCURSAL
+        $verificarArticulo = $conectar->prepare("SELECT COUNT(*) FROM articulo WHERE id = :id AND sucursal_id = :sucursal_id");
+        $verificarArticulo->bindParam(":id", $id);
+        $verificarArticulo->bindParam(":sucursal_id", $sucursal_id, PDO::PARAM_INT);
+        $verificarArticulo->execute();
+        $articuloExistente = $verificarArticulo->fetchColumn();
+
+        if ($articuloExistente == 0) {
+            echo json_encode(["error" => true, "message" => "Artículo no encontrado en esta sucursal."]);
             return;
         }
 
         // Determinar la acción
         if ($accion == "BLOQUEAR_ARTICULO") {
-            // Bloquear usuario (poner deleted_at)
-            $sql = "UPDATE articulo SET disponibilidad_venta_fh = NOW(), disponibilidad_venta = TRUE WHERE id = :id";
+            $sql = "UPDATE articulo SET disponibilidad_venta_fh = NOW(), disponibilidad_venta = TRUE 
+                    WHERE id = :id AND sucursal_id = :sucursal_id";
         } elseif ($accion == "DESBLOQUEAR_ARTICULO") {
-            // Desbloquear usuario (eliminar deleted_at)
-            $sql = "UPDATE articulo SET disponibilidad_venta_fh = NULL,  disponibilidad_venta = FALSE WHERE id = :id";
+            $sql = "UPDATE articulo SET disponibilidad_venta_fh = NULL, disponibilidad_venta = FALSE 
+                    WHERE id = :id AND sucursal_id = :sucursal_id";
         } else {
             echo json_encode(["error" => true, "message" => "Acción no válida."]);
             return;
         }
 
-        // Ejecutar la actualización
         $orden = $conectar->prepare($sql);
         $orden->bindParam(":id", $id);
+        $orden->bindParam(":sucursal_id", $sucursal_id, PDO::PARAM_INT);
         $orden->execute();
 
-        echo json_encode(["success" => true, "message" => "Estado del articulo actualizado."]);
+        echo json_encode(["success" => true, "message" => "Estado del artículo actualizado."]);
     } catch (\Throwable $th) {
         error_log("Error en toggle_estado_articulo: " . $th->getMessage());
         echo json_encode(["error" => true, "message" => $th->getMessage()]);

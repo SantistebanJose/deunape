@@ -81,7 +81,8 @@ function controladorConsultasPTMRE($accion)
         case 'VENTAS_POR_RANGO':
             $fecha_inicio = $_POST['fecha_inicio'];
             $fecha_fin = $_POST['fecha_fin'];
-            echo json_encode(fnListForVentasPorRango($fecha_inicio, $fecha_fin));
+            $sucursal_id = isset($_SESSION['sucursal_id']) ? $_SESSION['sucursal_id'] : null;
+            echo json_encode(fnListForVentasPorRango($fecha_inicio, $fecha_fin, $sucursal_id));
             break;
     }
 }
@@ -165,7 +166,7 @@ function listarUsuarios(): array
     return executeQuery($query);
 }
 
-function fnListForVentasPorRango($fecha_inicio, $fecha_fin) {
+function fnListForVentasPorRango($fecha_inicio, $fecha_fin, $sucursal_id) {
     $query = "
         SELECT 
             v.fecha_fin_transaccion,
@@ -206,13 +207,15 @@ function fnListForVentasPorRango($fecha_inicio, $fecha_fin) {
         LEFT JOIN persona AS p ON v.cliente_id = p.id
         WHERE v.estado_venta = 'VR' 
         AND v.deleted_at IS NULL
+        AND us.sucursal_id = :sucursal_id
         AND v.fecha_fin_transaccion::DATE BETWEEN :fecha_inicio AND :fecha_fin
         ORDER BY v.fecha_fin_transaccion DESC
     ";
     
     return executeQuery($query, [
         'fecha_inicio' => $fecha_inicio,
-        'fecha_fin' => $fecha_fin
+        'fecha_fin' => $fecha_fin,
+        'sucursal_id' => $sucursal_id
     ]);
 }
 
@@ -313,29 +316,40 @@ function listarCategoriaArticuloMantenimiento($sucursal_id): array
     return executeQuery($query, ["sucursal_id" => $sucursal_id]);
 }
 
-function listarArticuloSinview(): array
+function listarArticuloSinview($sucursal_id = null): array
 {
     $query = "
     SELECT 
-    a.id as articulo_id,a.nombre as articulo,a.precio_venta,a.stock,a.deleted_at,a.corte,a.marca, d.medida as dimension, t.abreviatura as tipo,e.abreviatura as escala,c.abreviatura as categoria, a.disponibilidad_venta_fh,
+    a.id as articulo_id,
+    a.nombre as articulo,
+    a.precio_venta,
+    a.stock,
+    a.deleted_at,
+    a.corte,
+    a.marca, 
+    d.medida as dimension, 
+    t.abreviatura as tipo,
+    e.abreviatura as escala,
+    c.abreviatura as categoria, 
+    a.disponibilidad_venta_fh,
     a.color,
     CASE 
-		WHEN a.color IS NULL THEN
-			'SIN COLOR'
-		ELSE
-			a.color
-	END color_v2,
+        WHEN a.color IS NULL THEN 'SIN COLOR'
+        ELSE a.color
+    END color_v2,
     a.*
     FROM articulo a
     LEFT JOIN categoria c ON c.id = a.categoria_id 
     LEFT JOIN dimension d ON d.id = a.dimension_id 
     LEFT JOIN tipo t ON t.id = a.tipo_id
     LEFT JOIN escala e ON e.id = a.escala_id
-    WHERE a.deleted_at is null
-    order by a.id";
-    return executeQuery($query);
+    WHERE a.deleted_at IS NULL
+    AND a.sucursal_id = :sucursal_id
+    ORDER BY a.id DESC";
+    
+    return executeQuery($query, ['sucursal_id' => $sucursal_id]);
 }
-function listarVentaReservaCorte(): array
+function listarVentaReservaCorte($sucursal_id = null): array
 {
     $query = "
         SELECT 
@@ -360,9 +374,10 @@ function listarVentaReservaCorte(): array
         INNER JOIN persona AS usua ON us.persona_id = usua.id
         INNER JOIN persona AS p ON v.cliente_id = p.id
         WHERE v.deleted_at IS NULL
+        AND us.sucursal_id = :sucursal_id
         AND v.estado_venta <> 'VR';
     ";
-    return executeQuery($query);
+    return executeQuery($query, ['sucursal_id' => $sucursal_id]);
 }
 
 function listarVentasNoDeclaradas()
@@ -588,10 +603,14 @@ function listarFormaPago(): array
     $query = "SELECT *,updated_at::date as fecha, TO_CHAR(updated_at, 'HH12:MI:SS AM') as hora FROM forma_pago WHERE deleted_at IS NULL AND unsubscribe IS NULL  order by orden";
     return executeQuery($query);
 }
-function listarFormaPago_v2(): array
+function listarFormaPago_v2($sucursal_id = null): array
 {
-    $query = "SELECT *,updated_at::date as fecha, TO_CHAR(updated_at, 'HH12:MI:SS AM') as hora FROM forma_pago WHERE deleted_at IS NULL order by id";
-    return executeQuery($query);
+    if ($sucursal_id === null) {
+        $query = "SELECT *,updated_at::date as fecha, TO_CHAR(updated_at, 'HH12:MI:SS AM') as hora FROM forma_pago WHERE deleted_at IS NULL order by id";
+        return executeQuery($query);
+    }
+    $query = "SELECT *,updated_at::date as fecha, TO_CHAR(updated_at, 'HH12:MI:SS AM') as hora FROM forma_pago WHERE deleted_at IS NULL AND sucursal_id = :sucursal_id order by id";
+    return executeQuery($query, ['sucursal_id' => $sucursal_id]);
 }
 function listarEmpleados(): array
 {
@@ -630,9 +649,9 @@ function fnSiguienteCorrelativo($tipo_comprobante)
         from comprobante where tipo_comprobante=:tipo_comprobante AND estado_envio=true
          and mensaje_sunat='Ok';;
     ";
-    return executeQuery($sql, params: [":tipo_comprobante" => $tipo_comprobante]);
+    return executeQuery($sql, [":tipo_comprobante" => $tipo_comprobante]);
 }
-function fnListForVentasDiarias(): array
+function fnListForVentasDiarias($sucursal_id = null): array
 {
     $query = "
             SELECT 
@@ -675,16 +694,17 @@ function fnListForVentasDiarias(): array
         LEFT JOIN persona AS p ON v.cliente_id = p.id
         WHERE v.estado_venta = 'VR' 
         AND v.deleted_at IS NULL
+        AND us.sucursal_id = :sucursal_id
         AND v.fecha_fin_transaccion::DATE = current_date
         --AND v.fecha_fin_transaccion >= date_trunc('week', CURRENT_DATE)
         --AND v.fecha_fin_transaccion < CURRENT_DATE + INTERVAL '1 day'
         ORDER BY v.fecha_fin_transaccion;
     ";
-    return executeQuery($query);
+    return executeQuery($query, ['sucursal_id' => $sucursal_id]);
 }
 
 
-function fnListForVentasSemanales(): array
+function fnListForVentasSemanales($sucursal_id = null): array
 {
     $query = "
             SELECT 
@@ -727,13 +747,14 @@ function fnListForVentasSemanales(): array
         LEFT JOIN persona AS p ON v.cliente_id = p.id
         WHERE v.estado_venta = 'VR' 
         AND v.deleted_at IS NULL
+        AND us.sucursal_id = :sucursal_id
         AND v.fecha_fin_transaccion >= date_trunc('week', CURRENT_DATE)
         AND v.fecha_fin_transaccion < CURRENT_DATE + INTERVAL '1 day'
         ORDER BY v.fecha_fin_transaccion;
     ";
-    return executeQuery($query);
+    return executeQuery($query, ['sucursal_id' => $sucursal_id]);
 }
-function fnListForVentasTodasLasVentas(): array
+function fnListForVentasTodasLasVentas($sucursal_id = null): array
 {
     $query = "
             SELECT 
@@ -776,11 +797,12 @@ function fnListForVentasTodasLasVentas(): array
         LEFT JOIN persona AS p ON v.cliente_id = p.id
         WHERE v.estado_venta = 'VR' 
         AND v.deleted_at IS NULL
+        AND us.sucursal_id = :sucursal_id
         --AND v.fecha_fin_transaccion >= CURRENT_DATE - INTERVAL '3 months'
         --AND v.fecha_fin_transaccion < CURRENT_DATE + INTERVAL '1 day'
         ORDER BY v.fecha_fin_transaccion;
     ";
-    return executeQuery($query);
+    return executeQuery($query, ['sucursal_id' => $sucursal_id]);
 }
 
 function fnUltimaVentaPorIdVenta($id_venta): array
@@ -885,7 +907,7 @@ function fnUltimaVentaPorIdVenta($id_venta): array
     --AND v.fecha_fin_transaccion::DATE = current_date 
     ORDER BY v.fecha_fin_transaccion;
     ";
-    return executeQuery($query, params: ['idVenta' => $id_venta]);
+    return executeQuery($query, ['idVenta' => $id_venta]);
 }
 function fnListarDetalleVentaID($idVenta): array
 {
@@ -913,10 +935,10 @@ function fnListarDetalleVentaID($idVenta): array
         LEFT JOIN articulo AS ar ON rva.articulo_id = ar.id
         LEFT JOIN dimension AS dim ON ar.dimension_id = dim.id
         WHERE rva.venta_id = :idVenta;";
-    return executeQuery($query, params: ['idVenta' => $idVenta]);
+    return executeQuery($query, ['idVenta' => $idVenta]);
 }
 
-function fnListForClientesDeuda(): array
+function fnListForClientesDeuda($sucursal_id = null): array
 {
     $query = "
     SELECT 
@@ -929,15 +951,18 @@ function fnListForClientesDeuda(): array
         cliente.telefonomovil,
         cliente.email,
         CONCAT(cliente.nombres, ' ', cliente.apellidos) AS cliente, 
-        (SELECT SUM (monto-acumulado) FROM deuda WHERE cliente_id=cliente.id) as monto_deuda_pendiente
+        (SELECT SUM (monto-acumulado) FROM deuda WHERE cliente_id=cliente.id AND id_venta IN (SELECT id FROM venta WHERE usuario_id IN (SELECT id FROM usuario WHERE sucursal_id = :sucursal_id))) as monto_deuda_pendiente
     FROM 
     persona as cliente
     JOIN deuda as d ON d.cliente_id = cliente.id
-    WHERE d.estado='PENDIENTE';
+    JOIN venta as v ON v.id = d.id_venta
+    JOIN usuario as us ON us.id = v.usuario_id
+    WHERE d.estado='PENDIENTE'
+    AND us.sucursal_id = :sucursal_id;
     ";
-    return executeQuery($query);
+    return executeQuery($query, ['sucursal_id' => $sucursal_id]);
 }
-function fnListForClientesDeudaPagasAndNoPagadas(): array
+function fnListForClientesDeudaPagasAndNoPagadas($sucursal_id = null): array
 {
     $query = "
     SELECT 
@@ -950,13 +975,16 @@ function fnListForClientesDeudaPagasAndNoPagadas(): array
         cliente.telefonomovil,
         cliente.email,
         CONCAT(cliente.nombres, ' ', cliente.apellidos) AS cliente, 
-        (SELECT SUM (monto-acumulado) FROM deuda WHERE cliente_id=cliente.id) as monto_deuda_pendiente
+        (SELECT SUM (monto-acumulado) FROM deuda WHERE cliente_id=cliente.id AND id_venta IN (SELECT id FROM venta WHERE usuario_id IN (SELECT id FROM usuario WHERE sucursal_id = :sucursal_id))) as monto_deuda_pendiente
     FROM 
     persona as cliente
-    JOIN deuda as d ON d.cliente_id = cliente.id;
+    JOIN deuda as d ON d.cliente_id = cliente.id
+    JOIN venta as v ON v.id = d.id_venta
+    JOIN usuario as us ON us.id = v.usuario_id
+    WHERE us.sucursal_id = :sucursal_id;
     --WHERE d.estado='PENDIENTE';
     ";
-    return executeQuery($query);
+    return executeQuery($query, ['sucursal_id' => $sucursal_id]);
 }
 function fnListForDeudaPendientes($idCliente): array
 {
@@ -972,7 +1000,7 @@ function fnListForDeudaPendientes($idCliente): array
     WHERE estado <>'PAGADO'
     AND cliente_id= :id_clientedemrd;
     ";
-    return executeQuery($query, params: ['id_clientedemrd' => $idCliente]);
+    return executeQuery($query, ['id_clientedemrd' => $idCliente]);
 }
 function fnListForAbonosConsolidadoCliente($idCliente): array
 {
@@ -1046,7 +1074,7 @@ function fnListForAbonosConsolidadoCliente($idCliente): array
     order by 8 desc
     limit 10;
     ";
-    return executeQuery($query, params: ['idCliente' => $idCliente]);
+    return executeQuery($query, ['idCliente' => $idCliente]);
 }
 function fnListForAbonosCliente($idCliente): array
 {
@@ -1065,7 +1093,7 @@ function fnListForAbonosCliente($idCliente): array
     WHERE c.id=:id_clientedemrd ;
 
     ";
-    return executeQuery($query, params: ['id_clientedemrd' => $idCliente]);
+    return executeQuery($query, ['id_clientedemrd' => $idCliente]);
 }
 
 function fnListForAbonosClientePorVentaPagadas($idAbono): array
@@ -1084,10 +1112,10 @@ function fnListForAbonosClientePorVentaPagadas($idAbono): array
     WHERE ad.abono_id=:abono_id
     ORDER BY 1;
     ";
-    return executeQuery($query, params: ['abono_id' => $idAbono]);
+    return executeQuery($query, ['abono_id' => $idAbono]);
 }
 
-function fnListForPagos(): array
+function fnListForPagos($sucursal_id = null): array
 {
     $query = "   
             SELECT 
@@ -1152,7 +1180,6 @@ function fnListForPagos(): array
                 INNER JOIN persona AS usua ON us.persona_id = usua.id
                 INNER JOIN persona AS ci ON v.cliente_id = ci.id
                 WHERE v.id = p.id_venta
-                --WHERE v.estado_venta = 'VR' 
                 AND v.deleted_at IS NULL
             ) as js_venta,
             (
@@ -1197,15 +1224,16 @@ function fnListForPagos(): array
             ) as js_detalle_forma_pago
             FROM pago p
             JOIN venta as v ON v.id = p.id_venta
-            -- WHERE p.id = 2
-            where p.created_at::date = current_date
+            INNER JOIN usuario AS us ON v.usuario_id = us.id
+            WHERE us.sucursal_id = :sucursal_id
+            AND p.created_at::date = CURRENT_DATE
             order by p.created_at desc;
     ";
-    return executeQuery($query);
+    return executeQuery($query, ['sucursal_id' => $sucursal_id]);  // ← AGREGADO EL PARÁMETRO
 }
 
 
-function fnListForPagosSemanales(): array
+function fnListForPagosSemanales($sucursal_id = null): array
 {
 
     $query = "   
@@ -1316,17 +1344,18 @@ function fnListForPagosSemanales(): array
             ) as js_detalle_forma_pago
             FROM pago p
             JOIN venta as v ON v.id = p.id_venta
+            INNER JOIN usuario AS us ON v.usuario_id = us.id
             -- WHERE p.id = 2
-            Where p.created_at::date >= date_trunc('week', CURRENT_DATE)
+            WHERE us.sucursal_id = :sucursal_id
+            AND p.created_at::date >= date_trunc('week', CURRENT_DATE)
             AND p.created_at::date < CURRENT_DATE + INTERVAL '1 day'
             order by p.created_at desc;
     ";
-    return executeQuery($query);
+    return executeQuery($query, ['sucursal_id' => $sucursal_id]);
 }
 
-function fnListForAllPagos(): array
+function fnListForAllPagos($sucursal_id = null): array
 {
-
     $query = "   
             SELECT 
             p.created_at,
@@ -1391,7 +1420,6 @@ function fnListForAllPagos(): array
                 INNER JOIN persona AS usua ON us.persona_id = usua.id
                 INNER JOIN persona AS ci ON v.cliente_id = ci.id
                 WHERE v.id = p.id_venta
-                --WHERE v.estado_venta = 'VR' 
                 AND v.deleted_at IS NULL
             ) as js_venta,
             (
@@ -1436,14 +1464,12 @@ function fnListForAllPagos(): array
             ) as js_detalle_forma_pago
             FROM pago p
             JOIN venta as v ON v.id = p.id_venta
-            -- WHERE p.id = 2
-            --Where p.created_at::date >= date_trunc('week', CURRENT_DATE)
-            --AND p.created_at::date < CURRENT_DATE + INTERVAL '1 day'
+            INNER JOIN usuario AS us ON v.usuario_id = us.id
+            WHERE us.sucursal_id = :sucursal_id
             order by p.created_at desc;
     ";
-    return executeQuery($query);
+    return executeQuery($query, ['sucursal_id' => $sucursal_id]);  // ← AGREGADO EL PARÁMETRO
 }
-
 
 function fnListadoProveedores($cadena): array
 {
@@ -1462,7 +1488,7 @@ function fnListadoProveedores($cadena): array
     ";
 
     // Ejecuta la consulta con el parámetro de búsqueda
-    return executeQuery($query, params: ['busqueda' => '%' . $cadena . '%']);
+    return executeQuery($query, ['busqueda' => '%' . $cadena . '%']);
 }
 
 function fnListadoProductos($cadena): array
@@ -1482,7 +1508,7 @@ function fnListadoProductos($cadena): array
     ";
 
     // Ejecuta la consulta con el parámetro de búsqueda
-    return executeQuery($query, params: ['busqueda' => '%' . $cadena . '%']);
+    return executeQuery($query, ['busqueda' => '%' . $cadena . '%']);
 }
 function fnListadoCompras(): array
 {
@@ -1663,7 +1689,7 @@ function fnListadoCajaChicaCerradas(): array
     return executeQuery($query);
 }
 
-function fnListadoConceptosEgresos($tipoCaja): array
+function fnListadoConceptosEgresos($tipoCaja, $sucursal_id = null): array
 {
 
     $query = "     
@@ -1673,12 +1699,17 @@ function fnListadoConceptosEgresos($tipoCaja): array
     concepto 
     WHERE id NOT IN (1) AND tipo_caja IN (:tipo_caja,'A')
     AND deleted_at IS null
+    " . ($sucursal_id !== null ? "AND sucursal_id = :sucursal_id" : "") . "
     ORDER BY orden
     ";
 
-    return executeQuery($query, params: ["tipo_caja" => $tipoCaja]);
+    $params = ["tipo_caja" => $tipoCaja];
+    if ($sucursal_id !== null) {
+        $params['sucursal_id'] = $sucursal_id;
+    }
+    return executeQuery($query, $params);
 }
-function fnListadoMovimientoCajaGrande(): array
+function fnListadoMovimientoCajaGrande($sucursal_id = null): array
 {
 
     $query = "     
@@ -1705,11 +1736,12 @@ function fnListadoMovimientoCajaGrande(): array
     FROM 
     detalle_caja_grande dc 
     JOIN forma_pago fp ON fp.id=dc.forma_pago_id
-    where dc.deleted_at is null -- and dc.tipo_movimiento = 'EGRESO'
+    LEFT JOIN usuario us ON us.id = dc.responsable_id
+    where dc.deleted_at is null AND (us.sucursal_id = :sucursal_id OR :sucursal_id IS NULL) -- and dc.tipo_movimiento = 'EGRESO'
     ORDER by 1;
     ";
 
-    return executeQuery($query);
+    return executeQuery($query, ['sucursal_id' => $sucursal_id]);
 }
 
 

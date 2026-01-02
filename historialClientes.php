@@ -27,7 +27,8 @@ include("cabecera.php");
                         </thead>
                         <tbody>
                             <?php
-                            foreach (fnListForClientesDeudaPagasAndNoPagadas() as $datos) {
+                            $sucursal_id = isset($_SESSION['sucursal_id']) ? $_SESSION['sucursal_id'] : null;
+                            foreach (fnListForClientesDeudaPagasAndNoPagadas($sucursal_id) as $datos) {
                                 $datosJSON = json_encode($datos);
                             ?>
                                 <tr>

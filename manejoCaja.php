@@ -22,7 +22,9 @@ include("cabecera.php");
 
 
         <div class="row">
-            <?php foreach (listarFormaPago_v2() as $datos) {
+            <?php 
+            $sucursal_id = isset($_SESSION['sucursal_id']) ? $_SESSION['sucursal_id'] : null;
+            foreach (listarFormaPago_v2($sucursal_id) as $datos) {
                 $datosJSON = json_encode($datos);
             ?>
                 <div class="col-12 col-md-3 mb-4">
@@ -167,7 +169,8 @@ include("cabecera.php");
                                 </thead>
                                 <tbody>
                                     <?php
-                                    foreach (fnListadoMovimientoCajaGrande() as $datos) {
+                                    $sucursal_id = isset($_SESSION['sucursal_id']) ? $_SESSION['sucursal_id'] : null;
+                                    foreach (fnListadoMovimientoCajaGrande($sucursal_id) as $datos) {
                                         $datosJSON = json_encode($datos);
                                     ?>
                                         <tr>
@@ -231,7 +234,9 @@ include("cabecera.php");
                                     <label for="idSelectConceptoEgreso" class="form-label"><strong> <i class="fas fa-align-left"></i> Concepto</strong></label>
                                     <select class="form-select form-select-md w-100" aria-label="Default select example" id="idSelectConceptoEgresoGrande">
                                         <option selected>Seleccione Concepto</option>
-                                        <?php foreach (fnListadoConceptosEgresos("G") as $datos) { ?>
+                                        <?php 
+                                        $sucursal_id = isset($_SESSION['sucursal_id']) ? $_SESSION['sucursal_id'] : null;
+                                        foreach (fnListadoConceptosEgresos("G", $sucursal_id) as $datos) { ?>
                                             <option value="<?php echo $datos["id"] ?>"><?php echo $datos["titulo"] ?></option>
                                         <?php } ?>
                                     </select>

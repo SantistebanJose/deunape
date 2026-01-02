@@ -48,7 +48,8 @@ if (isset($_GET['id'])) {
                                             </thead>
                                             <tbody>
                                                 <?php
-                                                foreach (fnListForPagos() as $datos) {
+                                                $sucursal_id = isset($_SESSION['sucursal_id']) ? $_SESSION['sucursal_id'] : null;
+                                                foreach (fnListForPagos($sucursal_id) as $datos) {
                                                     $datosJSON = json_encode($datos);
                                                     $ventaJSON = json_decode($datos["js_venta"], true);
 
@@ -114,7 +115,8 @@ if (isset($_GET['id'])) {
                                             </thead>
                                             <tbody>
                                                 <?php
-                                                foreach (fnListForPagosSemanales() as $datos) {
+                                                $sucursal_id = isset($_SESSION['sucursal_id']) ? $_SESSION['sucursal_id'] : null;
+                                                foreach (fnListForPagosSemanales($sucursal_id) as $datos) {
                                                     $datosJSON = json_encode($datos);
                                                     $ventaJSON = json_decode($datos["js_venta"], true);
                                                 ?>

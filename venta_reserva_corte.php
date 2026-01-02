@@ -236,7 +236,7 @@ $sucursal_id = $_SESSION["sucursal_id"];
                                 </div>
 
                                 <script>
-                                    const products = <?php echo json_encode(listarProductosVenta1()); ?>;
+                                    const products = <?php echo json_encode(listarProductosVenta1($sucursal_id)); ?>;
                                     let currentPage = 1;
                                     const itemsPerPage = 6;
                                     let filteredProducts = products; // Productos que se mostrarán después del filtro

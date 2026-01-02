@@ -55,8 +55,9 @@ if (isset($_GET['id'])) {
                                             </thead>
                                             <tbody>
                                                 <?php
+                                                $sucursal_id = isset($_SESSION['sucursal_id']) ? $_SESSION['sucursal_id'] : null;
                                                 $totalDiario = 0;
-                                                foreach (fnListForVentasDiarias() as $datos) {
+                                                foreach (fnListForVentasDiarias($sucursal_id) as $datos) {
                                                     $datos['accion_ajax'] = 'DETALLEVENTA_VENTA_ID';
                                                     $datosJSON = json_encode($datos);
                                                     $totalDiario += floatval($datos["monto_venta_final"]);
@@ -113,8 +114,9 @@ if (isset($_GET['id'])) {
                                             </thead>
                                             <tbody>
                                                 <?php
+                                                $sucursal_id = isset($_SESSION['sucursal_id']) ? $_SESSION['sucursal_id'] : null;
                                                 $totalSemanal = 0;
-                                                foreach (fnListForVentasSemanales() as $datos) {
+                                                foreach (fnListForVentasSemanales($sucursal_id) as $datos) {
                                                     $datos['accion_ajax'] = 'DETALLEVENTA_VENTA_ID';
                                                     $datosJSON = json_encode($datos);
                                                     $totalSemanal += floatval($datos["monto_venta_final"]);
@@ -171,8 +173,9 @@ if (isset($_GET['id'])) {
                                             </thead>
                                             <tbody>
                                                 <?php
+                                                $sucursal_id = isset($_SESSION['sucursal_id']) ? $_SESSION['sucursal_id'] : null;
                                                 $totalGeneral = 0;
-                                                foreach (fnListForVentasTodasLasVentas() as $datos) {
+                                                foreach (fnListForVentasTodasLasVentas($sucursal_id) as $datos) {
                                                     $datos['accion_ajax'] = 'DETALLEVENTA_VENTA_ID';
                                                     $datosJSON = json_encode($datos);
                                                     $totalGeneral += floatval($datos["monto_venta_final"]);
