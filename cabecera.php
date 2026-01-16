@@ -48,7 +48,7 @@ if ($flagRespuesta == 0) {
 
 <head>
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <title>Caracol Soft - LB RODRI</title>
+    <title>Caracol Captain</title>
     <meta charset="UTF-8">
 
     <meta

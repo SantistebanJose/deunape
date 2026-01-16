@@ -1,0 +1,134 @@
+/* ============================================
+   ESTILOS ADICIONALES PARA PRECIOS POR PRESENTACIÓN
+   ============================================ */
+
+.nav-tabs-custom {
+    border-bottom: 2px solid #6861ce;
+}
+
+.nav-tabs-custom .nav-link {
+    color: #6c757d;
+    border: none;
+    border-bottom: 3px solid transparent;
+    padding: 12px 20px;
+    font-weight: 500;
+    transition: all 0.3s;
+}
+
+.nav-tabs-custom .nav-link:hover {
+    color: #6861ce;
+    border-bottom-color: #6861ce50;
+}
+
+.nav-tabs-custom .nav-link.active {
+    color: #6861ce;
+    background: transparent;
+    border-bottom-color: #6861ce;
+    font-weight: 600;
+}
+
+#tablaPresentacionesBody tr {
+    transition: background-color 0.2s;
+}
+
+#tablaPresentacionesBody tr:hover {
+    background-color: #f8f9fa;
+}
+
+#noPreciosMsg {
+    display: none;
+}
+
+.table > :not(caption) > * > * {
+    padding: 0.75rem 0.5rem;
+}
+
+/* Mejorar inputs en la tabla */
+#tablaPresentacionesBody input[type="text"],
+#tablaPresentacionesBody input[type="number"] {
+    font-size: 13px;
+}
+
+/* Badge contador en tabs */
+.nav-tabs .badge {
+    font-size: 11px;
+    padding: 3px 7px;
+}
+
+/* Alertas */
+.alert-info {
+    background-color: #e7f3ff;
+    border-color: #b3d9ff;
+    color: #004085;
+}
+
+/* Card headers personalizados */
+.card-header.bg-primary {
+    background-color: #6861ce !important;
+}
+
+.card-header.bg-success {
+    background-color: #28a745 !important;
+}
+
+/* Mejorar formulario de agregar presentación */
+#inputNuevaPresentacion,
+#inputNuevoCodigo,
+#inputNuevaCantidad,
+#inputNuevoPrecio {
+    border: 2px solid #e0e0e0;
+    transition: border-color 0.3s;
+}
+
+#inputNuevaPresentacion:focus,
+#inputNuevoCodigo:focus,
+#inputNuevaCantidad:focus,
+#inputNuevoPrecio:focus {
+    border-color: #6861ce;
+    box-shadow: 0 0 0 0.2rem rgba(104, 97, 206, 0.25);
+}
+
+/* Botón agregar presentación */
+#btnAgregarPresentacion {
+    background-color: #28a745;
+    border-color: #28a745;
+    font-weight: 600;
+}
+
+#btnAgregarPresentacion:hover {
+    background-color: #218838;
+    border-color: #1e7e34;
+}
+
+/* Mejorar responsive */
+@media (max-width: 768px) {
+    .table-responsive {
+        font-size: 12px;
+    }
+    
+    #tablaPresentacionesBody input {
+        font-size: 11px;
+        padding: 4px;
+    }
+    
+    .nav-tabs-custom .nav-link {
+        font-size: 13px;
+        padding: 10px 12px;
+    }
+}
+
+/* Estilo para inputs deshabilitados */
+input:disabled,
+select:disabled {
+    background-color: #e9ecef;
+    cursor: not-allowed;
+}
+
+/* Mejorar spacing en cards */
+.card-body .row.g-2 {
+    margin-top: 0;
+}
+
+.card-body .row.g-3 {
+    margin-top: 0;
+}

@@ -3,21 +3,21 @@ include("cabecera.php");
 ?>
 
 <style>
-
-    
     #sugerencias {
         max-height: 200px;
         overflow-y: auto;
-        z-index: 1050; /* Para asegurar que esté sobre otros elementos */
+        z-index: 1050;
     }
 
     #sugerencias .list-group-item {
         cursor: pointer;
     }
+    
     label {
-  font-weight: bold;
-}
-.error-input {
+        font-weight: bold;
+    }
+    
+    .error-input {
         border: 2px solid red;
     }
 
@@ -27,193 +27,151 @@ include("cabecera.php");
         margin-top: 5px;
     }
 
-
     #modalCliente {
-    z-index: 1060 !important; /* Asegúrate de que sea más alto que el de los demás modales */
-}
+        z-index: 1060 !important;
+    }
 
-/* Estilo para cambiar el color de fondo y bordes del modal */
-/* Estilo para cambiar el color de fondo y bordes del modal */
-#modalCliente .modal-content {
-    background-color:rgb(255, 255, 255);  /* Color de fondo claro (puedes cambiarlo) */
-    border-radius: 10px;  /* Bordes redondeados */
-    border: 2px solid #2a2f5b;  /* Borde azul para darle más protagonismo */
-}
+    #modalCliente .modal-content {
+        background-color: rgb(255, 255, 255);
+        border-radius: 10px;
+        border: 2px solid #2a2f5b;
+    }
 
-/* Agregar una sombra para resaltar más el modal */
-#modalCliente .modal-dialog {
-    box-shadow: 0 4px 10px #2a2f5b;  /* Sombra azul para resaltar el modal */
-}
+    #modalCliente .modal-dialog {
+        box-shadow: 0 4px 10px #2a2f5b;
+    }
 
-/* Título del modal más grande y con un color diferente */
-#modalCliente .modal-header {
-    background-color:rgb(255, 255, 255);  /* Fondo azul */
-    color: #2a2f5b; /* Texto blanco */
-}
-#modalCliente .btn-close {
-    background-color: #f0f8ff;  /* Botón de cerrar rojo */
-}
+    #modalCliente .modal-header {
+        background-color: rgb(255, 255, 255);
+        color: #2a2f5b;
+    }
+    
+    #modalCliente .btn-close {
+        background-color: #f0f8ff;
+    }
 
-.pagination {
-            display: flex;
-            justify-content: center;
-            flex-wrap: wrap;
-            gap: 5px;
-            margin: 10px 0;
+    .pagination {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 5px;
+        margin: 10px 0;
+    }
+
+    .pagination a {
+        text-decoration: none;
+        padding: 8px 12px;
+        border: 1px solid #ddd;
+        color: #333;
+        border-radius: 4px;
+        transition: background-color 0.3s;
+    }
+
+    .pagination a:hover {
+        background-color: #f0f0f0;
+    }
+
+    .pagination a.active {
+        background-color: #007bff;
+        color: white;
+    }
+
+    @media (max-width: 768px) {
+        .pagination {
+            font-size: 12px;
         }
 
         .pagination a {
-            text-decoration: none;
-            padding: 8px 12px;
-            border: 1px solid #ddd;
-            color: #333;
-            border-radius: 4px;
-            transition: background-color 0.3s;
+            padding: 6px 10px;
         }
 
-        .pagination a:hover {
-            background-color: #f0f0f0;
+        table {
+            font-size: 14px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .pagination {
+            font-size: 10px;
         }
 
-        .pagination a.active {
-            background-color: #007bff;
-            color: white;
+        .pagination a {
+            padding: 5px 8px;
         }
 
-        /* Hacer que la paginación se ajuste en pantallas pequeñas */
-        @media (max-width: 768px) {
-            .pagination {
-                font-size: 12px;
-            }
-
-            .pagination a {
-                padding: 6px 10px;
-            }
-
-            table {
-                font-size: 14px;
-            }
+        table {
+            font-size: 12px;
         }
+    }
 
-        @media (max-width: 480px) {
-            .pagination {
-                font-size: 10px;
-            }
+    .btn-buscar-api {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        padding: 5px 15px;
+        font-size: 12px;
+    }
 
-            .pagination a {
-                padding: 5px 8px;
-            }
-
-            table {
-                font-size: 12px;
-            }
-        }
-   
+    .documento-container {
+        position: relative;
+    }
 </style>
 
-<div
-    class="container">
-
+<div class="container">
     <div class="page-inner">
         <div class="card text-start">
-
             <div class="card-body">
-
-
                 <div class="d-flex align-items-center justify-content-between">
                     <h4 class="card-title">Personas</h4>
-                    <button class="btn btn-success rounded-5" id="btnAbrirModalGenerico">Agregar Persona <i class="fas fa-plus"> </i></button>
+                    <button class="btn btn-success rounded-5" id="btnAbrirModalGenerico">Agregar Persona <i class="fas fa-plus"></i></button>
                 </div>
                 <hr>
-                <div
-                    class="row justify-content-center align-items-center md-2">
-                 
+                <div class="row justify-content-center align-items-center md-2">
                     <div class="col-sm-12">
-                    <div class="table-responsive">
-                                    <table
-                                        id="multi-filter-select"
-                                        class="display table table-striped table-hover">
-                                        <thead>
-                                            <tr>
-                                                <th>ID</th>
-                                                <th>N° Documento</th>
-                                                <th>Nombre</th>
-                                                <th>CONDICION</th>
-                                                <th>N° TELEFONO</th>
-                                                <th>Accion</th>
-                                            </tr>
-                                        </thead>
-                                       
-                                        <tbody>
-
-                                         
-                                        </tbody>
-                                    </table>
-                                </div>
-
+                        <div class="table-responsive">
+                            <table id="multi-filter-select" class="display table table-striped table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>N° Documento</th>
+                                        <th>Nombre</th>
+                                        <th>CONDICION</th>
+                                        <th>N° TELEFONO</th>
+                                        <th>Accion</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
-
             </div>
         </div>
     </div>
 </div>
 
 <!-- Modal para registrar Cliente -->
-
-<div class="modal fade" id="modalCliente" tabindex="-1"  data-bs-backdrop="static" aria-labelledby="modalUsuarioLabel" aria-hidden="true">
+<div class="modal fade" id="modalCliente" tabindex="-1" data-bs-backdrop="static" aria-labelledby="modalUsuarioLabel" aria-hidden="true">
     <div class="modal-dialog">
-        <div class="modal-content" id="contenidoUsuario">
-           
-        </div>
+        <div class="modal-content" id="contenidoUsuario"></div>
     </div>
 </div>
 
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-
-
 <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
 <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.11.6/umd/popper.min.js"></script>
 <script src="assets/js/scriptNotify.js"></script>
 
-
 <script>
     $(document).ready(function() {
-        // Inicialización de DataTables en español
-        $("#basic-datatables").DataTable({
-            language: {
-                "sProcessing": "Procesando...",
-                "sLengthMenu": "Mostrar _MENU_ registros",
-                "sZeroRecords": "No se encontraron resultados",
-                "sEmptyTable": "Ningún dato disponible en esta tabla",
-                "sInfo": "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
-                "sInfoEmpty": "Mostrando registros del 0 al 0 de un total de 0 registros",
-                "sInfoFiltered": "(filtrado de un total de _MAX_ registros)",
-                "sInfoPostFix": "",
-                "sSearch": "Buscar:",
-                "sUrl": "",
-                "sInfoThousands": ",",
-                "sLoadingRecords": "Cargando...",
-                "oPaginate": {
-                    "sFirst": "Primero",
-                    "sPrevious": "Anterior",
-                    "sNext": "Siguiente",
-                    "sLast": "Último"
-                },
-                "oAria": {
-                    "sSortAscending": ": Activar para ordenar la columna de manera ascendente",
-                    "sSortDescending": ": Activar para ordenar la columna de manera descendente"
-                }
-            }
-        });
-
         $("#multi-filter-select").DataTable({
-            processing: true, // Muestra un indicador de carga
-            serverSide: true, // Activa el procesamiento en el servidor
+            processing: true,
+            serverSide: true,
             ajax: {
-                "url": "logica/listar_personas.php", // Archivo PHP que maneja la carga de datos
+                "url": "logica/listar_personas.php",
                 "type": "POST"
             },
             columns: [
@@ -242,119 +200,76 @@ include("cabecera.php");
                     "sPrevious": "Anterior",
                     "sNext": "Siguiente",
                     "sLast": "Último"
-                },
-                "oAria": {
-                    "sSortAscending": ": Activar para ordenar la columna de manera ascendente",
-                    "sSortDescending": ": Activar para ordenar la columna de manera descendente"
-                }
-            },
-            initComplete: function() {
-                this.api()
-                    .columns()
-                    .every(function() {
-                        var column = this;
-                        var select = $('<select class="form-select"><option value=""></option></select>')
-                            .appendTo($(column.footer()).empty())
-                            .on("change", function() {
-                                var val = $.fn.dataTable.util.escapeRegex($(this).val());
-                                column.search(val ? "^" + val + "$" : "", true, false).draw();
-                            });
-
-                        column.data().unique().sort().each(function(d, j) {
-                            select.append('<option value="' + d + '">' + d + "</option>");
-                        });
-                    });
-            }
-        });
-
-        // Agregar fila en español
-        $("#add-row").DataTable({
-            pageLength: 5,
-            language: {
-                "sProcessing": "Procesando...",
-                "sLengthMenu": "Mostrar _MENU_ registros",
-                "sZeroRecords": "No se encontraron resultados",
-                "sEmptyTable": "Ningún dato disponible en esta tabla",
-                "sInfo": "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
-                "sInfoEmpty": "Mostrando registros del 0 al 0 de un total de 0 registros",
-                "sInfoFiltered": "(filtrado de un total de _MAX_ registros)",
-                "sSearch": "Buscar:",
-                "sUrl": "",
-                "sInfoThousands": ",",
-                "sLoadingRecords": "Cargando...",
-                "oPaginate": {
-                    "sFirst": "Primero",
-                    "sPrevious": "Anterior",
-                    "sNext": "Siguiente",
-                    "sLast": "Último"
-                },
-                "oAria": {
-                    "sSortAscending": ": Activar para ordenar la columna de manera ascendente",
-                    "sSortDescending": ": Activar para ordenar la columna de manera descendente"
                 }
             }
-        });
-
-        var action =
-            '<td> <div class="form-button-action"> <button type="button" data-bs-toggle="tooltip" title="" class="btn btn-link btn-primary btn-lg" data-original-title="Editar tarea"> <i class="fa fa-edit"></i> </button> <button type="button" data-bs-toggle="tooltip" title="" class="btn btn-link btn-danger" data-original-title="Eliminar"> <i class="fa fa-times"></i> </button> </div> </td>';
-
-        $("#addRowButton").click(function() {
-            $("#add-row")
-                .dataTable()
-                .fnAddData([
-                    $("#addName").val(),
-                    $("#addPosition").val(),
-                    $("#addOffice").val(),
-                    action,
-                ]);
-            $("#addRowModal").modal("hide");
         });
     });
-</script>
 
+    // Función para buscar en la API
+    async function buscarEnAPI(numeroDocumento, tipo) {
+        try {
+            const response = await fetch(`https://graphperu.daustinn.com/api/query/${numeroDocumento}`);
+            
+            if (!response.ok) {
+                throw new Error('No se pudo consultar la API');
+            }
+            
+            const data = await response.json();
+            console.log('Respuesta completa de la API:', data); // Para debug
+            return data;
+        } catch (error) {
+            console.error('Error al consultar API:', error);
+            return null;
+        }
+    }
 
-<script>
     document.addEventListener("DOMContentLoaded", function () {
-
         document.getElementById("btnAbrirModalGenerico").addEventListener("click", function () {
-            document.getElementById("contenidoUsuario").innerHTML = `
+            abrirModalRegistro();
+        });
+    });
 
-                    <div class="modal-body">
-                     <div class="card text-start">
-                        <div class="card-body">
-                            <h4 class="card-title text-center"><i class="fas fa-user"></i> Registrar Persona</h4>
-                            <div class="card-sub text-center">
-                                Los campos con <span class="fw-bold text-danger">*</span> son obligatorios.
-                            </div>
-                        <!-- Pils para seleccionar entre Persona y Empresa -->
+    function abrirModalRegistro() {
+        document.getElementById("contenidoUsuario").innerHTML = `
+            <div class="modal-body">
+                <div class="card text-start">
+                    <div class="card-body">
+                        <h4 class="card-title text-center"><i class="fas fa-user"></i> Registrar Persona</h4>
+                        <div class="card-sub text-center">
+                            Los campos con <span class="fw-bold text-danger">*</span> son obligatorios.
+                        </div>
+                        
                         <ul class="nav nav-pills nav-secondary nav-pills-no-bd" id="pills-tab" role="tablist">
                             <li class="nav-item">
-                                <button class="nav-link active" id="pills-persona-tab" data-bs-toggle="pill" data-bs-target="#pills-persona" type="button" role="tab" aria-controls="pills-persona" aria-selected="true">Cliente | Empleado</button>
+                                <button class="nav-link active" id="pills-persona-tab" data-bs-toggle="pill" data-bs-target="#pills-persona" type="button" role="tab">Cliente | Empleado</button>
                             </li>
                             <li class="nav-item">
-                                <button class="nav-link" id="pills-empresa-tab" data-bs-toggle="pill" data-bs-target="#pills-empresa" type="button" role="tab" aria-controls="pills-empresa" aria-selected="false">Empresa | Proveedor</button>
+                                <button class="nav-link" id="pills-empresa-tab" data-bs-toggle="pill" data-bs-target="#pills-empresa" type="button" role="tab">Empresa | Proveedor</button>
                             </li>
                         </ul>
                         <hr>
+                        
                         <div class="tab-content mt-3" id="pills-tabContent">
                             <!-- Formulario Persona -->
-                            <div class="tab-pane fade show active" id="pills-persona" role="tabpanel" aria-labelledby="pills-persona-tab">
-                                <div class="mb-3">
-                                    <label for="numeroDocumentoPersona" class="form-label"><b>Número de Documento  <span class="fw-bold text-danger">*</span></b></label>
-                                    <input type="text" class="form-control" id="numeroDocumentoPersona" placeholder="Número de Documento">
+                            <div class="tab-pane fade show active" id="pills-persona" role="tabpanel">
+                                <div class="mb-3 documento-container">
+                                    <label for="numeroDocumentoPersona" class="form-label"><b>Número de Documento (DNI) <span class="fw-bold text-danger">*</span></b></label>
+                                    <input type="text" class="form-control" id="numeroDocumentoPersona" placeholder="Número de Documento" maxlength="8">
+                                    <button type="button" class="btn btn-primary btn-sm btn-buscar-api" id="btnBuscarPersona">
+                                        <i class="fas fa-search"></i> Buscar
+                                    </button>
                                     <div class="invalid-feedback" id="error-numeroDocumentoPersona"></div>
                                 </div>
                                 <div class="mb-3">
-                                    <label for="nombresPersona" class="form-label"><b>Nombres  <span class="fw-bold text-danger">*</span></b></label>
+                                    <label for="nombresPersona" class="form-label"><b>Nombres <span class="fw-bold text-danger">*</span></b></label>
                                     <input type="text" class="form-control" id="nombresPersona" placeholder="Nombres">
                                     <div class="invalid-feedback" id="error-nombresPersona"></div>
                                 </div>
                                 <div class="mb-3">
-                                    <label for="apellidosPersona" class="form-label"><b>Apellidos  <span class="fw-bold text-danger">*</span></b></label>
+                                    <label for="apellidosPersona" class="form-label"><b>Apellidos <span class="fw-bold text-danger">*</span></b></label>
                                     <input type="text" class="form-control" id="apellidosPersona" placeholder="Apellidos">
                                     <div class="invalid-feedback" id="error-apellidosPersona"></div>
                                 </div>
-                                
                                 <div class="mb-3">
                                     <label class="form-label"><b>Condición <span class="fw-bold text-danger">*</span></b></label>
                                     <select class="form-select required" id="condicionPersona">
@@ -364,7 +279,6 @@ include("cabecera.php");
                                     </select>
                                     <div id="error-condicionPersona" class="error-message"></div>
                                 </div>
-
                                 <div class="mb-3">
                                     <label for="telefonoPersona" class="form-label"><b>Teléfono Móvil</b></label>
                                     <input type="text" class="form-control" id="telefonoPersona" placeholder="Teléfono Móvil">
@@ -375,34 +289,34 @@ include("cabecera.php");
                                     <input type="email" class="form-control" id="emailPersona" placeholder="Email">
                                     <div class="invalid-feedback" id="error-emailPersona"></div>
                                 </div>
-
                                 <div class="mb-3">
-                                    <label for="direccionPersona" class="form-label"><b>Direccion</b></label>
-                                    <input type="text" class="form-control" id="direccionPersona" placeholder="Direccion">
+                                    <label for="direccionPersona" class="form-label"><b>Dirección</b></label>
+                                    <input type="text" class="form-control" id="direccionPersona" placeholder="Dirección">
                                     <div class="invalid-feedback" id="error-direccionPersona"></div>
                                 </div>
-
                             </div>
 
                             <!-- Formulario Empresa -->
-                            <div class="tab-pane fade" id="pills-empresa" role="tabpanel" aria-labelledby="pills-empresa-tab">
-                                <div class="mb-3">
-                                    <label for="numeroDocumentoEmpresa" class="form-label">Número de Ruc  <span class="fw-bold text-danger">*</span></label>
-                                    <input type="text" class="form-control" id="numeroDocumentoEmpresa" placeholder="Número de Documento">
+                            <div class="tab-pane fade" id="pills-empresa" role="tabpanel">
+                                <div class="mb-3 documento-container">
+                                    <label for="numeroDocumentoEmpresa" class="form-label">Número de RUC <span class="fw-bold text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="numeroDocumentoEmpresa" placeholder="Número de RUC" maxlength="11">
+                                    <button type="button" class="btn btn-primary btn-sm btn-buscar-api" id="btnBuscarEmpresa">
+                                        <i class="fas fa-search"></i> Buscar
+                                    </button>
                                     <div class="invalid-feedback" id="error-numeroDocumentoEmpresa"></div>
                                 </div>
                                 <div class="mb-3">
-                                    <label for="nombreComercial" class="form-label">Nombre Comercial  <span class="fw-bold text-danger">*</span></label>
+                                    <label for="nombreComercial" class="form-label">Nombre Comercial <span class="fw-bold text-danger">*</span></label>
                                     <input type="text" class="form-control" id="nombreComercial" placeholder="Nombre Comercial">
                                     <div class="invalid-feedback" id="error-nombreComercial"></div>
                                 </div>
                                 <div class="mb-3">
-                                    <label for="razonSocial" class="form-label">Razón Social  <span class="fw-bold text-danger">*</span> </label>
+                                    <label for="razonSocial" class="form-label">Razón Social <span class="fw-bold text-danger">*</span></label>
                                     <input type="text" class="form-control" id="razonSocial" placeholder="Razón Social">
                                     <div class="invalid-feedback" id="error-razonSocial"></div>
                                 </div>
-
-                                 <div class="mb-3">
+                                <div class="mb-3">
                                     <label class="form-label">Condición <span class="fw-bold text-danger">*</span></label>
                                     <select class="form-select required" id="condicionEmpresa">
                                         <option value="">Seleccione una opción</option>
@@ -411,7 +325,6 @@ include("cabecera.php");
                                     </select>
                                     <div id="error-condicionEmpresa" class="error-message"></div>
                                 </div>
-
                                 <div class="mb-3">
                                     <label for="emailEmpresa" class="form-label">Email</label>
                                     <input type="email" class="form-control" id="emailEmpresa" placeholder="Email">
@@ -423,460 +336,501 @@ include("cabecera.php");
                                     <div class="invalid-feedback" id="error-telefonoEmpresa"></div>
                                 </div>
                                 <div class="mb-3">
-                                    <label for="direccionEmpresa" class="form-label">Direccion</label>
-                                    <input type="text" class="form-control" id="direccionEmpresa" placeholder="Direccion">
+                                    <label for="direccionEmpresa" class="form-label">Dirección</label>
+                                    <input type="text" class="form-control" id="direccionEmpresa" placeholder="Dirección">
                                     <div class="invalid-feedback" id="error-direccionEmpresa"></div>
                                 </div>
-
-                               
-
                             </div>
                         </div>
-                        </div>
-                        </div>
-                    
                     </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-danger rounded-5" data-bs-dismiss="modal">Salir</button>
-                        <button type="button" class="btn btn-success rounded-5" id="btnRegistrarCliente">Registrar</button>
-                    </div>
-            `;
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger rounded-5" data-bs-dismiss="modal">Salir</button>
+                <button type="button" class="btn btn-success rounded-5" id="btnRegistrarCliente">Registrar</button>
+            </div>
+        `;
 
-            const modal = new bootstrap.Modal(document.getElementById("modalCliente"));
-            modal.show();
+        const modal = new bootstrap.Modal(document.getElementById("modalCliente"));
+        modal.show();
 
-            const personaTab = document.getElementById("pills-persona-tab");
-            const empresaTab = document.getElementById("pills-empresa-tab");
+        // ============================================
+        // EVENT LISTENER PARA BUSCAR PERSONA POR DNI
+        // ============================================
+        document.getElementById("btnBuscarPersona").addEventListener("click", async function() {
+            const dni = document.getElementById("numeroDocumentoPersona").value.trim();
+            
+            if (dni.length !== 8) {
+                swal("Advertencia", "Ingrese un DNI válido de 8 dígitos", "warning");
+                return;
+            }
 
-            personaTab.addEventListener('click', () => {
-                // Limpiar datos de la pestaña Empresa
-                document.getElementById('numeroDocumentoEmpresa').value = '';
-                document.getElementById('nombreComercial').value = '';
-                document.getElementById('razonSocial').value = '';
-                document.getElementById('telefonoEmpresa').value = '';
-                document.getElementById('emailEmpresa').value = '';
-                document.getElementById('direccionEmpresa').value = '';
-                document.getElementById('condicionEmpresa').selectedIndex = 0;
-
-                resetErrors();
+            // Mostrar loading
+            Swal.fire({
+                title: 'Consultando...',
+                text: 'Buscando información del DNI',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
             });
 
-            empresaTab.addEventListener('click', () => {
-                // Limpiar datos de la pestaña Persona
-                document.getElementById('numeroDocumentoPersona').value = '';
-                document.getElementById('nombresPersona').value = '';
-                document.getElementById('apellidosPersona').value = '';
-                document.getElementById('telefonoPersona').value = '';
-                document.getElementById('emailPersona').value = '';
-                document.getElementById('direccionPersona').value = '';
-                document.getElementById('condicionPersona').selectedIndex = 0;
+            const resultado = await buscarEnAPI(dni, 'persona');
+            Swal.close();
 
-                resetErrors();
-            });
+            console.log("Resultado DNI:", resultado); // Para debug
 
-            function resetErrors() {
-                // Limpiar las clases 'is-invalid' y los mensajes de error
-                const inputs = document.querySelectorAll('.form-control');
-                const errorMessages = document.querySelectorAll('.invalid-feedback');
-
-                inputs.forEach(input => {
-                    input.classList.remove('is-invalid');
-                });
-
-                errorMessages.forEach(message => {
-                    message.textContent = '';
-                });
-            }
-
-            function limpiarcampos(){
-                document.getElementById('numeroDocumentoEmpresa').value = '';
-                document.getElementById('nombreComercial').value = '';
-                document.getElementById('razonSocial').value = '';
-                document.getElementById('telefonoEmpresa').value = '';
-                document.getElementById('emailEmpresa').value = '';
-                document.getElementById('numeroDocumentoPersona').value = '';
-                document.getElementById('nombresPersona').value = '';
-                document.getElementById('apellidosPersona').value = '';
-                document.getElementById('telefonoPersona').value = '';
-                document.getElementById('emailPersona').value = '';
-            }
-
-            // Seleccionando los elementos de los formularios
-            const formPersona = document.getElementById('pills-persona');
-            const formEmpresa = document.getElementById('pills-empresa');
-
-            const btnRegistrarCliente = document.getElementById('btnRegistrarCliente');
-
-            // Función para validar los campos
-            function validarCamposPersona() {
-                let valid = true;
-
-                // Validar el número de documento (solo si tiene datos)
-                const numeroDocumentoPersona = document.getElementById('numeroDocumentoPersona');
-                const errorNumeroDocumentoPersona = document.getElementById('error-numeroDocumentoPersona');
-                if (numeroDocumentoPersona.value.trim() === '') {
-                    valid = false;
-                    numeroDocumentoPersona.classList.add('is-invalid');
-                    errorNumeroDocumentoPersona.textContent = 'El DNI es obligatorio.';
-                } else if (!/^\d{8}$/.test(numeroDocumentoPersona.value)) {
-                    valid = false;
-                    numeroDocumentoPersona.classList.add('is-invalid');
-                    errorNumeroDocumentoPersona.textContent = 'Debe ser un DNI válido (9 dígitos).';
-                } else {
-                    numeroDocumentoPersona.classList.remove('is-invalid');
-                    errorNumeroDocumentoPersona.textContent = '';
-                }
-
-                // Validar los nombres (solo si tiene datos y sin números)
-                const nombresPersona = document.getElementById('nombresPersona');
-                const errorNombresPersona = document.getElementById('error-nombresPersona');
-                if (nombresPersona.value.trim() == '') {
-                    valid = false;
-                    nombresPersona.classList.add('is-invalid');
-                    errorNombresPersona.textContent = 'Los nombres es obligatorio.';
-                }else if(/[^a-zA-Z\s]/.test(nombresPersona.value)){
-                    valid = false;
-                    nombresPersona.classList.add('is-invalid');
-                    errorNombresPersona.textContent = 'Los nombres no pueden contener números.';
-                } 
-                else {
-                    nombresPersona.classList.remove('is-invalid');
-                    errorNombresPersona.textContent = '';
-                }
-
-                // Validar los apellidos (solo si tiene datos y sin números)
-                const apellidosPersona = document.getElementById('apellidosPersona');
-                const errorApellidosPersona = document.getElementById('error-apellidosPersona');
-                if (apellidosPersona.value.trim() == '' ) {
-                    valid = false;
-                    apellidosPersona.classList.add('is-invalid');
-                    errorApellidosPersona.textContent = 'Los apellidos es obligatorio.';
-                } else if(/[^a-zA-Z\s]/.test(apellidosPersona.value)){
-                    valid = false;
-                    apellidosPersona.classList.add('is-invalid');
-                    errorApellidosPersona.textContent = 'Los apellidos no pueden contener números.';
-                }else {
-                    apellidosPersona.classList.remove('is-invalid');
-                    errorApellidosPersona.textContent = '';
-                }
-
-                // Validar el teléfono (solo si tiene datos y es un número válido)
-                const telefonoPersona = document.getElementById('telefonoPersona');
-                const errorTelefonoPersona = document.getElementById('error-telefonoPersona');
-                if (telefonoPersona.value.trim() !== '' && !/^\d{9}$/.test(telefonoPersona.value)) {
-                    valid = false;
-                    telefonoPersona.classList.add('is-invalid');
-                    errorTelefonoPersona.textContent = 'El teléfono debe tener 9 dígitos.';
-                } else {
-                    telefonoPersona.classList.remove('is-invalid');
-                    errorTelefonoPersona.textContent = '';
-                }
-
-                // Validar el email (solo si tiene datos y es un correo válido)
-                const emailPersona = document.getElementById('emailPersona');
-                const errorEmailPersona = document.getElementById('error-emailPersona');
-                if (emailPersona.value.trim() !== '' && !/\S+@\S+\.\S+/.test(emailPersona.value)) {
-                    valid = false;
-                    emailPersona.classList.add('is-invalid');
-                    errorEmailPersona.textContent = 'Debe ser un correo electrónico válido.';
-                } else {
-                    emailPersona.classList.remove('is-invalid');
-                    errorEmailPersona.textContent = '';
-                }
-
-                const condicion = document.getElementById('condicionPersona');
-                const errorCondicion = document.getElementById('error-condicionPersona');
-
-                // Verificar si la opción seleccionada es válida
-                if (condicion.value === '') {
-                    valid = false;  // La variable valid debe ser parte de tu lógica de validación general
-                    condicion.classList.add('is-invalid');
-                    errorCondicion.textContent = 'Debe seleccionar una opción válida.';
-                } else {
-                    condicion.classList.remove('is-invalid');
-                    errorCondicion.textContent = '';
-                }
-
-
-                return valid;
-            }
-
-
-            function validarCamposEmpresa() {
-                let valid = true;
-
-                // Validar RUC (solo si tiene datos)
-                const numeroDocumentoEmpresa = document.getElementById('numeroDocumentoEmpresa');
-                const errorNumeroDocumentoEmpresa = document.getElementById('error-numeroDocumentoEmpresa');
-                if (numeroDocumentoEmpresa.value.trim() === '') {
-                    valid = false;
-                    numeroDocumentoEmpresa.classList.add('is-invalid');
-                    errorNumeroDocumentoEmpresa.textContent = 'El RUC es obligatorio.';
-                } else if (!/^\d{11}$/.test(numeroDocumentoEmpresa.value)) {
-                    valid = false;
-                    numeroDocumentoEmpresa.classList.add('is-invalid');
-                    errorNumeroDocumentoEmpresa.textContent = 'Debe ser un RUC válido (11 dígitos).';
-                } else {
-                    numeroDocumentoEmpresa.classList.remove('is-invalid');
-                    errorNumeroDocumentoEmpresa.textContent = '';
-                }
-
-                // Validar nombre comercial (solo si tiene datos)
-                const nombreComercial = document.getElementById('nombreComercial');
-                const errorNombreComercial = document.getElementById('error-nombreComercial');
-                if (nombreComercial.value.trim() == '' ) {
-                    valid = false;
-                    nombreComercial.classList.add('is-invalid');
-                    errorNombreComercial.textContent = 'Este campo es obligatorio.';
-                } else {
-                    nombreComercial.classList.remove('is-invalid');
-                    errorNombreComercial.textContent = '';
-                }
-
-                // Validar razón social (solo si tiene datos)
-                const razonSocial = document.getElementById('razonSocial');
-                const errorRazonSocial = document.getElementById('error-razonSocial');
-                if (razonSocial.value.trim() == '' ) {
-                    valid = false;
-                    razonSocial.classList.add('is-invalid');
-                    errorRazonSocial.textContent = 'Este campo es obligatorio.';
-                } else {
-                    razonSocial.classList.remove('is-invalid');
-                    errorRazonSocial.textContent = '';
-                }
-
-                // Validar teléfono (solo si tiene datos)
-                const telefonoEmpresa = document.getElementById('telefonoEmpresa');
-                const errorTelefonoEmpresa = document.getElementById('error-telefonoEmpresa');
-                if (telefonoEmpresa.value.trim() !== '' && !/^\d{9}$/.test(telefonoEmpresa.value)) {
-                    valid = false;
-                    telefonoEmpresa.classList.add('is-invalid');
-                    errorTelefonoEmpresa.textContent = 'El teléfono debe tener 9 dígitos.';
-                } else {
-                    telefonoEmpresa.classList.remove('is-invalid');
-                    errorTelefonoEmpresa.textContent = '';
-                }
-
-                // Validar email (solo si tiene datos)
-                const emailEmpresa = document.getElementById('emailEmpresa');
-                const errorEmailEmpresa = document.getElementById('error-emailEmpresa');
-                if (emailEmpresa.value.trim() !== '' && !/\S+@\S+\.\S+/.test(emailEmpresa.value)) {
-                    valid = false;
-                    emailEmpresa.classList.add('is-invalid');
-                    errorEmailEmpresa.textContent = 'Debe ser un correo electrónico válido.';
-                } else {
-                    emailEmpresa.classList.remove('is-invalid');
-                    errorEmailEmpresa.textContent = '';
-                }
-
-                const condicion = document.getElementById('condicionEmpresa');
-                const errorCondicion = document.getElementById('error-condicionEmpresa');
-
-                // Verificar si la opción seleccionada es válida
-                if (condicion.value === '') {
-                    valid = false;  // La variable valid debe ser parte de tu lógica de validación general
-                    condicion.classList.add('is-invalid');
-                    errorCondicion.textContent = 'Debe seleccionar una opción válida.';
-                } else {
-                    condicion.classList.remove('is-invalid');
-                    errorCondicion.textContent = '';
-                }
-
-                return valid;
-            }
-
-            btnRegistrarCliente.addEventListener('click', async function () {
-                let datos = {};
+            if (resultado && resultado.names && resultado.surnames) {
+                // Llenar los campos con la información de la API
+                const nombres = resultado.names || '';
+                const apellidos = resultado.surnames || '';
                 
-                if (document.getElementById('pills-persona-tab').classList.contains('active')) {
-                    // Recolectar los datos del formulario Persona
-                    if (validarCamposPersona()) {
-                        datos = {
-                            "numero_documento": document.getElementById('numeroDocumentoPersona').value,
-                            "nombres": document.getElementById('nombresPersona').value,
-                            "apellidos": document.getElementById('apellidosPersona').value,
-                            "telefono_movil": document.getElementById('telefonoPersona').value || null,
-                            "email": document.getElementById('emailPersona').value,
-                            "direccion": document.getElementById('direccionPersona').value,
-                            "condicion": document.getElementById('condicionPersona').value
-
-                        };
-
-                        // Llamar a la función AJAX para registrar la persona
-                        try {
-                            console.log("Enviando datos:", datos);
-                            const response = await fnRegistrarPersona(datos);
-                            console.log("Persona insertada con éxito:", response);
-
-                            swal({
-                                title: "Registro con Éxito!",
-                                text: "Persona registrada correctamente",
-                                icon: "success",
-                                buttons: false,
-                                timer: 1500
-                            }).then(() => {
-                                location.reload();
-                            });
-
-                        } catch (error) {
-                            console.error("Error en el registro:", error.message);
-
-                            swal("Error", error.message || "Ocurrió un error inesperado", {
-                                icon: "error",
-                                buttons: {
-                                    confirm: {
-                                        className: "btn btn-danger",
-                                    },
-                                },
-                            });
-                        }
-
-                        
-
-                    } 
-                } else if (document.getElementById('pills-empresa-tab').classList.contains('active')) {
-                    // Recolectar los datos del formulario Empresa
-                    if (validarCamposEmpresa()) {
-                        datos = {
-                            "numero_documento": document.getElementById('numeroDocumentoEmpresa').value,
-                            "nombre_comercial": document.getElementById('nombreComercial').value,
-                            "razon_social": document.getElementById('razonSocial').value,
-                            "telefono_movil": document.getElementById('telefonoEmpresa').value,
-                            "email": document.getElementById('emailEmpresa').value,
-                            "condicion": document.getElementById('condicionEmpresa').value
-                               
-                        };
-
-                        console.log(datos);
-                        // Llamar a la función AJAX para registrar la empresa
-                        try {
-                            const response = await fnRegistrarEmpresa(datos);
-                            console.log("Empresa insertado con éxito:", response);
-        
-                            swal({
-                                title: "Registro con Exito!",
-                                text: 'Empresa registrado correctamente',
-                                icon: "success",
-                                buttons: false,
-                                timer: 1500
-                            }).then(() => {
-                                location.reload();
-                            });
-
-                        
-                        } catch (error) {
-                            console.error("Error en el registro:", error.message);
-
-                            swal("Error", error.message || "Ocurrió un error inesperado", {
-                                icon: "error",
-                                buttons: {
-                                    confirm: {
-                                        className: "btn btn-danger",
-                                    },
-                                },
-                            });
-                        }
-
-                    }
-                }
-            });
-
-
-            function fnRegistrarPersona(datos) {
-                return new Promise((resolve, reject) => {
-                    $.ajax({
-                        method: "POST",
-                        url: "logica/clssPersona.php",  // El archivo PHP donde se maneja el registro de persona
-                        data: {
-                            "accion": "REGISTRARPERSONA",  // Acción que se realiza en el backend
-                            "data": JSON.stringify(datos)  // Los datos de la persona como JSON
-                        }
-                    }).done(function (response) {
-                        console.log(response);
-                        const jsonResponse = JSON.parse(response); // Convertir la respuesta a JSON
-                        if (jsonResponse.success) {
-                            resolve(jsonResponse);  // Resolvemos la promesa en caso de éxito
-                        } else {
-                            reject(new Error(jsonResponse.message || "Error desconocido"));  // Si hay error en la respuesta del servidor
-                        }
-                    }).fail(function (error) {
-                        console.error("Error:", error.responseText);
-                        reject(error);  // Rechazamos la promesa si ocurre un error en la solicitud AJAX
-                    });
-                });
-            }
-
-            function fnRegistrarEmpresa(datos) {
-                return new Promise((resolve, reject) => {
-                    $.ajax({
-                        method: "POST",
-                        url: "logica/clssPersona.php",  // El archivo PHP donde se maneja el registro de empresa
-                        data: {
-                            "accion": "REGISTRARPERSONA",  // Acción que se realiza en el backend
-                            "data": JSON.stringify(datos)  // Los datos de la empresa como JSON
-                        }
-                    }).done(function (response) {
-                        console.log(response);
-                        const jsonResponse = JSON.parse(response); // Convertir la respuesta a JSON
-                        if (jsonResponse.success) {
-                           
-                            resolve(jsonResponse);  // Resolvemos la promesa en caso de éxito
-                        } else {
-                            reject(new Error(jsonResponse.mensaje || "Error desconocido"));  // Si hay error en la respuesta del servidor
-                        }
-                    }).fail(function (error) {
-                        console.error("Error:", error.responseText);
-                        reject(error);  // Rechazamos la promesa si ocurre un error en la solicitud AJAX
-                    });
-                });
+                document.getElementById("nombresPersona").value = nombres;
+                document.getElementById("apellidosPersona").value = apellidos;
+                
+                swal("Éxito", `Datos encontrados: ${resultado.fullName || nombres + ' ' + apellidos}`, "success");
+            } else {
+                swal("Información", "No se encontraron datos. Complete el formulario manualmente.", "info");
             }
         });
-    });
 
-</script>
+        // ==============================================
+        // EVENT LISTENER PARA BUSCAR EMPRESA POR RUC - CORREGIDO
+        // ==============================================
+        document.getElementById("btnBuscarEmpresa").addEventListener("click", async function() {
+            const ruc = document.getElementById("numeroDocumentoEmpresa").value.trim();
+            
+            if (ruc.length !== 11) {
+                swal("Advertencia", "Ingrese un RUC válido de 11 dígitos", "warning");
+                return;
+            }
 
+            // Mostrar loading
+            Swal.fire({
+                title: 'Consultando...',
+                text: 'Buscando información del RUC en SUNAT',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
 
-<script>
+            const resultado = await buscarEnAPI(ruc, 'empresa');
+            Swal.close();
+
+            console.log("Resultado RUC completo:", resultado); // Para debug
+
+            if (resultado) {
+                // La API devuelve diferentes estructuras según el tipo de documento
+                // Para RUC (11 dígitos), los campos son: name, address, state, condition
+                
+                let razonSocialData = null;
+                let nombreComercialData = null;
+                let direccionData = null;
+                
+                // Intentar obtener el nombre de diferentes campos posibles
+                if (resultado.name) {
+                    // Formato de RUC: usa 'name' directamente
+                    razonSocialData = resultado.name;
+                    nombreComercialData = resultado.name;
+                } else if (resultado.razonSocial) {
+                    // Formato alternativo
+                    razonSocialData = resultado.razonSocial;
+                    nombreComercialData = resultado.nombreComercial || resultado.razonSocial;
+                } else if (resultado.fullName) {
+                    // Otro formato posible
+                    razonSocialData = resultado.fullName;
+                    nombreComercialData = resultado.fullName;
+                } else if (resultado.names) {
+                    // Para RUC tipo persona natural
+                    razonSocialData = resultado.names;
+                    nombreComercialData = resultado.names;
+                }
+                
+                // Obtener dirección si está disponible
+                if (resultado.address && resultado.address !== '-') {
+                    direccionData = resultado.address;
+                }
+                
+                if (razonSocialData) {
+                    // Llenar los campos con la información de la API
+                    document.getElementById("razonSocial").value = razonSocialData;
+                    document.getElementById("nombreComercial").value = nombreComercialData;
+                    
+                    // Llenar dirección si está disponible
+                    if (direccionData) {
+                        document.getElementById("direccionEmpresa").value = direccionData;
+                    }
+                    
+                    // Construir mensaje de éxito con información adicional
+                    let mensajeDetalle = razonSocialData;
+                    if (resultado.state) {
+                        mensajeDetalle += `\nEstado: ${resultado.state}`;
+                    }
+                    if (resultado.condition) {
+                        mensajeDetalle += `\nCondición: ${resultado.condition}`;
+                    }
+                    
+                    swal({
+                        title: "Éxito",
+                        text: `Datos encontrados correctamente\n\n${mensajeDetalle}`,
+                        icon: "success"
+                    });
+                } else {
+                    console.warn('No se encontró información válida en la respuesta:', resultado);
+                    swal("Información", "No se encontraron datos completos. Por favor, complete el formulario manualmente.", "info");
+                }
+            } else {
+                swal("Error", "No se pudo consultar el RUC. Verifique el número e intente nuevamente.", "error");
+            }
+        });
+
+        // Resto del código (event listeners de tabs, validaciones, registro, etc.)
+        const personaTab = document.getElementById("pills-persona-tab");
+        const empresaTab = document.getElementById("pills-empresa-tab");
+
+        personaTab.addEventListener('click', () => {
+            document.getElementById('numeroDocumentoEmpresa').value = '';
+            document.getElementById('nombreComercial').value = '';
+            document.getElementById('razonSocial').value = '';
+            document.getElementById('telefonoEmpresa').value = '';
+            document.getElementById('emailEmpresa').value = '';
+            document.getElementById('direccionEmpresa').value = '';
+            document.getElementById('condicionEmpresa').selectedIndex = 0;
+            resetErrors();
+        });
+
+        empresaTab.addEventListener('click', () => {
+            document.getElementById('numeroDocumentoPersona').value = '';
+            document.getElementById('nombresPersona').value = '';
+            document.getElementById('apellidosPersona').value = '';
+            document.getElementById('telefonoPersona').value = '';
+            document.getElementById('emailPersona').value = '';
+            document.getElementById('direccionPersona').value = '';
+            document.getElementById('condicionPersona').selectedIndex = 0;
+            resetErrors();
+        });
+
+        function resetErrors() {
+            const inputs = document.querySelectorAll('.form-control');
+            const errorMessages = document.querySelectorAll('.invalid-feedback');
+            inputs.forEach(input => input.classList.remove('is-invalid'));
+            errorMessages.forEach(message => message.textContent = '');
+        }
+
+        function validarCamposPersona() {
+            let valid = true;
+
+            const numeroDocumentoPersona = document.getElementById('numeroDocumentoPersona');
+            const errorNumeroDocumentoPersona = document.getElementById('error-numeroDocumentoPersona');
+            if (numeroDocumentoPersona.value.trim() === '') {
+                valid = false;
+                numeroDocumentoPersona.classList.add('is-invalid');
+                errorNumeroDocumentoPersona.textContent = 'El DNI es obligatorio.';
+            } else if (!/^\d{8}$/.test(numeroDocumentoPersona.value)) {
+                valid = false;
+                numeroDocumentoPersona.classList.add('is-invalid');
+                errorNumeroDocumentoPersona.textContent = 'Debe ser un DNI válido (8 dígitos).';
+            } else {
+                numeroDocumentoPersona.classList.remove('is-invalid');
+                errorNumeroDocumentoPersona.textContent = '';
+            }
+
+            const nombresPersona = document.getElementById('nombresPersona');
+            const errorNombresPersona = document.getElementById('error-nombresPersona');
+            if (nombresPersona.value.trim() == '') {
+                valid = false;
+                nombresPersona.classList.add('is-invalid');
+                errorNombresPersona.textContent = 'Los nombres son obligatorios.';
+            } else if(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/.test(nombresPersona.value)) {
+                valid = false;
+                nombresPersona.classList.add('is-invalid');
+                errorNombresPersona.textContent = 'Los nombres no pueden contener números.';
+            } else {
+                nombresPersona.classList.remove('is-invalid');
+                errorNombresPersona.textContent = '';
+            }
+
+            const apellidosPersona = document.getElementById('apellidosPersona');
+            const errorApellidosPersona = document.getElementById('error-apellidosPersona');
+            if (apellidosPersona.value.trim() == '') {
+                valid = false;
+                apellidosPersona.classList.add('is-invalid');
+                errorApellidosPersona.textContent = 'Los apellidos son obligatorios.';
+            } else if(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/.test(apellidosPersona.value)) {
+                valid = false;
+                apellidosPersona.classList.add('is-invalid');
+                errorApellidosPersona.textContent = 'Los apellidos no pueden contener números.';
+            } else {
+                apellidosPersona.classList.remove('is-invalid');
+                errorApellidosPersona.textContent = '';
+            }
+
+            const telefonoPersona = document.getElementById('telefonoPersona');
+            const errorTelefonoPersona = document.getElementById('error-telefonoPersona');
+            if (telefonoPersona.value.trim() !== '' && !/^\d{9}$/.test(telefonoPersona.value)) {
+                valid = false;
+                telefonoPersona.classList.add('is-invalid');
+                errorTelefonoPersona.textContent = 'El teléfono debe tener 9 dígitos.';
+            } else {
+                telefonoPersona.classList.remove('is-invalid');
+                errorTelefonoPersona.textContent = '';
+            }
+
+            const emailPersona = document.getElementById('emailPersona');
+            const errorEmailPersona = document.getElementById('error-emailPersona');
+            if (emailPersona.value.trim() !== '' && !/\S+@\S+\.\S+/.test(emailPersona.value)) {
+                valid = false;
+                emailPersona.classList.add('is-invalid');
+                errorEmailPersona.textContent = 'Debe ser un correo electrónico válido.';
+            } else {
+                emailPersona.classList.remove('is-invalid');
+                errorEmailPersona.textContent = '';
+            }
+
+            const condicion = document.getElementById('condicionPersona');
+            const errorCondicion = document.getElementById('error-condicionPersona');
+            if (condicion.value === '') {
+                valid = false;
+                condicion.classList.add('is-invalid');
+                errorCondicion.textContent = 'Debe seleccionar una opción válida.';
+            } else {
+                condicion.classList.remove('is-invalid');
+                errorCondicion.textContent = '';
+            }
+
+            return valid;
+        }
+
+        function validarCamposEmpresa() {
+            let valid = true;
+
+            const numeroDocumentoEmpresa = document.getElementById('numeroDocumentoEmpresa');
+            const errorNumeroDocumentoEmpresa = document.getElementById('error-numeroDocumentoEmpresa');
+            if (numeroDocumentoEmpresa.value.trim() === '') {
+                valid = false;
+                numeroDocumentoEmpresa.classList.add('is-invalid');
+                errorNumeroDocumentoEmpresa.textContent = 'El RUC es obligatorio.';
+            } else if (!/^\d{11}$/.test(numeroDocumentoEmpresa.value)) {
+                valid = false;
+                numeroDocumentoEmpresa.classList.add('is-invalid');
+                errorNumeroDocumentoEmpresa.textContent = 'Debe ser un RUC válido (11 dígitos).';
+            } else {
+                numeroDocumentoEmpresa.classList.remove('is-invalid');
+                errorNumeroDocumentoEmpresa.textContent = '';
+            }
+
+            const nombreComercial = document.getElementById('nombreComercial');
+            const errorNombreComercial = document.getElementById('error-nombreComercial');
+            if (nombreComercial.value.trim() == '') {
+                valid = false;
+                nombreComercial.classList.add('is-invalid');
+                errorNombreComercial.textContent = 'Este campo es obligatorio.';
+            } else {
+                nombreComercial.classList.remove('is-invalid');
+                errorNombreComercial.textContent = '';
+            }
+
+            const razonSocial = document.getElementById('razonSocial');
+            const errorRazonSocial = document.getElementById('error-razonSocial');
+            if (razonSocial.value.trim() == '') {
+                valid = false;
+                razonSocial.classList.add('is-invalid');
+                errorRazonSocial.textContent = 'Este campo es obligatorio.';
+            } else {
+                razonSocial.classList.remove('is-invalid');
+                errorRazonSocial.textContent = '';
+            }
+
+            const telefonoEmpresa = document.getElementById('telefonoEmpresa');
+            const errorTelefonoEmpresa = document.getElementById('error-telefonoEmpresa');
+            if (telefonoEmpresa.value.trim() !== '' && !/^\d{9}$/.test(telefonoEmpresa.value)) {
+                valid = false;
+                telefonoEmpresa.classList.add('is-invalid');
+                errorTelefonoEmpresa.textContent = 'El teléfono debe tener 9 dígitos.';
+            } else {
+                telefonoEmpresa.classList.remove('is-invalid');
+                errorTelefonoEmpresa.textContent = '';
+            }
+
+            const emailEmpresa = document.getElementById('emailEmpresa');
+            const errorEmailEmpresa = document.getElementById('error-emailEmpresa');
+            if (emailEmpresa.value.trim() !== '' && !/\S+@\S+\.\S+/.test(emailEmpresa.value)) {
+                valid = false;
+                emailEmpresa.classList.add('is-invalid');
+                errorEmailEmpresa.textContent = 'Debe ser un correo electrónico válido.';
+            } else {
+                emailEmpresa.classList.remove('is-invalid');
+                errorEmailEmpresa.textContent = '';
+            }
+
+            const condicion = document.getElementById('condicionEmpresa');
+            const errorCondicion = document.getElementById('error-condicionEmpresa');
+            if (condicion.value === '') {
+                valid = false;
+                condicion.classList.add('is-invalid');
+                errorCondicion.textContent = 'Debe seleccionar una opción válida.';
+            } else {
+                condicion.classList.remove('is-invalid');
+                errorCondicion.textContent = '';
+            }
+
+            return valid;
+        }
+
+        document.getElementById("btnRegistrarCliente").addEventListener('click', async function () {
+            let datos = {};
+            
+            if (document.getElementById('pills-persona-tab').classList.contains('active')) {
+                if (validarCamposPersona()) {
+                    datos = {
+                        "numero_documento": document.getElementById('numeroDocumentoPersona').value,
+                        "nombres": document.getElementById('nombresPersona').value,
+                        "apellidos": document.getElementById('apellidosPersona').value,
+                        "telefono_movil": document.getElementById('telefonoPersona').value || null,
+                        "email": document.getElementById('emailPersona').value,
+                        "direccion": document.getElementById('direccionPersona').value,
+                        "condicion": document.getElementById('condicionPersona').value
+                    };
+
+                    try {
+                        const response = await fnRegistrarPersona(datos);
+                        swal({
+                            title: "Registro con Éxito!",
+                            text: "Persona registrada correctamente",
+                            icon: "success",
+                            buttons: false,
+                            timer: 1500
+                        }).then(() => {
+                            location.reload();
+                        });
+                    } catch (error) {
+                        swal("Error", error.message || "Ocurrió un error inesperado", {
+                            icon: "error",
+                            buttons: {
+                                confirm: { className: "btn btn-danger" }
+                            }
+                        });
+                    }
+                }
+            } else if (document.getElementById('pills-empresa-tab').classList.contains('active')) {
+                if (validarCamposEmpresa()) {
+                    datos = {
+                        "numero_documento": document.getElementById('numeroDocumentoEmpresa').value,
+                        "nombre_comercial": document.getElementById('nombreComercial').value,
+                        "razon_social": document.getElementById('razonSocial').value,
+                        "telefono_movil": document.getElementById('telefonoEmpresa').value,
+                        "email": document.getElementById('emailEmpresa').value,
+                        "direccion": document.getElementById('direccionEmpresa').value,
+                        "condicion": document.getElementById('condicionEmpresa').value
+                    };
+
+                    try {
+                        const response = await fnRegistrarEmpresa(datos);
+                        swal({
+                            title: "Registro con Éxito!",
+                            text: 'Empresa registrada correctamente',
+                            icon: "success",
+                            buttons: false,
+                            timer: 1500
+                        }).then(() => {
+                            location.reload();
+                        });
+                    } catch (error) {
+                        swal("Error", error.message || "Ocurrió un error inesperado", {
+                            icon: "error",
+                            buttons: {
+                                confirm: { className: "btn btn-danger" }
+                            }
+                        });
+                    }
+                }
+            }
+        });
+
+        function fnRegistrarPersona(datos) {
+            return new Promise((resolve, reject) => {
+                $.ajax({
+                    method: "POST",
+                    url: "logica/clssPersona.php",
+                    data: {
+                        "accion": "REGISTRARPERSONA",
+                        "data": JSON.stringify(datos)
+                    }
+                }).done(function (response) {
+                    const jsonResponse = JSON.parse(response);
+                    if (jsonResponse.success) {
+                        resolve(jsonResponse);
+                    } else {
+                        reject(new Error(jsonResponse.message || "Error desconocido"));
+                    }
+                }).fail(function (error) {
+                    reject(error);
+                });
+            });
+        }
+
+        function fnRegistrarEmpresa(datos) {
+            return new Promise((resolve, reject) => {
+                $.ajax({
+                    method: "POST",
+                    url: "logica/clssPersona.php",
+                    data: {
+                        "accion": "REGISTRARPERSONA",
+                        "data": JSON.stringify(datos)
+                    }
+                }).done(function (response) {
+                    const jsonResponse = JSON.parse(response);
+                    if (jsonResponse.success) {
+                        resolve(jsonResponse);
+                    } else {
+                        reject(new Error(jsonResponse.mensaje || "Error desconocido"));
+                    }
+                }).fail(function (error) {
+                    reject(error);
+                });
+            });
+        }
+    }
+
     function fn_editar_usuario(datosUsuario) {
         document.getElementById("contenidoUsuario").innerHTML = `
-
-                    <div class="modal-body">
-                      <div class="card text-start">
-                        <div class="card-body">
-                            <h4 class="card-title text-center"><i class="fas fa-user"></i> Editar Persona</h4>
-
-                            <div class="card-sub text-center">
-                                Los campos con <span class="fw-bold text-danger">*</span> son obligatorios.
-                            </div>
-                        <!-- Pils para seleccionar entre Persona y Empresa -->
+            <div class="modal-body">
+                <div class="card text-start">
+                    <div class="card-body">
+                        <h4 class="card-title text-center"><i class="fas fa-user"></i> Editar Persona</h4>
+                        <div class="card-sub text-center">
+                            Los campos con <span class="fw-bold text-danger">*</span> son obligatorios.
+                        </div>
+                        
                         <ul class="nav nav-pills nav-secondary nav-pills-no-bd" id="pills-tab" role="tablist">
                             <li class="nav-item">
-                                <button class="nav-link active" id="pills-persona-tab" data-bs-toggle="pill" data-bs-target="#pills-persona" type="button" role="tab" aria-controls="pills-persona" aria-selected="true">Cliente | Empleado</button>
+                                <button class="nav-link active" id="pills-persona-tab" data-bs-toggle="pill" data-bs-target="#pills-persona" type="button" role="tab">Cliente | Empleado</button>
                             </li>
                             <li class="nav-item">
-                                <button class="nav-link" id="pills-empresa-tab" data-bs-toggle="pill" data-bs-target="#pills-empresa" type="button" role="tab" aria-controls="pills-empresa" aria-selected="false">Empresa | Proveedor</button>
+                                <button class="nav-link" id="pills-empresa-tab" data-bs-toggle="pill" data-bs-target="#pills-empresa" type="button" role="tab">Empresa | Proveedor</button>
                             </li>
                         </ul>
                         <hr>
+                        
                         <div class="tab-content mt-3" id="pills-tabContent">
                             <!-- Formulario Persona -->
-                            <div class="tab-pane fade show active" id="pills-persona" role="tabpanel" aria-labelledby="pills-persona-tab">
+                            <div class="tab-pane fade show active" id="pills-persona" role="tabpanel">
                                 <div class="mb-3">
-                                    <label for="numeroDocumentoPersona" class="form-label">Número de Documento  <span class="fw-bold text-danger">*</span></label>
+                                    <label for="numeroDocumentoPersona" class="form-label">Número de Documento <span class="fw-bold text-danger">*</span></label>
                                     <input type="text" class="form-control" id="numeroDocumentoPersona" placeholder="Número de Documento">
                                     <div class="error-message" id="error-numeroDocumentoPersona"></div>
                                 </div>
                                 <div class="mb-3">
-                                    <label for="nombresPersona" class="form-label">Nombres  <span class="fw-bold text-danger">*</span></label>
+                                    <label for="nombresPersona" class="form-label">Nombres <span class="fw-bold text-danger">*</span></label>
                                     <input type="text" class="form-control" id="nombresPersona" placeholder="Nombres">
                                     <div class="error-message" id="error-nombresPersona"></div>
                                 </div>
                                 <div class="mb-3">
-                                    <label for="apellidosPersona" class="form-label">Apellidos  <span class="fw-bold text-danger">*</span></label>
+                                    <label for="apellidosPersona" class="form-label">Apellidos <span class="fw-bold text-danger">*</span></label>
                                     <input type="text" class="form-control" id="apellidosPersona" placeholder="Apellidos">
                                     <div class="error-message" id="error-apellidosPersona"></div>
                                 </div>
-
                                 <div class="mb-3">
                                     <label class="form-label">Condición <span class="fw-bold text-danger">*</span></label>
                                     <select class="form-select required" id="condicionPersona">
@@ -886,7 +840,6 @@ include("cabecera.php");
                                     </select>
                                     <div id="error-condicionPersona" class="error-message"></div>
                                 </div>
-
                                 <div class="mb-3">
                                     <label for="telefonoPersona" class="form-label">Teléfono Móvil</label>
                                     <input type="text" class="form-control" id="telefonoPersona" placeholder="Teléfono Móvil">
@@ -895,33 +848,30 @@ include("cabecera.php");
                                     <label for="emailPersona" class="form-label">Email</label>
                                     <input type="email" class="form-control" id="emailPersona" placeholder="Email">
                                 </div>
-
                                 <div class="mb-3">
-                                    <label for="direccionPersona" class="form-label">Direccion</label>
-                                    <input type="text" class="form-control" id="direccionPersona" placeholder="Direccion">
+                                    <label for="direccionPersona" class="form-label">Dirección</label>
+                                    <input type="text" class="form-control" id="direccionPersona" placeholder="Dirección">
                                 </div>
-
                             </div>
 
                             <!-- Formulario Empresa -->
-                            <div class="tab-pane fade" id="pills-empresa" role="tabpanel" aria-labelledby="pills-empresa-tab">
+                            <div class="tab-pane fade" id="pills-empresa" role="tabpanel">
                                 <div class="mb-3">
-                                    <label for="numeroDocumentoEmpresa" class="form-label">Número de Ruc  <span class="fw-bold text-danger">*</span></label>
+                                    <label for="numeroDocumentoEmpresa" class="form-label">Número de RUC <span class="fw-bold text-danger">*</span></label>
                                     <input type="text" class="form-control" id="numeroDocumentoEmpresa" placeholder="Número de Documento">
                                     <div class="error-message" id="error-numeroDocumentoEmpresa"></div>
                                 </div>
                                 <div class="mb-3">
-                                    <label for="nombreComercial" class="form-label">Nombre Comercial  <span class="fw-bold text-danger">*</span></label>
+                                    <label for="nombreComercial" class="form-label">Nombre Comercial <span class="fw-bold text-danger">*</span></label>
                                     <input type="text" class="form-control" id="nombreComercial" placeholder="Nombre Comercial">
                                     <div class="error-message" id="error-nombreComercial"></div>
                                 </div>
                                 <div class="mb-3">
-                                    <label for="razonSocial" class="form-label">Razón Social  <span class="fw-bold text-danger">*</span> </label>
+                                    <label for="razonSocial" class="form-label">Razón Social <span class="fw-bold text-danger">*</span></label>
                                     <input type="text" class="form-control" id="razonSocial" placeholder="Razón Social">
                                     <div class="error-message" id="error-razonSocial"></div>
                                 </div>
-
-                                 <div class="mb-3">
+                                <div class="mb-3">
                                     <label class="form-label">Condición <span class="fw-bold text-danger">*</span></label>
                                     <select class="form-select required" id="condicionEmpresa">
                                         <option value="">Seleccione una opción</option>
@@ -930,7 +880,6 @@ include("cabecera.php");
                                     </select>
                                     <div id="error-condicionEmpresa" class="error-message"></div>
                                 </div>
-
                                 <div class="mb-3">
                                     <label for="emailEmpresa" class="form-label">Email</label>
                                     <input type="email" class="form-control" id="emailEmpresa" placeholder="Email">
@@ -940,30 +889,21 @@ include("cabecera.php");
                                     <input type="text" class="form-control" id="telefonoEmpresa" placeholder="Teléfono Móvil">
                                 </div>
                                 <div class="mb-3">
-                                    <label for="direccionEmpresa" class="form-label">Direccion</label>
-                                    <input type="text" class="form-control" id="direccionEmpresa" placeholder="Direccion">
-
+                                    <label for="direccionEmpresa" class="form-label">Dirección</label>
+                                    <input type="text" class="form-control" id="direccionEmpresa" placeholder="Dirección">
                                 </div>
-
-                               
-
                             </div>
                             <p id="txtcondicion" style="display: none;"></p>
                         </div>
-</div>
-</div>
-
-                       
                     </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-danger rounded-5" data-bs-dismiss="modal">Cerrar</button>
-                        <button type="button" class="btn btn-success rounded-5" id="btnEditarCliente">Registrar</button>
-                    </div>
-            `;
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger rounded-5" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-success rounded-5" id="btnEditarCliente">Actualizar</button>
+            </div>
+        `;
         
-        console.log(datosUsuario);
-        // Rellenar el campo de estado según el valor de datosUsuario
-
         const modal = new bootstrap.Modal(document.getElementById("modalCliente"));
         modal.show();
 
@@ -978,50 +918,34 @@ include("cabecera.php");
                     "id": id
                 },
                 success: function(response) {
-                    console.log(response);
                     var result = JSON.parse(response);
-                    console.log(result);
 
-                    // Si la respuesta es exitosa
                     if (result.success === true) {
-                        // Rellenar campos comunes
                         const usuario = result.data;
                         document.getElementById("txtcondicion").textContent = usuario.condicion;
 
-                        // Mostrar y ocultar formularios según la condición
-                        if (usuario.condicion === "CLIENTE" || usuario.condicion === "EMPLEADO" ) {
-                            // Mostrar pestaña de Persona
+                        if (usuario.condicion === "CLIENTE" || usuario.condicion === "EMPLEADO") {
                             document.getElementById("pills-persona-tab").classList.add("active");
                             document.getElementById("pills-empresa-tab").classList.remove("active");
                             document.getElementById("pills-persona").classList.add("show", "active");
                             document.getElementById("pills-empresa").classList.remove("show", "active");
 
-                            // Llenar campos de Persona
                             document.getElementById("numeroDocumentoPersona").value = usuario.numero_documento;
                             document.getElementById("nombresPersona").value = usuario.nombres;
                             document.getElementById("apellidosPersona").value = usuario.apellidos;
                             document.getElementById("telefonoPersona").value = usuario.telefonomovil;
                             document.getElementById("emailPersona").value = usuario.email;
                             document.getElementById("direccionPersona").value = usuario.direccion;
-
-
-                            document.getElementById("numeroDocumentoPersona").classList.add("required");
-                            document.getElementById("nombresPersona").classList.add("required");
-                            document.getElementById("apellidosPersona").classList.add("required");
                             document.getElementById("condicionPersona").value = usuario.condicion;
-
 
                             document.getElementById("pills-empresa-tab").style.display = "none";
                             document.getElementById("pills-empresa").style.display = "none";
-
                         } else if (usuario.condicion === "PROVEEDOR" || usuario.condicion === "EMPRESA") {
-                            // Mostrar pestaña de Empresa
                             document.getElementById("pills-empresa-tab").classList.add("active");
                             document.getElementById("pills-persona-tab").classList.remove("active");
                             document.getElementById("pills-empresa").classList.add("show", "active");
                             document.getElementById("pills-persona").classList.remove("show", "active");
 
-                            // Llenar campos de Empresa
                             document.getElementById("numeroDocumentoEmpresa").value = usuario.numero_documento;
                             document.getElementById("nombreComercial").value = usuario.nombre_comercial;
                             document.getElementById("razonSocial").value = usuario.razon_social;
@@ -1030,44 +954,26 @@ include("cabecera.php");
                             document.getElementById("direccionEmpresa").value = usuario.direccion;
                             document.getElementById("condicionEmpresa").value = usuario.condicion;
 
-                            document.getElementById("numeroDocumentoEmpresa").classList.add("required");
-                            document.getElementById("nombreComercial").classList.add("required");
-                            document.getElementById("razonSocial").classList.add("required");
-
-
                             document.getElementById("pills-persona-tab").style.display = "none";
                             document.getElementById("pills-persona").style.display = "none";
-
-                            // Mostrar el botón para cambiar a la pestaña de Empresa
-                            document.getElementById("pills-empresa-tab").style.display = "block";
                         }
                     } else {
                         swal("Error", result.message, {
                             icon: "error",
-                            buttons: {
-                                confirm: {
-                                    className: "btn btn-danger",
-                                },
-                            },
+                            buttons: { confirm: { className: "btn btn-danger" } }
                         });
                     }
-                },
-                error: function(error) {
-                    console.error("Error:", error.responseText);
                 }
             });
         }
 
         document.getElementById("btnEditarCliente").addEventListener("click", async function () {
-            if(!validarFormulario()){
-                return;
-            }
-
-            const condicion = document.getElementById("txtcondicion").textContent
-            console.log(condicion)
-            if (condicion === "CLIENTE" || condicion === "EMPLEADO" ) {
+            const condicion = document.getElementById("txtcondicion").textContent;
+            let datos = {};
+            
+            if (condicion === "CLIENTE" || condicion === "EMPLEADO") {
                 datos = {
-                    "id":datosUsuario.id,
+                    "id": datosUsuario.id,
                     "numero_documento": document.getElementById('numeroDocumentoPersona').value,
                     "nombres": document.getElementById('nombresPersona').value,
                     "apellidos": document.getElementById('apellidosPersona').value,
@@ -1075,17 +981,12 @@ include("cabecera.php");
                     "email": document.getElementById('emailPersona').value,
                     "direccion": document.getElementById('direccionPersona').value,
                     "condicion": document.getElementById('condicionPersona').value
-
                 };
 
-                // Llamar a la función AJAX para registrar la persona
-                console.log(datos);
-                fnRegistrarPersona(datos);
-
-                
-            }else if(condicion === "PROVEEDOR" || condicion === "EMPRESA"){
+                fnActualizarPersona(datos);
+            } else if(condicion === "PROVEEDOR" || condicion === "EMPRESA") {
                 datos = {
-                    "id":datosUsuario.id,
+                    "id": datosUsuario.id,
                     "numero_documento": document.getElementById('numeroDocumentoEmpresa').value,
                     "nombre_comercial": document.getElementById('nombreComercial').value,
                     "razon_social": document.getElementById('razonSocial').value,
@@ -1093,127 +994,75 @@ include("cabecera.php");
                     "email": document.getElementById('emailEmpresa').value,
                     "direccion": document.getElementById('direccionEmpresa').value,
                     "condicion": document.getElementById('condicionEmpresa').value
-
-
                 };
 
-                console.log(datos);
-                // Llamar a la función AJAX para registrar la empresa
-                fnRegistrarEmpresa(datos);
-
-
+                fnActualizarEmpresa(datos);
             }
-            
-
         });
 
-        function validarFormulario() {
-            let campos = document.querySelectorAll(".required");
-            let formularioValido = true;
-
-            campos.forEach((campo) => {
-                let errorMensaje = document.getElementById(`error-${campo.id}`);
-
-                if (campo.value.trim() === "") {
-                    campo.classList.add("error-input");
-                    errorMensaje.textContent = "Este campo es obligatorio.";
-                    formularioValido = false;
-                    return false;
-                } else {
-                    campo.classList.remove("error-input");
-                    errorMensaje.textContent = "";
-                    return false;
-                }
-            });
-
-            return true;
-        }
-
-        function fnRegistrarPersona(datos) {
-        
+        function fnActualizarPersona(datos) {
             $.ajax({
                 method: "POST",
-                url: "logica/clssPersona.php",  // El archivo PHP donde se maneja el registro de persona
+                url: "logica/clssPersona.php",
                 data: {
-                    "accion": "ACTUALIZARPERSONA",  // Acción que se realiza en el backend
-                    "data": JSON.stringify(datos)  // Los datos de la persona como JSON
+                    "accion": "ACTUALIZARPERSONA",
+                    "data": JSON.stringify(datos)
                 }
             }).done(function (response) {
-                console.log(response);
-                const jsonResponse = JSON.parse(response); // Convertir la respuesta a JSON
+                const jsonResponse = JSON.parse(response);
                 if (jsonResponse.success) {
                     swal({
-                        title: "Registro con Exito!",
-                        text: 'Persona actualizado  correctamente',
+                        title: "Actualización Exitosa!",
+                        text: 'Persona actualizada correctamente',
                         icon: "success",
                         buttons: false,
                         timer: 1500
                     }).then(() => {
                         location.reload();
-                    });  // Resolvemos la promesa en caso de éxito
+                    });
                 } else {
-                    swal("Error", result.message, {
+                    swal("Error", jsonResponse.message, {
                         icon: "error",
-                        buttons: {
-                            confirm: {
-                                className: "btn btn-danger",
-                            },
-                        },
+                        buttons: { confirm: { className: "btn btn-danger" } }
                     });
                 }
-            }).fail(function (error) {
-                console.error("Error:", error.responseText);
-            });
-           
-        }
-
-        function fnRegistrarEmpresa(datos) {
-            return new Promise((resolve, reject) => {
-                $.ajax({
-                    method: "POST",
-                    url: "logica/clssPersona.php",  // El archivo PHP donde se maneja el registro de empresa
-                    data: {
-                        "accion": "ACTUALIZARPERSONA",  // Acción que se realiza en el backend
-                        "data": JSON.stringify(datos)  // Los datos de la empresa como JSON
-                    }
-                }).done(function (response) {
-                    console.log(response);
-                    const jsonResponse = JSON.parse(response); // Convertir la respuesta a JSON
-                    if (jsonResponse.success) {
-                        swal({
-                            title: "Registro con Exito!",
-                            text: 'Persona actualizado  correctamente',
-                            icon: "success",
-                            buttons: false,
-                            timer: 1500
-                        }).then(() => {
-                            location.reload();
-                        });  // Resolvemos la promesa en caso de éxito
-                    } else {
-                        swal("Error", result.message, {
-                            icon: "error",
-                            buttons: {
-                                confirm: {
-                                    className: "btn btn-danger",
-                                },
-                            },
-                        });
-                    }
-                }).fail(function (error) {
-                    console.error("Error:", error.responseText);
-                });
             });
         }
 
-
-
-        
+        function fnActualizarEmpresa(datos) {
+            $.ajax({
+                method: "POST",
+                url: "logica/clssPersona.php",
+                data: {
+                    "accion": "ACTUALIZARPERSONA",
+                    "data": JSON.stringify(datos)
+                }
+            }).done(function (response) {
+                const jsonResponse = JSON.parse(response);
+                if (jsonResponse.success) {
+                    swal({
+                        title: "Actualización Exitosa!",
+                        text: 'Empresa actualizada correctamente',
+                        icon: "success",
+                        buttons: false,
+                        timer: 1500
+                    }).then(() => {
+                        location.reload();
+                    });
+                } else {
+                    swal("Error", jsonResponse.message, {
+                        icon: "error",
+                        buttons: { confirm: { className: "btn btn-danger" } }
+                    });
+                }
+            });
+        }
     }
 
-    function fn_bloquear_usuario(datosUsuario){
+    function fn_bloquear_usuario(datosUsuario) {
         Swal.fire({
             title: '¿Estás seguro?',
-            text: "Esta acción no se puede deshacer.",
+            text: "Esta acción bloqueará a la persona.",
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#3085d6',
@@ -1222,7 +1071,6 @@ include("cabecera.php");
             cancelButtonText: 'Cancelar'
         }).then((result) => {
             if (result.isConfirmed) {
-                
                 $.ajax({
                     method: "POST",
                     url: "logica/clssPersona.php",
@@ -1231,36 +1079,24 @@ include("cabecera.php");
                         "id": datosUsuario
                     }
                 }).done(function (response) {
-
                     var result = JSON.parse(response);
-                    console.log(response);
-
-                    // Verificar si el resultado contiene éxito o error
                     if (result.success === true) {
                         location.reload();
-                    } else if (result.error === true) {
-                        // Si existe un error, mostrar el mensaje devuelto por el servidor
+                    } else {
                         swal("Error", result.message, {
                             icon: "error",
-                            buttons: {
-                                confirm: {
-                                    className: "btn btn-danger",
-                                },
-                            },
+                            buttons: { confirm: { className: "btn btn-danger" } }
                         });
                     }
-
-                }).fail(function (error) {
-                    console.error("Error:", error.responseText);
                 });
             }
         });
     }
 
-    function fn_desbloquear_usuario(datosUsuario){
+    function fn_desbloquear_usuario(datosUsuario) {
         Swal.fire({
             title: '¿Estás seguro?',
-            text: "Esta acción no se puede deshacer.",
+            text: "Esta acción desbloqueará a la persona.",
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#3085d6',
@@ -1277,35 +1113,21 @@ include("cabecera.php");
                         "id": datosUsuario
                     }
                 }).done(function (response) {
-
                     var result = JSON.parse(response);
-                    console.log(response);
-
-                    // Verificar si el resultado contiene éxito o error
                     if (result.success === true) {
                         location.reload();
-                    } else if (result.error === true) {
-                        // Si existe un error, mostrar el mensaje devuelto por el servidor
+                    } else {
                         swal("Error", result.message, {
                             icon: "error",
-                            buttons: {
-                                confirm: {
-                                    className: "btn btn-danger",
-                                },
-                            },
+                            buttons: { confirm: { className: "btn btn-danger" } }
                         });
                     }
-
-                }).fail(function (error) {
-                    console.error("Error:", error.responseText);
                 });
-                            
-                
             }
         });
     }
 
-    function fn_eliminar_usuario(datosUsuario){
+    function fn_eliminar_usuario(datosUsuario) {
         Swal.fire({
             title: '¿Estás seguro?',
             text: "Esta acción no se puede deshacer.",
@@ -1317,7 +1139,6 @@ include("cabecera.php");
             cancelButtonText: 'Cancelar'
         }).then((result) => {
             if (result.isConfirmed) {
-                
                 $.ajax({
                     method: "POST",
                     url: "logica/clssPersona.php",
@@ -1326,32 +1147,19 @@ include("cabecera.php");
                         "id": datosUsuario
                     }
                 }).done(function (response) {
-
                     var result = JSON.parse(response);
-                    console.log(response);
-
-                    // Verificar si el resultado contiene éxito o error
                     if (result.success === true) {
                         location.reload();
-                    } else if (result.error === true) {
-                        // Si existe un error, mostrar el mensaje devuelto por el servidor
+                    } else {
                         swal("Error", result.message, {
                             icon: "error",
-                            buttons: {
-                                confirm: {
-                                    className: "btn btn-danger",
-                                },
-                            },
+                            buttons: { confirm: { className: "btn btn-danger" } }
                         });
                     }
-
-                }).fail(function (error) {
-                    console.error("Error:", error.responseText);
                 });
             }
         });
     }
-
 </script>
 
 <?php

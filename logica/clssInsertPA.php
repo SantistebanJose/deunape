@@ -400,7 +400,7 @@ function paRegistrarArticuloCompleto($jsDatosArticulo)
 
     $data = json_decode($jsDatosArticulo, true);
 
-    // ✅ Agregar validación de sucursal_id
+    // Validación de sucursal_id
     if (!isset($data['sucursal_id']) || empty($data['sucursal_id'])) {
         echo json_encode([
             'estado' => false,
@@ -421,10 +421,13 @@ function paRegistrarArticuloCompleto($jsDatosArticulo)
     $nombre = $data['nombre'];
     $tipo_id = $data['tipo_id'];
     $json_url_img = $data['json_url_img'];
-    $sucursal_id = $data['sucursal_id']; // ✅ NUEVO
+    $sucursal_id = $data['sucursal_id'];
+    
+    // ✅ NUEVO: Obtener precios_json
+    $precios_json = isset($data['precios_json']) ? $data['precios_json'] : null;
 
     try {
-        // ✅ Agregar sucursal_id a la llamada de función
+        // ✅ ACTUALIZADO: Agregar precios_json a la llamada de función
         $sql = "SELECT * FROM fn_registrar_articulo_completo(
             :nombre, 
             :categoria_id, 
@@ -438,7 +441,8 @@ function paRegistrarArticuloCompleto($jsDatosArticulo)
             :precio_compra,
             :marca,
             :json_url_img,
-            :sucursal_id
+            :sucursal_id,
+            :precios_json
         )";
 
         $stmt = $conectar->prepare($sql);
@@ -458,7 +462,11 @@ function paRegistrarArticuloCompleto($jsDatosArticulo)
         $stmt->bindParam(':precio_compra', $precio_compra);
         $stmt->bindParam(':marca', $marca);
         $stmt->bindParam(':json_url_img', $json_url_img);
-        $stmt->bindParam(':sucursal_id', $sucursal_id, PDO::PARAM_INT); // ✅ NUEVO
+        $stmt->bindParam(':sucursal_id', $sucursal_id, PDO::PARAM_INT);
+        
+        // ✅ NUEVO: Bind del campo precios_json
+        // Si es null, se guarda como NULL en la BD
+        $stmt->bindParam(':precios_json', $precios_json, PDO::PARAM_STR);
 
         $stmt->execute();
 
@@ -524,7 +532,7 @@ function paEditarArticuloCompleto($jsDatosArticulo)
 
     $data = json_decode($jsDatosArticulo, true);
     
-    // ✅ Agregar validación de sucursal_id
+    // Validación de sucursal_id
     if (!isset($data['sucursal_id']) || empty($data['sucursal_id'])) {
         echo json_encode([
             'estado' => false,
@@ -546,10 +554,13 @@ function paEditarArticuloCompleto($jsDatosArticulo)
     $nombre = $data['nombre'];
     $tipo_id = $data['tipo_id'];
     $json_url_img = $data['json_url_img'];
-    $sucursal_id = $data['sucursal_id']; // ✅ NUEVO
+    $sucursal_id = $data['sucursal_id'];
+    
+    // ✅ NUEVO: Obtener precios_json
+    $precios_json = isset($data['precios_json']) ? $data['precios_json'] : null;
 
     try {
-        // ✅ Agregar sucursal_id a la llamada de función
+        // ✅ ACTUALIZADO: Agregar precios_json a la llamada de función
         $sql = "SELECT * FROM fn_editar_articulo_completo(
             :id,
             :nombre,
@@ -564,7 +575,8 @@ function paEditarArticuloCompleto($jsDatosArticulo)
             :precio_compra,
             :marca,
             :json_url_img,
-            :sucursal_id
+            :sucursal_id,
+            :precios_json
         )";
 
         $stmt = $conectar->prepare($sql);
@@ -585,7 +597,11 @@ function paEditarArticuloCompleto($jsDatosArticulo)
         $stmt->bindParam(':precio_compra', $precio_compra);
         $stmt->bindParam(':marca', $marca);
         $stmt->bindParam(':json_url_img', $json_url_img);
-        $stmt->bindParam(':sucursal_id', $sucursal_id, PDO::PARAM_INT); // ✅ NUEVO
+        $stmt->bindParam(':sucursal_id', $sucursal_id, PDO::PARAM_INT);
+        
+        // ✅ NUEVO: Bind del campo precios_json
+        // Si es null, se guarda como NULL en la BD
+        $stmt->bindParam(':precios_json', $precios_json, PDO::PARAM_STR);
 
         $stmt->execute();
 
@@ -611,6 +627,7 @@ function paEditarArticuloCompleto($jsDatosArticulo)
         ]);
     }
 }
+
 function toggle_estado_articulo_completo($id, $accion)
 {
     global $conectar;

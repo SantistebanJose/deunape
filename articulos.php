@@ -263,6 +263,9 @@ if (!$sucursal_id) {
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.11.6/umd/popper.min.js"></script>
 <script src="assets/js/scriptNotify.js"></script>
+<script src="assets/js/precios-presentacion.js"></script>
+<link rel="stylesheet"  href="estilos-precios.css">
+
 
 <script>
     // Variable global para almacenar la sucursal_id
@@ -361,203 +364,309 @@ if (!$sucursal_id) {
         return `https://drive.google.com/uc?export=view&id=${fileId}`;
     }
 
-    function generarFormularioArticulo(isEdit, datosArticulo) {
-        isEdit = isEdit || false;
-        datosArticulo = datosArticulo || null;
-        
-        var html = '<div class="card border-primary">';
-        html += '<button type="button" class="btn-close position-absolute top-0 end-0 m-2" data-bs-dismiss="modal" aria-label="Close" style="z-index: 1000;"></button>';
-        html += '<div class="card-body">';
-        html += '<h4 class="card-title text-center mb-3" style="font-size: 28px;">';
-        html += '<i class="fas fa-shopping-bag"></i> ' + (isEdit ? 'Modificar' : 'Registro de') + ' Artículos';
-        html += '</h4>';
-        html += '<div class="card-sub text-center mb-3">';
-        html += isEdit ? 'Modifica los datos del artículo' : 'Aquí podrás <strong>registrar</strong> los Artículos <strong>NUEVOS.</strong>';
-        html += '</div>';
-        
-        html += '<div class="row">';
-        
-        // COLUMNA IZQUIERDA
-        html += '<div class="col-md-7">';
-        html += '<div class="card">';
-        html += '<div class="card-header bg-primary text-white">';
-        html += '<h5 class="mb-0"><i class="fas fa-info-circle"></i> Datos del Artículo</h5>';
-        html += '</div>';
-        html += '<div class="card-body">';
-        html += '<div class="row g-3">';
-        
-        html += '<div class="col-12">';
-        html += '<label class="form-label"><strong>Nombre de Artículo</strong> <span class="text-danger">*</span></label>';
-        html += '<input type="text" class="form-control" id="idRegistroNombreArticulo" placeholder="Artículo 1" />';
-        html += '</div>';
-        
-        html += '<div class="col-md-6">';
-        html += '<label class="form-label"><strong>Categoría</strong></label>';
-        html += '<select class="form-select form-select-sm" id="idRegistoCategoria">';
-        html += '<option value="">Seleccione Categoría</option>';
-        html += '<?php foreach (listarCategoria($sucursal_id) as $datos) { ?>';
-        html += '<option value="<?php echo $datos["id"] ?>"><?php echo $datos["abreviatura"] ?></option>';
-        html += '<?php } ?>';
-        html += '</select>';
-        html += '</div>';
-        
-        html += '<div class="col-md-6">';
-        html += '<label class="form-label"><strong>Tipo de Artículo</strong></label>';
-        html += '<select class="form-select form-select-sm" id="idRegistoTipo">';
-        html += '<option value="">Seleccione Tipo</option>';
-        html += '<?php foreach (listarTipoArticulos($sucursal_id) as $datos) { ?>';
-        html += '<option value="<?php echo $datos["id"] ?>"><?php echo $datos["abreviatura"] ?></option>';
-        html += '<?php } ?>';
-        html += '</select>';
-        html += '</div>';
-        
-        html += '<div class="col-md-6">';
-        html += '<label class="form-label"><strong>Dimensión</strong></label>';
-        html += '<select class="form-select form-select-sm" id="idRegistroDimension">';
-        html += '<option value="">Seleccione Dimensión</option>';
-        html += '<?php foreach (listarDimension($sucursal_id) as $datos) { ?>';
-        html += '<option value="<?php echo $datos["id"] ?>"><?php echo $datos["medida"] ?></option>';
-        html += '<?php } ?>';
-        html += '</select>';
-        html += '</div>';
-        
-        html += '<div class="col-md-6">';
-        html += '<label class="form-label"><strong>Escala</strong></label>';
-        html += '<select class="form-select form-select-sm" id="idRegistroEscala">';
-        html += '<option value="">Seleccione Escala</option>';
-        html += '<?php foreach (listarEscala($sucursal_id) as $datos) { ?>';
-        html += '<option value="<?php echo $datos["id"] ?>"><?php echo $datos["abreviatura"] ?></option>';
-        html += '<?php } ?>';
-        html += '</select>';
-        html += '</div>';
-        
-        html += '<div class="col-md-6">';
-        html += '<label class="form-label"><strong>Marca</strong></label>';
-        html += '<input type="text" class="form-control" id="idRegistroMarca" placeholder="Ej: Artesco" />';
-        html += '</div>';
-        
-        html += '<div class="col-md-6">';
-        html += '<label class="form-label"><strong>Color</strong></label>';
-        html += '<input type="text" class="form-control" id="idRegistroColor" placeholder="Rojo, verde, azul..." />';
-        html += '</div>';
-        
-        html += '<div class="col-md-4">';
-        html += '<label class="form-label"><strong>Stock</strong></label>';
-        html += '<input type="number" class="form-control" id="idRegistrarStock" placeholder="0" value="0" />';
-        html += '</div>';
-        
-        html += '<div class="col-md-4">';
-        html += '<label class="form-label"><strong>Precio Compra</strong></label>';
-        html += '<input type="number" step="0.01" class="form-control" id="idRegistrarPrecioCompra" placeholder="0.00" value="0" />';
-        html += '</div>';
-        
-        html += '<div class="col-md-4">';
-        html += '<label class="form-label"><strong>Precio Venta</strong></label>';
-        html += '<input type="number" step="0.01" class="form-control" id="idRegistrarPrecioVenta" placeholder="0.00" value="0" />';
-        html += '</div>';
-        
-        html += '<div class="col-12">';
-        html += '<label class="form-label"><strong>Requiere Corte</strong></label>';
-        html += '<div class="d-flex gap-3">';
-        html += '<div class="form-check">';
-        html += '<input class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault1" value="Si" />';
-        html += '<label class="form-check-label" for="flexRadioDefault1">Sí</label>';
-        html += '</div>';
-        html += '<div class="form-check">';
-        html += '<input class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault2" value="No" checked />';
-        html += '<label class="form-check-label" for="flexRadioDefault2">No</label>';
-        html += '</div>';
-        html += '</div>';
-        html += '</div>';
-        
-        html += '</div>';
-        html += '</div>';
-        html += '</div>';
-        html += '</div>';
-        
-        // COLUMNA DERECHA - IMÁGENES
-        html += '<div class="col-md-5">';
-        html += '<div class="card">';
-        html += '<div class="card-header bg-success text-white">';
-        html += '<h5 class="mb-0"><i class="fas fa-images"></i> Imágenes del Artículo</h5>';
-        html += '</div>';
-        html += '<div class="card-body">';
-        
-        html += '<ul class="nav nav-tabs mb-3" role="tablist">';
-        html += '<li class="nav-item" role="presentation">';
-        html += '<button class="nav-link active" id="url-tab" data-bs-toggle="tab" data-bs-target="#url-panel" type="button" role="tab">';
-        html += '<i class="fas fa-link"></i> URL Web';
-        html += '</button>';
-        html += '</li>';
-        html += '<li class="nav-item" role="presentation">';
-        html += '<button class="nav-link" id="drive-tab" data-bs-toggle="tab" data-bs-target="#drive-panel" type="button" role="tab">';
-        html += '<i class="fab fa-google-drive"></i> Google Drive';
-        html += '</button>';
-        html += '</li>';
-        html += '</ul>';
-        
-        html += '<div class="tab-content">';
-        
-        html += '<div class="tab-pane fade show active" id="url-panel" role="tabpanel">';
-        html += '<label class="form-label"><strong>URL de Imagen Web</strong></label>';
-        html += '<div class="input-group mb-2">';
-        html += '<span class="input-group-text"><i class="fas fa-link"></i></span>';
-        html += '<input type="url" class="form-control" id="idNuevaUrlImagen" placeholder="https://ejemplo.com/imagen.jpg" />';
-        html += '<button class="btn btn-primary" type="button" id="btnAgregarImagen">';
-        html += '<i class="fas fa-plus"></i> Agregar';
-        html += '</button>';
-        html += '</div>';
-        html += '<small class="form-text text-muted">Ingrese la URL completa de una imagen en internet</small>';
-        html += '</div>';
-        
-        html += '<div class="tab-pane fade" id="drive-panel" role="tabpanel">';
-        html += '<label class="form-label"><strong>Enlace de Google Drive</strong></label>';
-        html += '<div class="input-group mb-2">';
-        html += '<span class="input-group-text"><i class="fab fa-google-drive"></i></span>';
-        html += '<input type="text" class="form-control" id="idNuevaUrlDrive" placeholder="https://drive.google.com/file/d/..." />';
-        html += '<button class="btn btn-primary" type="button" id="btnAgregarDrive">';
-        html += '<i class="fas fa-plus"></i> Agregar';
-        html += '</button>';
-        html += '</div>';
-        html += '<small class="form-text text-muted">';
-        html += '<strong>Pasos:</strong> 1) Sube la imagen a Drive, 2) Clic derecho > "Obtener enlace", 3) Configura como "Cualquier persona con el enlace", 4) Pega el enlace aquí';
-        html += '</small>';
-        html += '</div>';
-        
-        html += '</div>';
-        
-        html += '<hr>';
-        
-        html += '<div class="mb-3">';
-        html += '<label class="form-label"><strong>Imágenes Agregadas (<span id="contadorImagenes">0</span>)</strong></label>';
-        html += '<div class="images-section" id="listaImagenes">';
-        html += '<div class="no-images-msg">';
-        html += '<i class="fas fa-image fa-3x mb-2"></i>';
-        html += '<p>No hay imágenes agregadas aún</p>';
-        html += '</div>';
-        html += '</div>';
-        html += '</div>';
-        
-        html += '</div>';
-        html += '</div>';
-        html += '</div>';
-        
-        html += '</div>';
-        
-        html += '<div class="row mt-3">';
-        html += '<div class="col-12 text-center">';
-        html += '<button id="' + (isEdit ? 'btnEditarArticulo' : 'btnRegistrarArticulo') + '" class="btn btn-success btn-lg btn-round">';
-        html += isEdit ? '<i class="fas fa-save"></i> Guardar Cambios' : '<i class="fas fa-check"></i> Registrar Artículo';
-        html += '</button>';
-        html += '</div>';
-        html += '</div>';
-        
-        html += '</div>';
-        html += '</div>';
-        
-        return html;
-    }
+    // ============================================
+// FUNCIÓN ACTUALIZADA PARA GENERAR FORMULARIO
+// Reemplaza la función generarFormularioArticulo() existente
+// ============================================
 
+function generarFormularioArticulo(isEdit, datosArticulo) {
+    isEdit = isEdit || false;
+    datosArticulo = datosArticulo || null;
+    
+    var html = '<div class="card border-primary">';
+    html += '<button type="button" class="btn-close position-absolute top-0 end-0 m-2" data-bs-dismiss="modal" aria-label="Close" style="z-index: 1000;"></button>';
+    html += '<div class="card-body">';
+    html += '<h4 class="card-title text-center mb-3" style="font-size: 28px;">';
+    html += '<i class="fas fa-shopping-bag"></i> ' + (isEdit ? 'Modificar' : 'Registro de') + ' Artículos';
+    html += '</h4>';
+    html += '<div class="card-sub text-center mb-3">';
+    html += isEdit ? 'Modifica los datos del artículo' : 'Aquí podrás <strong>registrar</strong> los Artículos <strong>NUEVOS.</strong>';
+    html += '</div>';
+    
+    // TABS PRINCIPALES
+    html += '<ul class="nav nav-tabs nav-tabs-custom mb-3" role="tablist">';
+    html += '<li class="nav-item" role="presentation">';
+    html += '<button class="nav-link active" id="datos-tab" data-bs-toggle="tab" data-bs-target="#datos-panel" type="button" role="tab">';
+    html += '<i class="fas fa-info-circle"></i> Datos del Artículo';
+    html += '</button>';
+    html += '</li>';
+    html += '<li class="nav-item" role="presentation">';
+    html += '<button class="nav-link" id="precios-tab" data-bs-toggle="tab" data-bs-target="#precios-panel" type="button" role="tab">';
+    html += '<i class="fas fa-tags"></i> Precios por Presentación <span class="badge bg-primary ms-1" id="contadorPresentaciones">0</span>';
+    html += '</button>';
+    html += '</li>';
+    html += '<li class="nav-item" role="presentation">';
+    html += '<button class="nav-link" id="imagenes-tab" data-bs-toggle="tab" data-bs-target="#imagenes-panel" type="button" role="tab">';
+    html += '<i class="fas fa-images"></i> Imágenes <span class="badge bg-success ms-1" id="contadorImagenes">0</span>';
+    html += '</button>';
+    html += '</li>';
+    html += '</ul>';
+    
+    html += '<div class="tab-content">';
+    
+    // ============================================
+    // TAB 1: DATOS DEL ARTÍCULO
+    // ============================================
+    html += '<div class="tab-pane fade show active" id="datos-panel" role="tabpanel">';
+    html += '<div class="row g-3">';
+    
+    html += '<div class="col-md-12">';
+    html += '<label class="form-label"><strong>Nombre de Artículo</strong> <span class="text-danger">*</span></label>';
+    html += '<input type="text" class="form-control" id="idRegistroNombreArticulo" placeholder="Ej: Blusas Dama Manga Corta" />';
+    html += '</div>';
+    
+    html += '<div class="col-md-4">';
+    html += '<label class="form-label"><strong>Categoría</strong></label>';
+    html += '<select class="form-select form-select-sm" id="idRegistoCategoria">';
+    html += '<option value="">Seleccione Categoría</option>';
+    html += '<?php foreach (listarCategoria($sucursal_id) as $datos) { ?>';
+    html += '<option value="<?php echo $datos["id"] ?>"><?php echo $datos["abreviatura"] ?></option>';
+    html += '<?php } ?>';
+    html += '</select>';
+    html += '</div>';
+    
+    html += '<div class="col-md-4">';
+    html += '<label class="form-label"><strong>Tipo de Artículo</strong></label>';
+    html += '<select class="form-select form-select-sm" id="idRegistoTipo">';
+    html += '<option value="">Seleccione Tipo</option>';
+    html += '<?php foreach (listarTipoArticulos($sucursal_id) as $datos) { ?>';
+    html += '<option value="<?php echo $datos["id"] ?>"><?php echo $datos["abreviatura"] ?></option>';
+    html += '<?php } ?>';
+    html += '</select>';
+    html += '</div>';
+    
+    html += '<div class="col-md-4">';
+    html += '<label class="form-label"><strong>Dimensión</strong></label>';
+    html += '<select class="form-select form-select-sm" id="idRegistroDimension">';
+    html += '<option value="">Seleccione Dimensión</option>';
+    html += '<?php foreach (listarDimension($sucursal_id) as $datos) { ?>';
+    html += '<option value="<?php echo $datos["id"] ?>"><?php echo $datos["medida"] ?></option>';
+    html += '<?php } ?>';
+    html += '</select>';
+    html += '</div>';
+    
+    html += '<div class="col-md-3">';
+    html += '<label class="form-label"><strong>Escala</strong></label>';
+    html += '<select class="form-select form-select-sm" id="idRegistroEscala">';
+    html += '<option value="">Seleccione Escala</option>';
+    html += '<?php foreach (listarEscala($sucursal_id) as $datos) { ?>';
+    html += '<option value="<?php echo $datos["id"] ?>"><?php echo $datos["abreviatura"] ?></option>';
+    html += '<?php } ?>';
+    html += '</select>';
+    html += '</div>';
+    
+    html += '<div class="col-md-3">';
+    html += '<label class="form-label"><strong>Marca</strong></label>';
+    html += '<input type="text" class="form-control" id="idRegistroMarca" placeholder="Ej: Artesco" />';
+    html += '</div>';
+    
+    html += '<div class="col-md-3">';
+    html += '<label class="form-label"><strong>Color</strong></label>';
+    html += '<input type="text" class="form-control" id="idRegistroColor" placeholder="Rojo, verde, azul..." />';
+    html += '</div>';
+    
+    html += '<div class="col-md-3">';
+    html += '<label class="form-label"><strong>Stock</strong></label>';
+    html += '<input type="number" class="form-control" id="idRegistrarStock" placeholder="0" value="0" />';
+    html += '</div>';
+    
+    html += '<div class="col-md-4">';
+    html += '<label class="form-label"><strong>Precio Compra</strong></label>';
+    html += '<div class="input-group">';
+    html += '<span class="input-group-text">S/.</span>';
+    html += '<input type="number" step="0.01" class="form-control" id="idRegistrarPrecioCompra" placeholder="0.00" value="0" />';
+    html += '</div>';
+    html += '</div>';
+    
+    html += '<div class="col-md-4">';
+    html += '<label class="form-label"><strong>Precio Venta (Base)</strong></label>';
+    html += '<div class="input-group">';
+    html += '<span class="input-group-text">S/.</span>';
+    html += '<input type="number" step="0.01" class="form-control" id="idRegistrarPrecioVenta" placeholder="0.00" value="0" />';
+    html += '</div>';
+    html += '<small class="form-text text-muted">Este es el precio base unitario</small>';
+    html += '</div>';
+    
+    html += '<div class="col-md-4">';
+    html += '<label class="form-label"><strong>Requiere Corte</strong></label>';
+    html += '<div class="d-flex gap-3 mt-2">';
+    html += '<div class="form-check">';
+    html += '<input class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault1" value="Si" />';
+    html += '<label class="form-check-label" for="flexRadioDefault1">Sí</label>';
+    html += '</div>';
+    html += '<div class="form-check">';
+    html += '<input class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault2" value="No" checked />';
+    html += '<label class="form-check-label" for="flexRadioDefault2">No</label>';
+    html += '</div>';
+    html += '</div>';
+    html += '</div>';
+    
+    html += '</div>';
+    html += '</div>';
+    
+    // ============================================
+    // TAB 2: PRECIOS POR PRESENTACIÓN
+    // ============================================
+    html += '<div class="tab-pane fade" id="precios-panel" role="tabpanel">';
+    html += '<div class="alert alert-info">';
+    html += '<i class="fas fa-info-circle"></i> <strong>Precios por Presentación:</strong> Define diferentes precios según la cantidad (Ej: DOCENA, MEDIA DC, POR MAYOR)';
+    html += '</div>';
+    
+    // Formulario para agregar presentación
+    html += '<div class="card mb-3">';
+    html += '<div class="card-header bg-primary text-white">';
+    html += '<h6 class="mb-0"><i class="fas fa-plus-circle"></i> Agregar Nueva Presentación</h6>';
+    html += '</div>';
+    html += '<div class="card-body">';
+    html += '<div class="row g-2">';
+    
+    html += '<div class="col-md-3">';
+    html += '<label class="form-label"><strong>Presentación *</strong></label>';
+    html += '<input type="text" class="form-control" id="inputNuevaPresentacion" placeholder="Ej: DOCENA, MEDIA DC" />';
+    html += '<small class="text-muted">Nombre descriptivo</small>';
+    html += '</div>';
+    
+    html += '<div class="col-md-2">';
+    html += '<label class="form-label"><strong>Código</strong></label>';
+    html += '<input type="text" class="form-control" id="inputNuevoCodigo" placeholder="Ej: DC" />';
+    html += '<small class="text-muted">Opcional</small>';
+    html += '</div>';
+    
+    html += '<div class="col-md-2">';
+    html += '<label class="form-label"><strong>Cantidad *</strong></label>';
+    html += '<input type="number" step="0.01" class="form-control" id="inputNuevaCantidad" placeholder="1.00" value="1.00" min="0.01" />';
+    html += '<small class="text-muted">Unidades</small>';
+    html += '</div>';
+    
+    html += '<div class="col-md-3">';
+    html += '<label class="form-label"><strong>Precio *</strong></label>';
+    html += '<div class="input-group">';
+    html += '<span class="input-group-text">S/.</span>';
+    html += '<input type="number" step="0.01" class="form-control" id="inputNuevoPrecio" placeholder="0.00" value="0.00" min="0" />';
+    html += '</div>';
+    html += '</div>';
+    
+    html += '<div class="col-md-2 d-flex align-items-end">';
+    html += '<button type="button" class="btn btn-success w-100" id="btnAgregarPresentacion">';
+    html += '<i class="fas fa-plus"></i> Agregar';
+    html += '</button>';
+    html += '</div>';
+    
+    html += '</div>';
+    html += '</div>';
+    html += '</div>';
+    
+    // Tabla de presentaciones
+    html += '<div class="card">';
+    html += '<div class="card-header bg-success text-white">';
+    html += '<h6 class="mb-0"><i class="fas fa-list"></i> Presentaciones Registradas</h6>';
+    html += '</div>';
+    html += '<div class="card-body p-0">';
+    
+    html += '<div id="noPreciosMsg" class="text-center py-4">';
+    html += '<i class="fas fa-tags fa-3x text-muted mb-2"></i>';
+    html += '<p class="text-muted">No hay presentaciones de precios agregadas aún</p>';
+    html += '</div>';
+    
+    html += '<div class="table-responsive">';
+    html += '<table class="table table-hover mb-0">';
+    html += '<thead class="table-light">';
+    html += '<tr>';
+    html += '<th style="width: 30%;">Presentación</th>';
+    html += '<th style="width: 15%;">Código</th>';
+    html += '<th style="width: 15%;">Cantidad</th>';
+    html += '<th style="width: 25%;">Precio</th>';
+    html += '<th style="width: 15%;" class="text-center">Acciones</th>';
+    html += '</tr>';
+    html += '</thead>';
+    html += '<tbody id="tablaPresentacionesBody">';
+    html += '</tbody>';
+    html += '</table>';
+    html += '</div>';
+    
+    html += '</div>';
+    html += '</div>';
+    
+    html += '</div>';
+    
+    // ============================================
+    // TAB 3: IMÁGENES (Mantener el código original)
+    // ============================================
+    html += '<div class="tab-pane fade" id="imagenes-panel" role="tabpanel">';
+    
+    html += '<ul class="nav nav-tabs mb-3" role="tablist">';
+    html += '<li class="nav-item" role="presentation">';
+    html += '<button class="nav-link active" id="url-tab" data-bs-toggle="tab" data-bs-target="#url-panel" type="button" role="tab">';
+    html += '<i class="fas fa-link"></i> URL Web';
+    html += '</button>';
+    html += '</li>';
+    html += '<li class="nav-item" role="presentation">';
+    html += '<button class="nav-link" id="drive-tab" data-bs-toggle="tab" data-bs-target="#drive-panel" type="button" role="tab">';
+    html += '<i class="fab fa-google-drive"></i> Google Drive';
+    html += '</button>';
+    html += '</li>';
+    html += '</ul>';
+    
+    html += '<div class="tab-content">';
+    
+    html += '<div class="tab-pane fade show active" id="url-panel" role="tabpanel">';
+    html += '<label class="form-label"><strong>URL de Imagen Web</strong></label>';
+    html += '<div class="input-group mb-2">';
+    html += '<span class="input-group-text"><i class="fas fa-link"></i></span>';
+    html += '<input type="url" class="form-control" id="idNuevaUrlImagen" placeholder="https://ejemplo.com/imagen.jpg" />';
+    html += '<button class="btn btn-primary" type="button" id="btnAgregarImagen">';
+    html += '<i class="fas fa-plus"></i> Agregar';
+    html += '</button>';
+    html += '</div>';
+    html += '<small class="form-text text-muted">Ingrese la URL completa de una imagen en internet</small>';
+    html += '</div>';
+    
+    html += '<div class="tab-pane fade" id="drive-panel" role="tabpanel">';
+    html += '<label class="form-label"><strong>Enlace de Google Drive</strong></label>';
+    html += '<div class="input-group mb-2">';
+    html += '<span class="input-group-text"><i class="fab fa-google-drive"></i></span>';
+    html += '<input type="text" class="form-control" id="idNuevaUrlDrive" placeholder="https://drive.google.com/file/d/..." />';
+    html += '<button class="btn btn-primary" type="button" id="btnAgregarDrive">';
+    html += '<i class="fas fa-plus"></i> Agregar';
+    html += '</button>';
+    html += '</div>';
+    html += '<small class="form-text text-muted">';
+    html += '<strong>Pasos:</strong> 1) Sube la imagen a Drive, 2) Clic derecho > "Obtener enlace", 3) Configura como "Cualquier persona con el enlace", 4) Pega el enlace aquí';
+    html += '</small>';
+    html += '</div>';
+    
+    html += '</div>';
+    
+    html += '<hr>';
+    
+    html += '<div class="mb-3">';
+    html += '<label class="form-label"><strong>Imágenes Agregadas</strong></label>';
+    html += '<div class="images-section" id="listaImagenes">';
+    html += '<div class="no-images-msg">';
+    html += '<i class="fas fa-image fa-3x mb-2"></i>';
+    html += '<p>No hay imágenes agregadas aún</p>';
+    html += '</div>';
+    html += '</div>';
+    html += '</div>';
+    
+    html += '</div>';
+    
+    html += '</div>'; // Fin tab-content
+    
+    // Botones finales
+    html += '<div class="row mt-4">';
+    html += '<div class="col-12 text-center">';
+    html += '<button id="' + (isEdit ? 'btnEditarArticulo' : 'btnRegistrarArticulo') + '" class="btn btn-success btn-lg btn-round">';
+    html += isEdit ? '<i class="fas fa-save"></i> Guardar Cambios' : '<i class="fas fa-check"></i> Registrar Artículo';
+    html += '</button>';
+    html += '</div>';
+    html += '</div>';
+    
+    html += '</div>';
+    html += '</div>';
+    
+    return html;
+}
     function renderizarListaImagenes() {
         var container = document.getElementById('listaImagenes');
         var contador = document.getElementById('contadorImagenes');

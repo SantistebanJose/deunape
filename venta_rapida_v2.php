@@ -136,6 +136,68 @@ $sucursal_id = $_SESSION["sucursal_id"];
             font-size: 12px;
         }
     }
+
+
+
+    #productosTable {
+    font-size: 14px;
+}
+
+#productosTable thead th {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background-color: #2a2f5b !important;
+    color: white !important;
+}
+
+#productosTable tbody tr {
+    transition: all 0.2s ease;
+}
+
+#productosTable tbody tr:hover {
+    background-color: #f0f8ff;
+    transform: scale(1.01);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+/* Responsivo para móviles */
+@media (max-width: 768px) {
+    #productosTable {
+        font-size: 12px;
+    }
+    
+    #productosTable th,
+    #productosTable td {
+        padding: 8px 4px;
+    }
+    
+    #productosTable .btn-sm {
+        padding: 4px 8px;
+        font-size: 11px;
+    }
+}
+
+
+
+/* Estilos para el spinner de carga */
+.spinner-api {
+    color: #6861ce;
+}
+
+/* Animación para cuando se autocompletan los campos */
+.input-autocompleted {
+    animation: pulseGreen 0.5s ease;
+}
+
+@keyframes pulseGreen {
+    0% {
+        background-color: #d4edda;
+    }
+    100% {
+        background-color: white;
+    }
+}
 </style>
 
 <div
@@ -223,16 +285,34 @@ $sucursal_id = $_SESSION["sucursal_id"];
 
 
                                 <!-- Contenedor para las tarjetas de productos -->
-                                <div class="container mt-4">
-                                    <div class="row" id="productoContainer">
-                                        <!-- Los productos se generarán dinámicamente aquí -->
-                                    </div>
+                                <div class="table-responsive mt-4">
+                                    <table class="table table-hover table-striped align-middle" id="productosTable">
+                                        <thead class="table-dark">
+                                            <tr>
+                                                <th>Artículo</th>
+                                                <th>Categoría</th>
+                                                <th>Tipo</th>
+                                                <th>Dimensión</th>
+                                                <th>Color</th>
+                                                <th class="text-center">Stock</th>
+                                                <th class="text-end">Precio</th>
+                                                <th class="text-center">Acción</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="productoContainer">
+                                            <!-- Los productos se generarán dinámicamente aquí -->
+                                        </tbody>
+                                    </table>
                                 </div>
 
                                 <!-- Paginación -->
                                 <div id="pagination" class="d-flex justify-content-center mt-4">
-                                    <button id="prevPage" class="btn btn-secondary btn-round mx-2" onclick="changePage(-1)"><i class="fas fa-chevron-left"></i> Anterior </button>
-                                    <button id="nextPage" class="btn btn-secondary btn-round mx-2" onclick="changePage(1)">Siguiente <i class="fas fa-chevron-right"></i></button>
+                                    <button id="prevPage" class="btn btn-secondary btn-round mx-2" onclick="changePage(-1)">
+                                        <i class="fas fa-chevron-left"></i> Anterior
+                                    </button>
+                                    <button id="nextPage" class="btn btn-secondary btn-round mx-2" onclick="changePage(1)">
+                                        Siguiente <i class="fas fa-chevron-right"></i>
+                                    </button>
                                 </div>
 
 
@@ -276,44 +356,53 @@ $sucursal_id = $_SESSION["sucursal_id"];
                                     function renderProducts(productsToDisplay) {
                                         const container = document.getElementById('productoContainer');
                                         container.innerHTML = '';
+                                        
                                         productsToDisplay.forEach(product => {
                                             const stock = parseFloat(product.stock);
-                                            const flag_titulo = stock === 0.00 ? product.articulo + " - " + "SIN STOCK" : product.articulo;
-                                            const flag_color = stock === 0.00 ? "#f31832" : "";
-                                            const card = document.createElement('div');
-                                            card.classList.add('col-md-4', 'mb-3');
-                                            card.innerHTML = `
-                                            <div class="card card-post card-round" style="color:${flag_color}">
-                                                <div class="card-body">
-                                                    <div class="d-flex">
-                                                        <div class="info-post ms-2">
-                                                            <p class="username">${flag_titulo}</p>
-                                                        </div>
-                                                    </div>
-                                                    <div class="separator-solid"></div>
-                                                    <p class="card-category text-info mb-1">
-                                                        ${product.categoria}
-                                                    </p>
-                                                    <div class="card-text"><b>Tipo:</b> ${product.tipo}</div>
-                                                    <div class="card-text"><b>Dimensión:</b> ${product.dimension}</div>
-                                                    <div class="card-text"><b>Color:</b> ${product.color}</div>
-                                                    <div class="card-text"><b>Stock:</b> ${product.stock}</div>
-
-                                                    
-                                                    <div class="separator-solid"></div>
-                                                    <div class="row justify-content-between align-items-center g-2">
-                                                        <div class="col-sm-8" style="font-size:18px"><b>S/${product.precio_venta}</b></div>
-                                                        <div class="col-sm-4 d-flex justify-content-center">
-                                                            <a href="#" class="btn btn-success btn-sm btn-round" onclick='fn_agregar_venta(${JSON.stringify(product)})'>
-                                                                <i class="fas fa-plus"></i>
-                                                            </a>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        `;
-                                            container.appendChild(card);
+                                            const flag_color = stock === 0.00 ? "text-danger fw-bold" : "";
+                                            const flag_badge = stock === 0.00 ? '<span class="badge bg-danger ms-2">SIN STOCK</span>' : "";
+                                            
+                                            const row = document.createElement('tr');
+                                            row.className = stock === 0.00 ? 'table-danger' : '';
+                                            
+                                            row.innerHTML = `
+                                                <td class="${flag_color}">
+                                                    <strong>${product.articulo}</strong> 
+                                                    ${flag_badge}
+                                                </td>
+                                                <td><span class="badge bg-info">${product.categoria}</span></td>
+                                                <td>${product.tipo}</td>
+                                                <td>${product.dimension}</td>
+                                                <td>${product.color}</td>
+                                                <td class="text-center ${flag_color}">
+                                                    <strong>${product.stock}</strong>
+                                                </td>
+                                                <td class="text-end">
+                                                    <strong class="text-success">S/ ${product.precio_venta}</strong>
+                                                </td>
+                                                <td class="text-center">
+                                                    <button 
+                                                        class="btn btn-success btn-sm btn-round" 
+                                                        onclick='fn_agregar_venta(${JSON.stringify(product).replace(/'/g, "&#39;")})'
+                                                        ${stock === 0.00 ? 'disabled' : ''}>
+                                                        <i class="fas fa-plus"></i> Agregar
+                                                    </button>
+                                                </td>
+                                            `;
+                                            container.appendChild(row);
                                         });
+                                        // Si no hay productos, mostrar mensaje
+                                        if (productsToDisplay.length === 0) {
+                                            const row = document.createElement('tr');
+                                            row.innerHTML = `
+                                                <td colspan="8" class="text-center text-muted py-4">
+                                                    <i class="fas fa-inbox fa-3x mb-3"></i>
+                                                    <p class="mb-0">No se encontraron productos</p>
+                                                </td>
+                                            `;
+                                            container.appendChild(row);
+                                        }
+
                                     }
 
                                     // Función para cambiar la página
@@ -665,96 +754,134 @@ $sucursal_id = $_SESSION["sucursal_id"];
                 </div>
 
                 <!-- Modal para registrar Cliente -->
+                <!-- Modal para registrar Cliente -->
                 <div class="modal fade" id="modalCliente" tabindex="-1" aria-labelledby="modalClienteLabel" aria-hidden="true">
-                    <div class="modal-dialog">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title" id="modalClienteLabel">Registrar Cliente</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                            </div>
-                            <div class="modal-body">
-                                <!-- Pils para seleccionar entre Persona y Empresa -->
-                                <ul class="nav nav-pills nav-secondary nav-pills-no-bd" id="pills-tab" role="tablist">
-                                    <li class="nav-item">
-                                        <button class="nav-link active" id="pills-persona-tab" data-bs-toggle="pill" data-bs-target="#pills-persona" type="button" role="tab" aria-controls="pills-persona" aria-selected="true">Persona</button>
-                                    </li>
-                                    <li class="nav-item">
-                                        <button class="nav-link" id="pills-empresa-tab" data-bs-toggle="pill" data-bs-target="#pills-empresa" type="button" role="tab" aria-controls="pills-empresa" aria-selected="false">Empresa</button>
-                                    </li>
-                                </ul>
-                                <hr>
-                                <div class="tab-content mt-3" id="pills-tabContent">
-                                    <!-- Formulario Persona -->
-                                    <div class="tab-pane fade show active" id="pills-persona" role="tabpanel" aria-labelledby="pills-persona-tab">
-                                        <div class="mb-3">
-                                            <label for="numeroDocumentoPersona" class="form-label">Número de Documento <span class="fw-bold text-danger">*</span></label>
-                                            <input type="text" class="form-control" id="numeroDocumentoPersona" placeholder="Número de Documento">
-                                            <div class="invalid-feedback" id="error-numeroDocumentoPersona"></div>
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="modalClienteLabel">Registrar Cliente</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <!-- Pills para seleccionar entre Persona y Empresa -->
+                            <ul class="nav nav-pills nav-secondary nav-pills-no-bd" id="pills-tab" role="tablist">
+                                <li class="nav-item">
+                                    <button class="nav-link active" id="pills-persona-tab" data-bs-toggle="pill" data-bs-target="#pills-persona" type="button" role="tab" aria-controls="pills-persona" aria-selected="true">Persona</button>
+                                </li>
+                                <li class="nav-item">
+                                    <button class="nav-link" id="pills-empresa-tab" data-bs-toggle="pill" data-bs-target="#pills-empresa" type="button" role="tab" aria-controls="pills-empresa" aria-selected="false">Empresa</button>
+                                </li>
+                            </ul>
+                            <hr>
+                            <div class="tab-content mt-3" id="pills-tabContent">
+                                <!-- ============ FORMULARIO PERSONA ============ -->
+                                <div class="tab-pane fade show active" id="pills-persona" role="tabpanel" aria-labelledby="pills-persona-tab">
+                                    <div class="mb-3">
+                                        <label for="numeroDocumentoPersona" class="form-label">
+                                            Número de DNI <span class="fw-bold text-danger">*</span>
+                                            <small class="text-muted">(Autocompletado)</small>
+                                        </label>
+                                        <div class="input-group">
+                                            <input type="text" 
+                                                class="form-control" 
+                                                id="numeroDocumentoPersona" 
+                                                placeholder="Ingrese DNI de 8 dígitos"
+                                                maxlength="8">
+                                            <button class="btn btn-outline-primary" 
+                                                    type="button" 
+                                                    id="btnBuscarDNI"
+                                                    title="Buscar DNI">
+                                                <i class="fas fa-search"></i> Buscar
+                                            </button>
                                         </div>
-                                        <div class="mb-3">
-                                            <label for="nombresPersona" class="form-label">Nombres <span class="fw-bold text-danger">*</span></label>
-                                            <input type="text" class="form-control" id="nombresPersona" placeholder="Nombres">
-                                            <div class="invalid-feedback" id="error-nombresPersona"></div>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label for="apellidosPersona" class="form-label">Apellidos <span class="fw-bold text-danger">*</span></label>
-                                            <input type="text" class="form-control" id="apellidosPersona" placeholder="Apellidos">
-                                            <div class="invalid-feedback" id="error-apellidosPersona"></div>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label for="telefonoPersona" class="form-label">Teléfono Móvil</label>
-                                            <input type="text" class="form-control" id="telefonoPersona" placeholder="Teléfono Móvil">
-                                            <div class="invalid-feedback" id="error-telefonoPersona"></div>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label for="emailPersona" class="form-label">Email</label>
-                                            <input type="email" class="form-control" id="emailPersona" placeholder="Email">
-                                            <div class="invalid-feedback" id="error-emailPersona"></div>
-                                        </div>
+                                        <div class="invalid-feedback" id="error-numeroDocumentoPersona"></div>
                                     </div>
-
-                                    <!-- Formulario Empresa -->
-                                    <div class="tab-pane fade" id="pills-empresa" role="tabpanel" aria-labelledby="pills-empresa-tab">
-                                        <div class="mb-3">
-                                            <label for="numeroDocumentoEmpresa" class="form-label">Número de Ruc <span class="fw-bold text-danger">*</span></label>
-                                            <input type="text" class="form-control" id="numeroDocumentoEmpresa" placeholder="Número de Documento">
-                                            <div class="invalid-feedback" id="error-numeroDocumentoEmpresa"></div>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label for="nombreComercial" class="form-label">Nombre Comercial <span class="fw-bold text-danger">*</span></label>
-                                            <input type="text" class="form-control" id="nombreComercial" placeholder="Nombre Comercial">
-                                            <div class="invalid-feedback" id="error-nombreComercial"></div>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label for="razonSocial" class="form-label">Razón Social <span class="fw-bold text-danger">*</span> </label>
-                                            <input type="text" class="form-control" id="razonSocial" placeholder="Razón Social">
-                                            <div class="invalid-feedback" id="error-razonSocial"></div>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label for="emailEmpresa" class="form-label">Email</label>
-                                            <input type="email" class="form-control" id="emailEmpresa" placeholder="Email">
-                                            <div class="invalid-feedback" id="error-emailEmpresa"></div>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label for="telefonoEmpresa" class="form-label">Teléfono Móvil</label>
-                                            <input type="text" class="form-control" id="telefonoEmpresa" placeholder="Teléfono Móvil">
-                                            <div class="invalid-feedback" id="error-telefonoEmpresa"></div>
-                                        </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="nombresPersona" class="form-label">Nombres <span class="fw-bold text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="nombresPersona" placeholder="Nombres">
+                                        <div class="invalid-feedback" id="error-nombresPersona"></div>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="apellidosPersona" class="form-label">Apellidos <span class="fw-bold text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="apellidosPersona" placeholder="Apellidos">
+                                        <div class="invalid-feedback" id="error-apellidosPersona"></div>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="telefonoPersona" class="form-label">Teléfono Móvil</label>
+                                        <input type="text" class="form-control" id="telefonoPersona" placeholder="Teléfono Móvil" maxlength="9">
+                                        <div class="invalid-feedback" id="error-telefonoPersona"></div>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="emailPersona" class="form-label">Email</label>
+                                        <input type="email" class="form-control" id="emailPersona" placeholder="Email">
+                                        <div class="invalid-feedback" id="error-emailPersona"></div>
                                     </div>
                                 </div>
 
-                                <div class="alert alert-light p-3" role="alert">
-                                    <p class="mb-0">Los campos con <span class="fw-bold text-danger">*</span> son obligatorios.</p>
+                                <!-- ============ FORMULARIO EMPRESA ============ -->
+                                <div class="tab-pane fade" id="pills-empresa" role="tabpanel" aria-labelledby="pills-empresa-tab">
+                                    <div class="mb-3">
+                                        <label for="numeroDocumentoEmpresa" class="form-label">
+                                            Número de RUC <span class="fw-bold text-danger">*</span>
+                                            <small class="text-muted">(Autocompletado)</small>
+                                        </label>
+                                        <div class="input-group">
+                                            <input type="text" 
+                                                class="form-control" 
+                                                id="numeroDocumentoEmpresa" 
+                                                placeholder="Ingrese RUC de 11 dígitos"
+                                                maxlength="11">
+                                            <button class="btn btn-outline-primary" 
+                                                    type="button" 
+                                                    id="btnBuscarRUC"
+                                                    title="Buscar RUC">
+                                                <i class="fas fa-search"></i> Buscar
+                                            </button>
+                                        </div>
+                                        <div class="invalid-feedback" id="error-numeroDocumentoEmpresa"></div>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="nombreComercial" class="form-label">Nombre Comercial <span class="fw-bold text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="nombreComercial" placeholder="Nombre Comercial">
+                                        <div class="invalid-feedback" id="error-nombreComercial"></div>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="razonSocial" class="form-label">Razón Social <span class="fw-bold text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="razonSocial" placeholder="Razón Social">
+                                        <div class="invalid-feedback" id="error-razonSocial"></div>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="emailEmpresa" class="form-label">Email</label>
+                                        <input type="email" class="form-control" id="emailEmpresa" placeholder="Email">
+                                        <div class="invalid-feedback" id="error-emailEmpresa"></div>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="telefonoEmpresa" class="form-label">Teléfono Móvil</label>
+                                        <input type="text" class="form-control" id="telefonoEmpresa" placeholder="Teléfono Móvil" maxlength="9">
+                                        <div class="invalid-feedback" id="error-telefonoEmpresa"></div>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cerrar</button>
-                                <button type="button" class="btn btn-success" id="btnRegistrarCliente">Registrar</button>
+
+                            <div class="alert alert-light p-3" role="alert">
+                                <p class="mb-0">Los campos con <span class="fw-bold text-danger">*</span> son obligatorios.</p>
                             </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cerrar</button>
+                            <button type="button" class="btn btn-success" id="btnRegistrarCliente">Registrar</button>
                         </div>
                     </div>
                 </div>
-
+            </div>
                 <!-- Modal Body -->
                 <div
                     class="modal fade"
@@ -1216,6 +1343,90 @@ $sucursal_id = $_SESSION["sucursal_id"];
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.11.6/umd/popper.min.js"></script>
 <script src="assets/js/scriptNotify.js"></script>
+<script>
+// Si usas los botones integrados, agrega estos eventos:
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Evento para el botón de buscar DNI
+    const btnBuscarDNI = document.getElementById('btnBuscarDNI');
+    if (btnBuscarDNI) {
+        btnBuscarDNI.addEventListener('click', async function() {
+            const inputDNI = document.getElementById('numeroDocumentoPersona');
+            const dni = inputDNI.value.trim();
+            
+            // Validar que sea un DNI válido
+            if (dni.length !== 8 || !/^\d{8}$/.test(dni)) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'DNI inválido',
+                    text: 'Por favor, ingrese un DNI de 8 dígitos',
+                    timer: 2000,
+                    showConfirmButton: false,
+                    toast: true,
+                    position: 'top-end'
+                });
+                return;
+            }
+            
+            // Mostrar spinner en el botón
+            const iconoOriginal = this.innerHTML;
+            this.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Buscando...';
+            this.disabled = true;
+            
+            // Disparar el evento blur para activar la búsqueda
+            inputDNI.dispatchEvent(new Event('blur'));
+            
+            // Restaurar el botón después de 2 segundos
+            setTimeout(() => {
+                this.innerHTML = iconoOriginal;
+                this.disabled = false;
+            }, 2000);
+        });
+    }
+
+    // Evento para el botón de buscar RUC
+    const btnBuscarRUC = document.getElementById('btnBuscarRUC');
+    if (btnBuscarRUC) {
+        btnBuscarRUC.addEventListener('click', async function() {
+            const inputRUC = document.getElementById('numeroDocumentoEmpresa');
+            const ruc = inputRUC.value.trim();
+            
+            // Validar que sea un RUC válido
+            if (ruc.length !== 11 || !/^\d{11}$/.test(ruc)) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'RUC inválido',
+                    text: 'Por favor, ingrese un RUC de 11 dígitos',
+                    timer: 2000,
+                    showConfirmButton: false,
+                    toast: true,
+                    position: 'top-end'
+                });
+                return;
+            }
+            
+            // Mostrar spinner en el botón
+            const iconoOriginal = this.innerHTML;
+            this.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Buscando...';
+            this.disabled = true;
+            
+            // Disparar el evento blur para activar la búsqueda
+            inputRUC.dispatchEvent(new Event('blur'));
+            
+            // Restaurar el botón después de 2 segundos
+            setTimeout(() => {
+                this.innerHTML = iconoOriginal;
+                this.disabled = false;
+            }, 2000);
+        });
+    }
+});
+</script>
+
+document.getElementById('btnBuscarRUC')?.addEventListener('click', function() {
+    document.getElementById('numeroDocumentoEmpresa').dispatchEvent(new Event('blur'));
+});
+</script>
 
 <script>
     document.addEventListener("DOMContentLoaded", function() {
@@ -2163,83 +2374,80 @@ $sucursal_id = $_SESSION["sucursal_id"];
 <!--Tabla-->
 <script>
     document.addEventListener("DOMContentLoaded", function() {
-        const nombreCliente = document.getElementById("nombreCliente");
-        const sugerencias = document.getElementById("sugerencias");
-        const numero_telefono = document.getElementById("idUpdateNumTelefonoCliente");
-        const correo = document.getElementById("idUpdateCorreoCliente");
-        const persona_id = document.getElementById("idPersona");
-        nombreCliente.addEventListener("input", function() {
-            const query = nombreCliente.value.trim();
-            console.log(query)
-            if (query.length > 0) {
-                // Realiza la solicitud AJAX con jQuery
-                $.ajax({
-                    method: "POST",
-                    url: "logica/clssFiltro.php",
-                    data: {
-                        "accion": "FILTROPERSONA",
-                        "data": query
-                    }
-                }).done(function(response) {
-                    try {
-                        // Parsear la respuesta como JSON
-                        console.log(response)
-                        const resultados = JSON.parse(response);
+    const nombreCliente = document.getElementById("nombreCliente");
+    const sugerencias = document.getElementById("sugerencias");
+    const numero_telefono = document.getElementById("idUpdateNumTelefonoCliente");
+    const correo = document.getElementById("idUpdateCorreoCliente");
+    const persona_id = document.getElementById("idPersona");
+    
+    nombreCliente.addEventListener("input", function() {
+        const query = nombreCliente.value.trim();
+        
+        if (query.length > 0) {
+            $.ajax({
+                method: "POST",
+                url: "logica/clssFiltro.php",
+                data: {
+                    "accion": "FILTROPERSONA",
+                    "data": query
+                }
+            }).done(function(response) {
+                try {
+                    const resultados = JSON.parse(response);
+                    sugerencias.innerHTML = "";
 
-                        // Limpiar las sugerencias actuales
-                        sugerencias.innerHTML = "";
+                    if (resultados.length > 0) {
+                        resultados.forEach(persona => {
+                            const item = document.createElement("div");
+                            item.classList.add("list-group-item", "list-group-item-action");
+                            item.style.cursor = "pointer";
+                            item.textContent = persona.persona_concatenada;
 
-                        // Verificar si hay resultados
-                        if (resultados.length > 0) {
-                            resultados.forEach(persona => {
-                                // Crear un elemento de lista para cada resultado
-                                const item = document.createElement("div");
-                                item.classList.add("list-group-item");
-                                item.textContent = persona.persona_concatenada;
+                            // Mejorar el evento click
+                            item.addEventListener("click", function(e) {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                
+                                // Establecer valores
+                                nombreCliente.value = persona.persona_concatenada;
+                                persona_id.textContent = persona.id;
+                                numero_telefono.value = persona.telefonomovil || '';
+                                correo.value = persona.email || '';
 
-                                // Acción al seleccionar un resultado
-                                item.addEventListener("click", function() {
-                                    // Establecer el valor del input con el nombre seleccionado
-                                    nombreCliente.value = persona.persona_concatenada;
-                                    persona_id.textContent = persona.id
-                                    numero_telefono.value = persona.telefonomovil
-                                    correo.value = persona.email
-
-                                    // Limpiar las sugerencias
-                                    sugerencias.innerHTML = "";
-                                });
-
-                                // Agregar el elemento a la lista de sugerencias
-                                sugerencias.appendChild(item);
+                                // Limpiar sugerencias
+                                sugerencias.innerHTML = "";
+                                
+                                console.log("Cliente seleccionado:", persona);
                             });
-                        } else {
-                            // Mostrar un mensaje si no hay resultados
-                            const noResults = document.createElement("div");
-                            noResults.classList.add("list-group-item", "text-muted");
-                            noResults.textContent = "Sin resultados";
-                            sugerencias.appendChild(noResults);
-                        }
-                    } catch (e) {
-                        console.error("Error al procesar los resultados:", e);
-                        sugerencias.innerHTML = ""; // Limpiar las sugerencias en caso de error
-                    }
-                }).fail(function(jqXHR, textStatus, errorThrown) {
-                    console.error("Error en la solicitud AJAX:", textStatus, errorThrown);
-                    sugerencias.innerHTML = ""; // Limpiar las sugerencias en caso de fallo
-                });
-            } else {
-                // Limpiar las sugerencias si no hay texto
-                sugerencias.innerHTML = "";
-            }
-        });
 
-        // Cerrar las sugerencias si se hace clic fuera del input o sugerencias
-        document.addEventListener("click", function(e) {
-            if (!nombreCliente.contains(e.target) && !sugerencias.contains(e.target)) {
+                            sugerencias.appendChild(item);
+                        });
+                    } else {
+                        const noResults = document.createElement("div");
+                        noResults.classList.add("list-group-item", "text-muted");
+                        noResults.textContent = "Sin resultados";
+                        sugerencias.appendChild(noResults);
+                    }
+                } catch (e) {
+                    console.error("Error al procesar los resultados:", e);
+                    sugerencias.innerHTML = "";
+                }
+            }).fail(function(jqXHR, textStatus, errorThrown) {
+                console.error("Error en la solicitud AJAX:", textStatus, errorThrown);
                 sugerencias.innerHTML = "";
-            }
-        });
+            });
+        } else {
+            sugerencias.innerHTML = "";
+        }
     });
+
+    // Cerrar sugerencias al hacer clic fuera
+    document.addEventListener("click", function(e) {
+        if (!nombreCliente.contains(e.target) && !sugerencias.contains(e.target)) {
+            sugerencias.innerHTML = "";
+        }
+    });
+});
 </script>
 
 
@@ -3180,7 +3388,309 @@ $sucursal_id = $_SESSION["sucursal_id"];
 
     }
 </script>
+<!-- SOLO LA PARTE DEL SCRIPT QUE NECESITAS REEMPLAZAR -->
+<!-- Busca este script en tu archivo original (línea ~1087) y reemplázalo con este: -->
 
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    
+    // Referencias a los campos del formulario PERSONA
+    const numeroDocumentoPersona = document.getElementById('numeroDocumentoPersona');
+    const nombresPersona = document.getElementById('nombresPersona');
+    const apellidosPersona = document.getElementById('apellidosPersona');
+    
+    // Referencias a los campos del formulario EMPRESA
+    const numeroDocumentoEmpresa = document.getElementById('numeroDocumentoEmpresa');
+    const nombreComercial = document.getElementById('nombreComercial');
+    const razonSocial = document.getElementById('razonSocial');
+    
+    // Agregar spinner de carga
+    function mostrarCargando(inputElement, mostrar = true) {
+        const spinner = inputElement.parentElement.querySelector('.spinner-api');
+        if (mostrar) {
+            if (!spinner) {
+                const spinnerHtml = '<span class="spinner-api spinner-border spinner-border-sm ms-2" role="status"></span>';
+                inputElement.insertAdjacentHTML('afterend', spinnerHtml);
+            }
+        } else {
+            if (spinner) spinner.remove();
+        }
+    }
+    
+    // Función para consultar la API de GraphPeru
+    async function consultarAPI(documento) {
+        const url = `https://graphperu.daustinn.com/api/query/${documento}`;
+        
+        try {
+            const response = await fetch(url);
+            
+            if (!response.ok) {
+                throw new Error('Error en la consulta');
+            }
+            
+            const data = await response.json();
+            
+            console.log('Respuesta de la API:', data); // Para debug
+            
+            // Verificar si hay datos válidos
+            if (data && (data.names || data.fullName || data.name)) {
+                return data;
+            } else {
+                return null;
+            }
+            
+        } catch (error) {
+            console.error('Error al consultar API:', error);
+            return null;
+        }
+    }
+    
+    // Función para autocompletar DNI
+    async function autocompletarDNI() {
+        const dni = numeroDocumentoPersona.value.trim();
+        
+        // Validar que sea un DNI válido (8 dígitos)
+        if (dni.length !== 8 || !/^\d{8}$/.test(dni)) {
+            return;
+        }
+        
+        // Mostrar loading
+        mostrarCargando(numeroDocumentoPersona, true);
+        
+        const datos = await consultarAPI(dni);
+        
+        // Ocultar loading
+        mostrarCargando(numeroDocumentoPersona, false);
+        
+        if (datos && datos.names && datos.surnames) {
+            // Autocompletar nombres y apellidos
+            nombresPersona.value = datos.names;
+            apellidosPersona.value = datos.surnames;
+            
+            // Agregar animación de autocompletado
+            nombresPersona.classList.add('input-autocompleted');
+            apellidosPersona.classList.add('input-autocompleted');
+            
+            // Quitar animación después de 500ms
+            setTimeout(() => {
+                nombresPersona.classList.remove('input-autocompleted');
+                apellidosPersona.classList.remove('input-autocompleted');
+            }, 500);
+            
+            // Quitar errores si existían
+            numeroDocumentoPersona.classList.remove('is-invalid');
+            nombresPersona.classList.remove('is-invalid');
+            apellidosPersona.classList.remove('is-invalid');
+            
+            // Mostrar notificación de éxito
+            Swal.fire({
+                icon: 'success',
+                title: 'DNI encontrado',
+                text: `${datos.fullName}`,
+                timer: 2000,
+                showConfirmButton: false,
+                toast: true,
+                position: 'top-end'
+            });
+        } else {
+            // No se encontraron datos
+            Swal.fire({
+                icon: 'warning',
+                title: 'DNI no encontrado',
+                text: 'Por favor, ingrese los datos manualmente',
+                timer: 2500,
+                showConfirmButton: false,
+                toast: true,
+                position: 'top-end'
+            });
+        }
+    }
+    
+    // Función para autocompletar RUC - CORREGIDA
+    async function autocompletarRUC() {
+        const ruc = numeroDocumentoEmpresa.value.trim();
+        
+        // Validar que sea un RUC válido (11 dígitos)
+        if (ruc.length !== 11 || !/^\d{11}$/.test(ruc)) {
+            return;
+        }
+        
+        // Mostrar loading
+        mostrarCargando(numeroDocumentoEmpresa, true);
+        
+        const datos = await consultarAPI(ruc);
+        
+        // Ocultar loading
+        mostrarCargando(numeroDocumentoEmpresa, false);
+        
+        console.log('Datos recibidos para RUC:', datos); // Para debug
+        
+        if (datos) {
+            // La API devuelve diferentes estructuras según el tipo de documento
+            // Para RUC (11 dígitos), los datos vienen en formato:
+            // { name: "...", address: "...", state: "...", condition: "..." }
+            
+            let razonSocialData = null;
+            let nombreComercialData = null;
+            
+            // Intentar obtener el nombre de diferentes campos posibles
+            if (datos.name) {
+                // Formato de RUC: usa 'name' directamente
+                razonSocialData = datos.name;
+                nombreComercialData = datos.name;
+            } else if (datos.fullName) {
+                // Formato alternativo
+                razonSocialData = datos.fullName;
+                nombreComercialData = datos.fullName;
+            } else if (datos.names) {
+                // Otro formato posible
+                razonSocialData = datos.names;
+                nombreComercialData = datos.names;
+            }
+            
+            if (razonSocialData) {
+                // Autocompletar razón social y nombre comercial
+                razonSocial.value = razonSocialData;
+                nombreComercial.value = nombreComercialData;
+                
+                // Agregar animación de autocompletado
+                razonSocial.classList.add('input-autocompleted');
+                nombreComercial.classList.add('input-autocompleted');
+                
+                // Quitar animación después de 500ms
+                setTimeout(() => {
+                    razonSocial.classList.remove('input-autocompleted');
+                    nombreComercial.classList.remove('input-autocompleted');
+                }, 500);
+                
+                // Quitar errores si existían
+                numeroDocumentoEmpresa.classList.remove('is-invalid');
+                nombreComercial.classList.remove('is-invalid');
+                razonSocial.classList.remove('is-invalid');
+                
+                // Mostrar notificación de éxito con información adicional
+                let mensajeDetalle = razonSocialData;
+                if (datos.state) {
+                    mensajeDetalle += ` - ${datos.state}`;
+                }
+                if (datos.condition) {
+                    mensajeDetalle += ` (${datos.condition})`;
+                }
+                
+                Swal.fire({
+                    icon: 'success',
+                    title: 'RUC encontrado',
+                    text: mensajeDetalle,
+                    timer: 3000,
+                    showConfirmButton: false,
+                    toast: true,
+                    position: 'top-end'
+                });
+            } else {
+                // No se encontraron datos válidos
+                console.warn('No se encontró el campo "name" en la respuesta:', datos);
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'RUC no encontrado',
+                    html: 'Por favor, ingrese los datos manualmente<br><small>El RUC puede no estar registrado en SUNAT</small>',
+                    timer: 3000,
+                    showConfirmButton: false,
+                    toast: true,
+                    position: 'top-end'
+                });
+            }
+        } else {
+            // Error en la consulta
+            Swal.fire({
+                icon: 'error',
+                title: 'Error en la búsqueda',
+                html: 'No se pudo consultar el RUC<br><small>Por favor, intente nuevamente</small>',
+                timer: 3000,
+                showConfirmButton: false,
+                toast: true,
+                position: 'top-end'
+            });
+        }
+    }
+    
+    // Evento blur para DNI (se dispara al perder el foco)
+    if (numeroDocumentoPersona) {
+        numeroDocumentoPersona.addEventListener('blur', autocompletarDNI);
+    }
+    
+    // Evento blur para RUC (se dispara al perder el foco)
+    if (numeroDocumentoEmpresa) {
+        numeroDocumentoEmpresa.addEventListener('blur', autocompletarRUC);
+    }
+    
+    // Eventos para los botones de búsqueda
+    const btnBuscarDNI = document.getElementById('btnBuscarDNI');
+    if (btnBuscarDNI) {
+        btnBuscarDNI.addEventListener('click', function() {
+            const dni = numeroDocumentoPersona.value.trim();
+            
+            if (dni.length !== 8 || !/^\d{8}$/.test(dni)) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'DNI inválido',
+                    text: 'Por favor, ingrese un DNI de 8 dígitos',
+                    timer: 2000,
+                    showConfirmButton: false,
+                    toast: true,
+                    position: 'top-end'
+                });
+                return;
+            }
+            
+            // Mostrar spinner en el botón
+            const iconoOriginal = this.innerHTML;
+            this.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Buscando...';
+            this.disabled = true;
+            
+            // Ejecutar búsqueda
+            autocompletarDNI().finally(() => {
+                setTimeout(() => {
+                    this.innerHTML = iconoOriginal;
+                    this.disabled = false;
+                }, 1000);
+            });
+        });
+    }
+    
+    const btnBuscarRUC = document.getElementById('btnBuscarRUC');
+    if (btnBuscarRUC) {
+        btnBuscarRUC.addEventListener('click', function() {
+            const ruc = numeroDocumentoEmpresa.value.trim();
+            
+            if (ruc.length !== 11 || !/^\d{11}$/.test(ruc)) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'RUC inválido',
+                    text: 'Por favor, ingrese un RUC de 11 dígitos',
+                    timer: 2000,
+                    showConfirmButton: false,
+                    toast: true,
+                    position: 'top-end'
+                });
+                return;
+            }
+            
+            // Mostrar spinner en el botón
+            const iconoOriginal = this.innerHTML;
+            this.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Buscando...';
+            this.disabled = true;
+            
+            // Ejecutar búsqueda
+            autocompletarRUC().finally(() => {
+                setTimeout(() => {
+                    this.innerHTML = iconoOriginal;
+                    this.disabled = false;
+                }, 1000);
+            });
+        });
+    }
+});
+</script>
 <script>
     document.addEventListener("DOMContentLoaded", function() {
 
@@ -3202,28 +3712,29 @@ $sucursal_id = $_SESSION["sucursal_id"];
 
         if (personaTab) {
             personaTab.addEventListener('click', () => {
-            // Limpiar datos de la pestaña Empresa
-            document.getElementById('numeroDocumentoEmpresa').value = '';
-            document.getElementById('nombreComercial').value = '';
-            document.getElementById('razonSocial').value = '';
-            document.getElementById('telefonoEmpresa').value = '';
-            document.getElementById('emailEmpresa').value = '';
-            resetErrors();
+                // Limpiar datos de la pestaña Empresa
+                document.getElementById('numeroDocumentoEmpresa').value = '';
+                document.getElementById('nombreComercial').value = '';
+                document.getElementById('razonSocial').value = '';
+                document.getElementById('telefonoEmpresa').value = '';
+                document.getElementById('emailEmpresa').value = '';
+                resetErrors();
+            });
         }
 
         if (empresaTab) {
             empresaTab.addEventListener('click', () => {
-            // Limpiar datos de la pestaña Persona
-            document.getElementById('numeroDocumentoPersona').value = '';
-            document.getElementById('nombresPersona').value = '';
-            document.getElementById('apellidosPersona').value = '';
-            document.getElementById('telefonoPersona').value = '';
-            document.getElementById('emailPersona').value = '';
-            resetErrors();
-        });
+                // Limpiar datos de la pestaña Persona
+                document.getElementById('numeroDocumentoPersona').value = '';
+                document.getElementById('nombresPersona').value = '';
+                document.getElementById('apellidosPersona').value = '';
+                document.getElementById('telefonoPersona').value = '';
+                document.getElementById('emailPersona').value = '';
+                resetErrors();
+            });
+        }
 
         function resetErrors() {
-            // Limpiar las clases 'is-invalid' y los mensajes de error
             const inputs = document.querySelectorAll('.form-control');
             const errorMessages = document.querySelectorAll('.invalid-feedback');
 
@@ -3235,7 +3746,6 @@ $sucursal_id = $_SESSION["sucursal_id"];
                 message.textContent = '';
             });
         }
-
         function limpiarcampos() {
             document.getElementById('numeroDocumentoEmpresa').value = '';
             document.getElementById('nombreComercial').value = '';
@@ -3402,19 +3912,6 @@ $sucursal_id = $_SESSION["sucursal_id"];
                 errorEmailEmpresa.textContent = '';
             }
 
-            const condicion = document.getElementById('condicion');
-            const errorCondicion = document.getElementById('error-condicion');
-
-            // Verificar si la opción seleccionada es válida
-            if (condicion.value === '') {
-                valid = false; // La variable valid debe ser parte de tu lógica de validación general
-                condicion.classList.add('is-invalid');
-                errorCondicion.textContent = 'Debe seleccionar una opción válida.';
-            } else {
-                condicion.classList.remove('is-invalid');
-                errorCondicion.textContent = '';
-            }
-
             return valid;
         }
 
@@ -3510,10 +4007,10 @@ $sucursal_id = $_SESSION["sucursal_id"];
         });
 
         function enviardatos(id_persona, nombre, numero_celular, correo) {
-            document.getElementById('idPersona').textContent = id_persona
-            document.getElementById('nombreCliente').value = nombre
-            document.getElementById('idUpdateNumTelefonoCliente').textContent = numero_celular
-            document.getElementById('idUpdateCorreoCliente').value = correo
+            document.getElementById('idPersona').textContent = id_persona;
+            document.getElementById('nombreCliente').value = nombre;
+            document.getElementById('idUpdateNumTelefonoCliente').value = numero_celular || '';
+            document.getElementById('idUpdateCorreoCliente').value = correo || '';
         }
 
         function fnRegistrarPersona(datos) {
