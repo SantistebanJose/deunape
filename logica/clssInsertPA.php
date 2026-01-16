@@ -409,27 +409,37 @@ function paRegistrarArticuloCompleto($jsDatosArticulo)
         return;
     }
 
-    $categoria_id = $data['categoria_id'];
-    $color = $data['color'];
-    $corte = $data['corte'];
-    $dimension_id = $data['dimension_id'];
-    $escala_id = $data['escala_id'];
-    $stock = $data['stock'];
-    $precio_venta = $data['precio_venta'];
-    $precio_compra = $data['precio_compra'];
-    $marca = $data['marca'];
+    // ✅ ASIGNACIÓN CORRECTA DE VARIABLES
     $nombre = $data['nombre'];
-    $tipo_id = $data['tipo_id'];
-    $json_url_img = $data['json_url_img'];
+    $categoria_id = $data['categoria_id'] ?? null;
+    $tipo_id = $data['tipo_id'] ?? null;
+    $dimension_id = $data['dimension_id'] ?? null;
+    $escala_id = $data['escala_id'] ?? null;
+    $corte = $data['corte'] ?? false;
+    $color = $data['color'] ?? null;
+    $stock = $data['stock'] ?? 0;
+    $precio_venta = $data['precio_venta'] ?? 0;
+    $precio_compra = $data['precio_compra'] ?? 0;
+    $marca = $data['marca'] ?? null;
+    $json_url_img = $data['json_url_img'] ?? null;
     $sucursal_id = $data['sucursal_id'];
-    // campos de mierda que se agregaron el 16012026
-    $sucursal_id = $data['f_sunat'];
-    $sucursal_id = $data['impuesto_id'];
-    $sucursal_id = $data['precios_json'];
     
+    // ✅ NUEVOS CAMPOS - CORRECTAMENTE ASIGNADOS
+    $f_sunat = isset($data['f_sunat']) ? $data['f_sunat'] : 'G'; // Valor por defecto 'G' (Gravado)
+    $impuesto_id = $data['impuesto_id'] ?? null;
+    $precios_json = isset($data['precios_json']) ? $data['precios_json'] : null;
+    
+    // Validación de impuesto (obligatorio)
+    if (!$impuesto_id) {
+        echo json_encode([
+            'estado' => false,
+            'mensaje' => 'Debe seleccionar un impuesto SUNAT'
+        ]);
+        return;
+    }
 
     try {
-        // ✅ ACTUALIZADO: Agregar precios_json a la llamada de función
+        // ✅ SQL CON TODOS LOS PARÁMETROS EN EL ORDEN CORRECTO
         $sql = "SELECT * FROM fn_registrar_articulo_completo(
             :nombre, 
             :categoria_id, 
@@ -444,7 +454,6 @@ function paRegistrarArticuloCompleto($jsDatosArticulo)
             :marca,
             :json_url_img,
             :sucursal_id,
-
             :f_sunat,
             :impuesto_id,
             :precios_json
@@ -452,24 +461,27 @@ function paRegistrarArticuloCompleto($jsDatosArticulo)
 
         $stmt = $conectar->prepare($sql);
 
-        $stmt->bindParam(':nombre', $nombre);
-        $stmt->bindParam(':categoria_id', $categoria_id);
-        $stmt->bindParam(':tipo_id', $tipo_id);
-        $stmt->bindParam(':dimension_id', $dimension_id);
-        $stmt->bindParam(':escala_id', $escala_id);
+        // ✅ BINDING DE TODOS LOS PARÁMETROS
+        $stmt->bindParam(':nombre', $nombre, PDO::PARAM_STR);
+        $stmt->bindParam(':categoria_id', $categoria_id, PDO::PARAM_INT);
+        $stmt->bindParam(':tipo_id', $tipo_id, PDO::PARAM_INT);
+        $stmt->bindParam(':dimension_id', $dimension_id, PDO::PARAM_INT);
+        $stmt->bindParam(':escala_id', $escala_id, PDO::PARAM_INT);
         
+        // Convertir booleano a string para PostgreSQL
         $corte_str = $corte ? 'true' : 'false';
-        $stmt->bindParam(':corte', $corte_str);
+        $stmt->bindParam(':corte', $corte_str, PDO::PARAM_STR);
         
-        $stmt->bindParam(':color', $color);
+        $stmt->bindParam(':color', $color, PDO::PARAM_STR);
         $stmt->bindParam(':stock', $stock);
         $stmt->bindParam(':precio_venta', $precio_venta);
         $stmt->bindParam(':precio_compra', $precio_compra);
-        $stmt->bindParam(':marca', $marca);
-        $stmt->bindParam(':json_url_img', $json_url_img);
+        $stmt->bindParam(':marca', $marca, PDO::PARAM_STR);
+        $stmt->bindParam(':json_url_img', $json_url_img, PDO::PARAM_STR);
         $stmt->bindParam(':sucursal_id', $sucursal_id, PDO::PARAM_INT);
         
-        $stmt->bindParam(':f_sunat', $f_sunat);
+        // ✅ NUEVOS CAMPOS - BINDING CORRECTO
+        $stmt->bindParam(':f_sunat', $f_sunat, PDO::PARAM_STR);
         $stmt->bindParam(':impuesto_id', $impuesto_id, PDO::PARAM_INT);
         $stmt->bindParam(':precios_json', $precios_json, PDO::PARAM_STR);
 
@@ -498,6 +510,7 @@ function paRegistrarArticuloCompleto($jsDatosArticulo)
         ]);
     }
 }
+
 
 function fnElimarArticulo($id)
 {
@@ -546,26 +559,38 @@ function paEditarArticuloCompleto($jsDatosArticulo)
         return;
     }
     
+    // ✅ ASIGNACIÓN CORRECTA DE VARIABLES
     $id = $data['id'];
-    $categoria_id = $data['categoria_id'];
-    $color = $data['color'];
-    $corte = $data['corte'];
-    $dimension_id = $data['dimension_id'];
-    $escala_id = $data['escala_id'];
-    $stock = $data['stock'];
-    $precio_venta = $data['precio_venta'];
-    $precio_compra = $data['precio_compra'];
-    $marca = $data['marca'];
     $nombre = $data['nombre'];
-    $tipo_id = $data['tipo_id'];
-    $json_url_img = $data['json_url_img'];
+    $categoria_id = $data['categoria_id'] ?? null;
+    $tipo_id = $data['tipo_id'] ?? null;
+    $dimension_id = $data['dimension_id'] ?? null;
+    $escala_id = $data['escala_id'] ?? null;
+    $corte = $data['corte'] ?? false;
+    $color = $data['color'] ?? null;
+    $stock = $data['stock'] ?? 0;
+    $precio_venta = $data['precio_venta'] ?? 0;
+    $precio_compra = $data['precio_compra'] ?? 0;
+    $marca = $data['marca'] ?? null;
+    $json_url_img = $data['json_url_img'] ?? null;
     $sucursal_id = $data['sucursal_id'];
     
-    // ✅ NUEVO: Obtener precios_json
+    // ✅ NUEVOS CAMPOS - CORRECTAMENTE ASIGNADOS
+    $f_sunat = isset($data['f_sunat']) ? $data['f_sunat'] : 'G';
+    $impuesto_id = $data['impuesto_id'] ?? null;
     $precios_json = isset($data['precios_json']) ? $data['precios_json'] : null;
+    
+    // Validación de impuesto (obligatorio)
+    if (!$impuesto_id) {
+        echo json_encode([
+            'estado' => false,
+            'mensaje' => 'Debe seleccionar un impuesto SUNAT'
+        ]);
+        return;
+    }
 
     try {
-        // ✅ ACTUALIZADO: Agregar precios_json a la llamada de función
+        // ✅ SQL CON TODOS LOS PARÁMETROS EN EL ORDEN CORRECTO
         $sql = "SELECT * FROM fn_editar_articulo_completo(
             :id,
             :nombre,
@@ -581,31 +606,36 @@ function paEditarArticuloCompleto($jsDatosArticulo)
             :marca,
             :json_url_img,
             :sucursal_id,
+            :f_sunat,
+            :impuesto_id,
             :precios_json
         )";
 
         $stmt = $conectar->prepare($sql);
         
-        $stmt->bindParam(':id', $id);
-        $stmt->bindParam(':nombre', $nombre);
-        $stmt->bindParam(':categoria_id', $categoria_id);
-        $stmt->bindParam(':tipo_id', $tipo_id);
-        $stmt->bindParam(':dimension_id', $dimension_id);
-        $stmt->bindParam(':escala_id', $escala_id);
+        // ✅ BINDING DE TODOS LOS PARÁMETROS
+        $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+        $stmt->bindParam(':nombre', $nombre, PDO::PARAM_STR);
+        $stmt->bindParam(':categoria_id', $categoria_id, PDO::PARAM_INT);
+        $stmt->bindParam(':tipo_id', $tipo_id, PDO::PARAM_INT);
+        $stmt->bindParam(':dimension_id', $dimension_id, PDO::PARAM_INT);
+        $stmt->bindParam(':escala_id', $escala_id, PDO::PARAM_INT);
         
+        // Convertir booleano a string para PostgreSQL
         $corte_str = $corte ? 'true' : 'false';
-        $stmt->bindParam(':corte', $corte_str);
+        $stmt->bindParam(':corte', $corte_str, PDO::PARAM_STR);
         
-        $stmt->bindParam(':color', $color);
+        $stmt->bindParam(':color', $color, PDO::PARAM_STR);
         $stmt->bindParam(':stock', $stock);
         $stmt->bindParam(':precio_venta', $precio_venta);
         $stmt->bindParam(':precio_compra', $precio_compra);
-        $stmt->bindParam(':marca', $marca);
-        $stmt->bindParam(':json_url_img', $json_url_img);
+        $stmt->bindParam(':marca', $marca, PDO::PARAM_STR);
+        $stmt->bindParam(':json_url_img', $json_url_img, PDO::PARAM_STR);
         $stmt->bindParam(':sucursal_id', $sucursal_id, PDO::PARAM_INT);
         
-        // ✅ NUEVO: Bind del campo precios_json
-        // Si es null, se guarda como NULL en la BD
+        // ✅ NUEVOS CAMPOS - BINDING CORRECTO
+        $stmt->bindParam(':f_sunat', $f_sunat, PDO::PARAM_STR);
+        $stmt->bindParam(':impuesto_id', $impuesto_id, PDO::PARAM_INT);
         $stmt->bindParam(':precios_json', $precios_json, PDO::PARAM_STR);
 
         $stmt->execute();

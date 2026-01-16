@@ -144,6 +144,14 @@ if (!$sucursal_id) {
         font-size: 11px;
         margin-left: 5px;
     }
+    
+    .impuesto-info {
+        background: #e7f3ff;
+        border-left: 4px solid #2196F3;
+        padding: 10px;
+        margin-top: 5px;
+        border-radius: 5px;
+    }
 </style>
 
 <div class="container">
@@ -445,7 +453,21 @@ function generarFormularioArticulo(isEdit, datosArticulo) {
     html += '</select>';
     html += '</div>';
     
-    html += '<div class="col-md-3">';
+    // CAMPO DE IMPUESTO SUNAT - NUEVO
+    html += '<div class="col-md-4">';
+    html += '<label class="form-label"><strong>Impuesto SUNAT</strong> <span class="text-danger">*</span></label>';
+    html += '<select class="form-select form-select-sm" id="idRegistroImpuesto">';
+    html += '<option value="">Seleccione Impuesto</option>';
+    html += '<?php foreach (listarImpuestos() as $impuesto) { ?>';
+    html += '<option value="<?php echo $impuesto["id"] ?>"><?php echo $impuesto["nombre"] ?></option>';
+    html += '<?php } ?>';
+    html += '</select>';
+    html += '<div class="impuesto-info mt-2" id="infoImpuesto" style="display: none;">';
+    html += '<small><i class="fas fa-info-circle"></i> <span id="textoInfoImpuesto"></span></small>';
+    html += '</div>';
+    html += '</div>';
+    
+    html += '<div class="col-md-4">';
     html += '<label class="form-label"><strong>Escala</strong></label>';
     html += '<select class="form-select form-select-sm" id="idRegistroEscala">';
     html += '<option value="">Seleccione Escala</option>';
@@ -455,7 +477,7 @@ function generarFormularioArticulo(isEdit, datosArticulo) {
     html += '</select>';
     html += '</div>';
     
-    html += '<div class="col-md-3">';
+    html += '<div class="col-md-4">';
     html += '<label class="form-label"><strong>Marca</strong></label>';
     html += '<input type="text" class="form-control" id="idRegistroMarca" placeholder="Ej: Artesco" />';
     html += '</div>';
@@ -497,9 +519,6 @@ function generarFormularioArticulo(isEdit, datosArticulo) {
     html += '<div class="form-check">';
     html += '<input class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault2" value="No" checked />';
     html += '<label class="form-check-label" for="flexRadioDefault2">No</label>';
-
-
-    
     html += '</div>';
     html += '</div>';
     html += '</div>';
@@ -670,6 +689,25 @@ function generarFormularioArticulo(isEdit, datosArticulo) {
     
     return html;
 }
+
+    // ============================================
+    // FUNCIÓN PARA MOSTRAR INFO DEL IMPUESTO
+    // ============================================
+    function configurarEventoImpuesto() {
+        $('#idRegistroImpuesto').on('change', function() {
+            var selectedText = $(this).find('option:selected').text();
+            var infoDiv = $('#infoImpuesto');
+            var textoInfo = $('#textoInfoImpuesto');
+            
+            if ($(this).val() !== '') {
+                textoInfo.text('Impuesto seleccionado: ' + selectedText);
+                infoDiv.show();
+            } else {
+                infoDiv.hide();
+            }
+        });
+    }
+
     function renderizarListaImagenes() {
         var container = document.getElementById('listaImagenes');
         var contador = document.getElementById('contadorImagenes');
@@ -978,6 +1016,7 @@ function generarFormularioArticulo(isEdit, datosArticulo) {
             modal.show();
 
             configurarEventosImagenes();
+            configurarEventoImpuesto(); // Configurar evento del select de impuesto
             renderizarListaImagenes();
 
             document.getElementById("btnRegistrarArticulo").addEventListener("click", function() {
@@ -995,6 +1034,17 @@ function generarFormularioArticulo(isEdit, datosArticulo) {
                 
                 if (!categoriaSelect || categoriaSelect.value === "") {
                     swal("Ups!, Para registrar un Artículo, debes elegir una Categoría", {
+                        icon: "error",
+                        buttons: { confirm: { className: "btn btn-danger" } }
+                    });
+                    return;
+                }
+
+                // VALIDAR IMPUESTO SUNAT
+                var impuestoSelect = document.getElementById("idRegistroImpuesto");
+                
+                if (!impuestoSelect || impuestoSelect.value === "") {
+                    swal("Ups!, Debes seleccionar un Impuesto SUNAT para el artículo", {
                         icon: "error",
                         buttons: { confirm: { className: "btn btn-danger" } }
                     });
@@ -1020,20 +1070,26 @@ function generarFormularioArticulo(isEdit, datosArticulo) {
                 var marca = document.getElementById("idRegistroMarca");
                 var color = document.getElementById("idRegistroColor");
 
+                // ✅ CAPTURAR PRECIOS DE PRESENTACIÓN
+                var preciosJson = obtenerJsonPrecios();
+
                 var jsArticulo = {
                     "nombre": nombreArticulo.value.trim(),
                     "categoria_id": categoriaSelect.value === "" ? null : categoriaSelect.value,
                     "tipo_id": tipoSelect && tipoSelect.value !== "" ? tipoSelect.value : null,
                     "dimension_id": dimensionSelect && dimensionSelect.value !== "" ? dimensionSelect.value : null,
                     "escala_id": escalaSelect && escalaSelect.value !== "" ? escalaSelect.value : null,
+                    "impuesto_id": impuestoSelect.value, // ✅ CAMPO IMPUESTO
+                    "f_sunat": "G", // ✅ Valor por defecto (Gravado)
                     "corte": selectedValue === "Si",
                     "color": color && color.value.trim() !== "" ? color.value.trim() : null,
                     "stock": stock && stock.value !== "" ? parseFloat(stock.value) : 0,
                     "precio_venta": precioVenta && precioVenta.value !== "" ? parseFloat(precioVenta.value) : 0,
                     "precio_compra": precioCompra && precioCompra.value !== "" ? parseFloat(precioCompra.value) : 0,
                     "marca": marca && marca.value.trim() !== "" ? marca.value.trim() : null,
-                    "sucursal_id": SUCURSAL_ID,
-                    "json_url_img": obtenerJsonImagenes()
+                    "sucursal_id": SUCURSAL_ID, // ✅ CAMPO SUCURSAL
+                    "json_url_img": obtenerJsonImagenes(),
+                    "precios_json": preciosJson // ✅ CAMPO PRECIOS POR PRESENTACIÓN
                 };
 
                 console.log("Datos a enviar:", jsArticulo);
@@ -1108,11 +1164,25 @@ function generarFormularioArticulo(isEdit, datosArticulo) {
         };
 
         setTimeout(function() {
+            // ✅ CARGAR VALORES EN LOS SELECTS
+            var setSelectValueById = function(elementId, value) {
+                var select = document.getElementById(elementId);
+                if (select) {
+                    if (value === null || value === undefined || value === "") {
+                        select.value = "";
+                    } else {
+                        select.value = value;
+                    }
+                }
+            };
+
             setSelectValueById("idRegistoCategoria", datosArticulo.categoria_id);
             setSelectValueById("idRegistoTipo", datosArticulo.tipo_id);
             setSelectValueById("idRegistroDimension", datosArticulo.dimension_id);
             setSelectValueById("idRegistroEscala", datosArticulo.escala_id);
+            setSelectValueById("idRegistroImpuesto", datosArticulo.impuesto_id); // ✅ Cargar impuesto
             
+            // ✅ CARGAR VALORES EN INPUTS DE TEXTO
             var nombreInput = document.getElementById("idRegistroNombreArticulo");
             if (nombreInput) nombreInput.value = datosArticulo.articulo || '';
             
@@ -1131,6 +1201,7 @@ function generarFormularioArticulo(isEdit, datosArticulo) {
             var precioVentaInput = document.getElementById("idRegistrarPrecioVenta");
             if (precioVentaInput) precioVentaInput.value = datosArticulo.precio_venta || '0';
 
+            // ✅ CARGAR RADIO BUTTONS (Requiere Corte)
             if (datosArticulo.corte) {
                 var radioSi = document.getElementById("flexRadioDefault1");
                 if (radioSi) radioSi.checked = true;
@@ -1139,9 +1210,26 @@ function generarFormularioArticulo(isEdit, datosArticulo) {
                 if (radioNo) radioNo.checked = true;
             }
 
+            // ✅ CARGAR IMÁGENES
             cargarImagenesDesdeJson(datosArticulo.json_url_img);
+            
+            // ✅ CARGAR PRECIOS DE PRESENTACIÓN (NUEVO)
+            if (datosArticulo.precios_json) {
+                cargarPreciosDesdeJson(datosArticulo.precios_json);
+            } else {
+                limpiarPrecios();
+            }
+            
+            // ✅ CONFIGURAR TODOS LOS EVENTOS
+            configurarEventosImagenes();
+            configurarEventosPrecios(); // ✅ LÍNEA NUEVA - MUY IMPORTANTE
+            configurarEventoImpuesto();
+            
+            // ✅ TRIGGER PARA MOSTRAR INFO DEL IMPUESTO
+            if (datosArticulo.impuesto_id) {
+                $('#idRegistroImpuesto').trigger('change');
+            }
         }, 100);
-
         var modal = new bootstrap.Modal(document.getElementById("modalArticulo"));
         modal.show();
 
@@ -1157,6 +1245,17 @@ function generarFormularioArticulo(isEdit, datosArticulo) {
                     
                     if (!nombreArticulo || nombreArticulo.value.trim().length === 0) {
                         swal("Ups!, Debes ingresar el nombre del Artículo", {
+                            icon: "error",
+                            buttons: { confirm: { className: "btn btn-danger" } }
+                        });
+                        return;
+                    }
+
+                    // VALIDAR IMPUESTO SUNAT EN EDICIÓN
+                    var impuestoSelect = document.getElementById("idRegistroImpuesto");
+                    
+                    if (!impuestoSelect || impuestoSelect.value === "") {
+                        swal("Ups!, Debes seleccionar un Impuesto SUNAT para el artículo", {
                             icon: "error",
                             buttons: { confirm: { className: "btn btn-danger" } }
                         });
@@ -1183,6 +1282,9 @@ function generarFormularioArticulo(isEdit, datosArticulo) {
                     var marca = document.getElementById("idRegistroMarca");
                     var color = document.getElementById("idRegistroColor");
 
+                    // ✅ CAPTURAR PRECIOS DE PRESENTACIÓN
+                    var preciosJson = obtenerJsonPrecios();
+
                     var jsArticulo = {
                         "id": datosArticulo.articulo_id,
                         "nombre": nombreArticulo.value.trim(),
@@ -1190,14 +1292,17 @@ function generarFormularioArticulo(isEdit, datosArticulo) {
                         "tipo_id": tipoSelect && tipoSelect.value !== "" ? tipoSelect.value : null,
                         "dimension_id": dimensionSelect && dimensionSelect.value !== "" ? dimensionSelect.value : null,
                         "escala_id": escalaSelect && escalaSelect.value !== "" ? escalaSelect.value : null,
+                        "impuesto_id": impuestoSelect.value, // ✅ CAMPO IMPUESTO
+                        "f_sunat": "G", // ✅ Valor por defecto (Gravado)
                         "corte": selectedValue === "Si",
                         "color": color && color.value.trim() !== "" ? color.value.trim() : null,
                         "stock": stock && stock.value !== "" ? parseFloat(stock.value) : 0,
                         "precio_venta": precioVenta && precioVenta.value !== "" ? parseFloat(precioVenta.value) : 0,
                         "precio_compra": precioCompra && precioCompra.value !== "" ? parseFloat(precioCompra.value) : 0,
                         "marca": marca && marca.value.trim() !== "" ? marca.value.trim() : null,
-                        "sucursal_id": SUCURSAL_ID,
-                        "json_url_img": obtenerJsonImagenes()
+                        "sucursal_id": SUCURSAL_ID, // ✅ CAMPO SUCURSAL
+                        "json_url_img": obtenerJsonImagenes(),
+                        "precios_json": preciosJson // ✅ CAMPO PRECIOS POR PRESENTACIÓN
                     };
 
                     console.log("Datos a actualizar:", jsArticulo);
