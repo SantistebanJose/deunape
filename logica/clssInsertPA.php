@@ -422,9 +422,11 @@ function paRegistrarArticuloCompleto($jsDatosArticulo)
     $tipo_id = $data['tipo_id'];
     $json_url_img = $data['json_url_img'];
     $sucursal_id = $data['sucursal_id'];
+    // campos de mierda que se agregaron el 16012026
+    $sucursal_id = $data['f_sunat'];
+    $sucursal_id = $data['impuesto_id'];
+    $sucursal_id = $data['precios_json'];
     
-    // ✅ NUEVO: Obtener precios_json
-    $precios_json = isset($data['precios_json']) ? $data['precios_json'] : null;
 
     try {
         // ✅ ACTUALIZADO: Agregar precios_json a la llamada de función
@@ -442,6 +444,9 @@ function paRegistrarArticuloCompleto($jsDatosArticulo)
             :marca,
             :json_url_img,
             :sucursal_id,
+
+            :f_sunat,
+            :impuesto_id,
             :precios_json
         )";
 
@@ -464,8 +469,8 @@ function paRegistrarArticuloCompleto($jsDatosArticulo)
         $stmt->bindParam(':json_url_img', $json_url_img);
         $stmt->bindParam(':sucursal_id', $sucursal_id, PDO::PARAM_INT);
         
-        // ✅ NUEVO: Bind del campo precios_json
-        // Si es null, se guarda como NULL en la BD
+        $stmt->bindParam(':f_sunat', $f_sunat);
+        $stmt->bindParam(':impuesto_id', $impuesto_id, PDO::PARAM_INT);
         $stmt->bindParam(':precios_json', $precios_json, PDO::PARAM_STR);
 
         $stmt->execute();

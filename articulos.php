@@ -497,6 +497,9 @@ function generarFormularioArticulo(isEdit, datosArticulo) {
     html += '<div class="form-check">';
     html += '<input class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault2" value="No" checked />';
     html += '<label class="form-check-label" for="flexRadioDefault2">No</label>';
+
+
+    
     html += '</div>';
     html += '</div>';
     html += '</div>';

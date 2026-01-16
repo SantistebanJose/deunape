@@ -255,6 +255,15 @@ function listarCategoria($sucursal_id): array
               ORDER BY 1";
     return executeQuery($query, ["sucursal_id" => $sucursal_id]);
 }
+
+function listarImpuestos(): array
+{
+    $query = "SELECT id, nombre FROM impuesto 
+              WHERE deleted_at IS NULL
+              ORDER BY 1";
+    return executeQuery($query);
+}
+
 function listarDimension($sucursal_id): array
 {
     $query = "SELECT id, medida FROM dimension 
