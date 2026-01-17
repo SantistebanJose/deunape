@@ -258,9 +258,19 @@ function listarCategoria($sucursal_id): array
 
 function listarImpuestos(): array
 {
-    $query = "SELECT id, nombre FROM impuesto 
-              WHERE deleted_at IS NULL
-              ORDER BY 1";
+    $query = "
+        SELECT 
+        id, 
+        CASE
+            WHEN flag_monto_o_porcentaje = 'P' THEN concat(nombre,' (',porcentaje_num,' %)')
+            WHEN flag_monto_o_porcentaje = 'M' THEN concat(nombre,' ( S/ ',porcentaje_num,' )')
+        END as nombre,
+        porcentaje_num,
+        porcentaje_div
+        FROM impuesto 
+        WHERE deleted_at IS NULL
+        ORDER BY 1
+    ";
     return executeQuery($query);
 }
 
