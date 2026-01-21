@@ -29,6 +29,20 @@ function controladorClssInsertPA($accion)
                 finalizarVentaReservaCredito($jsDatosVenta);
             }
             break;
+        case 'LISTAR_PRESENTACIONES':
+            if (isset($_POST["sucursal_id"])) {
+                $sucursal_id = $_POST["sucursal_id"];
+                listarPresentacionesDisponibles($sucursal_id);
+            }
+            break;
+
+        case 'OBTENER_PRECIOS_ARTICULO':
+            if (isset($_POST["articulo_id"]) && isset($_POST["sucursal_id"])) {
+                $articulo_id = $_POST["articulo_id"];
+                $sucursal_id = $_POST["sucursal_id"];
+                obtenerPreciosArticulo($articulo_id, $sucursal_id);
+            }
+            break;
         case 'FINALIZARVENTACREDITORAPIDO':
             if (isset($_POST["jsDatosVenta"])) {
                 $jsDatosVenta = $_POST["jsDatosVenta"];
@@ -424,8 +438,8 @@ function paRegistrarArticuloCompleto($jsDatosArticulo)
     $json_url_img = $data['json_url_img'] ?? null;
     $sucursal_id = $data['sucursal_id'];
     
-    // ✅ NUEVOS CAMPOS - CORRECTAMENTE ASIGNADOS
-    $f_sunat = isset($data['f_sunat']) ? $data['f_sunat'] : 'G'; // Valor por defecto 'G' (Gravado)
+    // ✅ CAMPOS DE IMPUESTO Y PRESENTACIONES
+    $f_sunat = isset($data['f_sunat']) ? $data['f_sunat'] : 'G';
     $impuesto_id = $data['impuesto_id'] ?? null;
     $precios_json = isset($data['precios_json']) ? $data['precios_json'] : null;
     
@@ -479,8 +493,6 @@ function paRegistrarArticuloCompleto($jsDatosArticulo)
         $stmt->bindParam(':marca', $marca, PDO::PARAM_STR);
         $stmt->bindParam(':json_url_img', $json_url_img, PDO::PARAM_STR);
         $stmt->bindParam(':sucursal_id', $sucursal_id, PDO::PARAM_INT);
-        
-        // ✅ NUEVOS CAMPOS - BINDING CORRECTO
         $stmt->bindParam(':f_sunat', $f_sunat, PDO::PARAM_STR);
         $stmt->bindParam(':impuesto_id', $impuesto_id, PDO::PARAM_INT);
         $stmt->bindParam(':precios_json', $precios_json, PDO::PARAM_STR);
@@ -490,10 +502,22 @@ function paRegistrarArticuloCompleto($jsDatosArticulo)
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
         
         if ($row) {
+            $articulo_id_creado = $row['articulo_id'] ?? null;
+            
+            // ✅ GUARDAR RELACIONES DE PRESENTACIONES
+            if ($articulo_id_creado && $precios_json) {
+                try {
+                    guardarRelacionesArticuloPresentaciones($articulo_id_creado, $precios_json, $sucursal_id);
+                } catch (Exception $e) {
+                    error_log("Error al guardar relaciones de presentaciones: " . $e->getMessage());
+                    // No detenemos el proceso, solo registramos el error
+                }
+            }
+            
             echo json_encode([
                 'estado' => $row['estado'],
                 'mensaje' => $row['mensaje'],
-                'articulo_id' => $row['articulo_id'] ?? null
+                'articulo_id' => $articulo_id_creado
             ]);
         } else {
             echo json_encode([
@@ -510,7 +534,6 @@ function paRegistrarArticuloCompleto($jsDatosArticulo)
         ]);
     }
 }
-
 
 function fnElimarArticulo($id)
 {
@@ -575,10 +598,16 @@ function paEditarArticuloCompleto($jsDatosArticulo)
     $json_url_img = $data['json_url_img'] ?? null;
     $sucursal_id = $data['sucursal_id'];
     
-    // ✅ NUEVOS CAMPOS - CORRECTAMENTE ASIGNADOS
+    // ✅ CAMPOS DE IMPUESTO Y PRESENTACIONES
     $f_sunat = isset($data['f_sunat']) ? $data['f_sunat'] : 'G';
     $impuesto_id = $data['impuesto_id'] ?? null;
     $precios_json = isset($data['precios_json']) ? $data['precios_json'] : null;
+    
+    // ✅ LOG PARA DEBUG
+    error_log("=== EDITAR ARTÍCULO COMPLETO ===");
+    error_log("Artículo ID: " . $id);
+    error_log("Sucursal ID: " . $sucursal_id);
+    error_log("Precios JSON recibido: " . $precios_json);
     
     // Validación de impuesto (obligatorio)
     if (!$impuesto_id) {
@@ -632,8 +661,6 @@ function paEditarArticuloCompleto($jsDatosArticulo)
         $stmt->bindParam(':marca', $marca, PDO::PARAM_STR);
         $stmt->bindParam(':json_url_img', $json_url_img, PDO::PARAM_STR);
         $stmt->bindParam(':sucursal_id', $sucursal_id, PDO::PARAM_INT);
-        
-        // ✅ NUEVOS CAMPOS - BINDING CORRECTO
         $stmt->bindParam(':f_sunat', $f_sunat, PDO::PARAM_STR);
         $stmt->bindParam(':impuesto_id', $impuesto_id, PDO::PARAM_INT);
         $stmt->bindParam(':precios_json', $precios_json, PDO::PARAM_STR);
@@ -642,10 +669,25 @@ function paEditarArticuloCompleto($jsDatosArticulo)
 
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
         
+        error_log("Resultado de función SQL: " . json_encode($row));
+        
         if ($row) {
+            // ✅✅✅ CORRECCIÓN CRÍTICA: Llamar SIEMPRE a guardarRelacionesArticuloPresentaciones
+            // Sin importar lo que devuelva la función SQL
+            error_log("Llamando a guardarRelacionesArticuloPresentaciones...");
+            
+            try {
+                guardarRelacionesArticuloPresentaciones($id, $precios_json, $sucursal_id);
+                error_log("✅ guardarRelacionesArticuloPresentaciones ejecutado");
+            } catch (Exception $e) {
+                error_log("❌ Error en guardarRelacionesArticuloPresentaciones: " . $e->getMessage());
+                error_log("Stack trace: " . $e->getTraceAsString());
+                // No detener el proceso, solo registrar el error
+            }
+            
             echo json_encode([
-                'estado' => $row['estado'],
-                'mensaje' => $row['mensaje']
+                'estado' => true,
+                'mensaje' => $row['mensaje'] ?? 'Artículo actualizado correctamente'
             ]);
         } else {
             echo json_encode([
@@ -654,6 +696,9 @@ function paEditarArticuloCompleto($jsDatosArticulo)
             ]);
         }
     } catch (Exception $e) {
+        error_log("❌ Error en paEditarArticuloCompleto: " . $e->getMessage());
+        error_log("Stack trace: " . $e->getTraceAsString());
+        
         echo json_encode([
             'estado' => false, 
             'mensaje' => 'Error al procesar la actualización. Consultar con el Administrador de Sistemas.',
@@ -661,6 +706,328 @@ function paEditarArticuloCompleto($jsDatosArticulo)
             'jsonEntrada' => $data
         ]);
     }
+}
+/** Listar presentaciones disponibles de una sucursal
+ */
+function listarPresentacionesDisponibles($sucursal_id) {
+    global $conectar;
+    
+    // ✅ LOGGING INICIAL
+    error_log("=== LISTAR_PRESENTACIONES ===");
+    error_log("Sucursal ID recibido: " . $sucursal_id);
+    error_log("Tipo: " . gettype($sucursal_id));
+    
+    try {
+        // Validar que sucursal_id no esté vacío
+        if (empty($sucursal_id)) {
+            error_log("❌ sucursal_id está vacío");
+            echo json_encode([
+                'estado' => false,
+                'mensaje' => 'sucursal_id no proporcionado',
+                'datos' => []
+            ]);
+            return;
+        }
+        
+        $sql = "SELECT id, codigo, presentacion, cantidad_numero 
+                FROM unidadescompra 
+                WHERE deleted_at IS NULL 
+                AND sucursal_id = :sucursal_id
+                ORDER BY presentacion";
+        
+        error_log("SQL a ejecutar: " . $sql);
+        
+        $stmt = $conectar->prepare($sql);
+        $stmt->bindParam(':sucursal_id', $sucursal_id, PDO::PARAM_INT);
+        
+        error_log("Ejecutando query...");
+        $stmt->execute();
+        
+        $presentaciones = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        error_log("Presentaciones encontradas: " . count($presentaciones));
+        error_log("Datos: " . json_encode($presentaciones));
+        
+        // ✅ SIEMPRE DEVOLVER JSON VÁLIDO
+        $response = [
+            'estado' => true,
+            'datos' => $presentaciones,
+            'total' => count($presentaciones),
+            'mensaje' => count($presentaciones) > 0 
+                ? 'Presentaciones cargadas correctamente' 
+                : 'No hay presentaciones registradas',
+            'sucursal_id' => $sucursal_id
+        ];
+        
+        error_log("Respuesta a enviar: " . json_encode($response));
+        
+        // ✅ LIMPIAR BUFFER Y ENVIAR SOLO JSON
+        ob_clean();
+        header('Content-Type: application/json');
+        echo json_encode($response);
+        
+    } catch (Exception $e) {
+        error_log("❌ Error en listarPresentacionesDisponibles: " . $e->getMessage());
+        error_log("Stack trace: " . $e->getTraceAsString());
+        
+        ob_clean();
+        header('Content-Type: application/json');
+        echo json_encode([
+            'estado' => false,
+            'mensaje' => 'Error al cargar presentaciones: ' . $e->getMessage(),
+            'datos' => [],
+            'error_detalle' => $e->getMessage()
+        ]);
+    }
+}
+
+/**
+ * Obtener precios de presentaciones de un artículo
+ * ✅ VERSIÓN CORREGIDA
+ */
+function obtenerPreciosArticulo($articulo_id, $sucursal_id) {
+    global $conectar;
+    
+    try {
+        error_log("=== OBTENER_PRECIOS_ARTICULO (VERSIÓN CORREGIDA) ===");
+        error_log("Artículo ID: " . $articulo_id);
+        error_log("Sucursal ID: " . $sucursal_id);
+        
+        // ✅ NUEVA QUERY CORREGIDA
+        // Esta query obtiene los precios directamente del JSON guardado
+        // Y los cruza con la información de las presentaciones
+        $sql = "
+            SELECT 
+                t1.id as articulo_id,
+                t1.precios_json,
+                precio_item->>'unidadescompra_id' as unidadescompra_id,
+                CAST(precio_item->>'precio' AS NUMERIC) as precio,
+                t2.codigo,
+                t2.presentacion,
+                t2.cantidad_numero
+            FROM articulo t1
+            CROSS JOIN LATERAL jsonb_array_elements(
+                COALESCE(t1.precios_json::jsonb, '[]'::jsonb)
+            ) AS precio_item
+            LEFT JOIN unidadescompra t2 
+                ON t2.id = CAST(precio_item->>'unidadescompra_id' AS INTEGER)
+            WHERE t1.id = :articulo_id
+            AND t1.sucursal_id = :sucursal_id
+            AND t1.deleted_at IS NULL
+            AND (t2.deleted_at IS NULL OR t2.id IS NULL)
+            ORDER BY t2.presentacion
+        ";
+        
+        error_log("SQL ejecutada: " . $sql);
+        
+        $stmt = $conectar->prepare($sql);
+        $stmt->bindParam(':articulo_id', $articulo_id, PDO::PARAM_INT);
+        $stmt->bindParam(':sucursal_id', $sucursal_id, PDO::PARAM_INT);
+        $stmt->execute();
+        
+        $precios = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        error_log("Resultados encontrados: " . count($precios));
+        error_log("Datos completos: " . json_encode($precios));
+        
+        // ✅ LIMPIAR BUFFER Y ENVIAR JSON LIMPIO
+        ob_clean();
+        header('Content-Type: application/json');
+        
+        $response = [
+            'estado' => true,
+            'datos' => $precios,
+            'total' => count($precios),
+            'mensaje' => count($precios) > 0 
+                ? 'Precios cargados correctamente' 
+                : 'No hay precios registrados para este artículo',
+            'debug' => [
+                'articulo_id' => $articulo_id,
+                'sucursal_id' => $sucursal_id,
+                'query_type' => 'DESDE_JSON'
+            ]
+        ];
+        
+        error_log("Respuesta JSON: " . json_encode($response));
+        
+        echo json_encode($response);
+        
+    } catch (Exception $e) {
+        error_log("❌ Error en obtenerPreciosArticulo: " . $e->getMessage());
+        error_log("Stack trace: " . $e->getTraceAsString());
+        
+        ob_clean();
+        header('Content-Type: application/json');
+        echo json_encode([
+            'estado' => false,
+            'mensaje' => 'Error al cargar precios: ' . $e->getMessage(),
+            'datos' => [],
+            'error_detalle' => $e->getMessage()
+        ]);
+    }
+}
+/**
+ * Guardar relaciones de artículo con presentaciones
+ * ✅ VERSIÓN CORREGIDA
+ */
+function guardarRelacionesArticuloPresentaciones($articulo_id, $precios_json, $sucursal_id) {
+    global $conectar;
+    
+    try {
+        error_log("=== GUARDAR RELACIONES (DEBUG) ===");
+        error_log("Artículo ID: " . $articulo_id);
+        error_log("Sucursal ID: " . $sucursal_id);
+        error_log("JSON recibido: " . $precios_json);
+        error_log("Tipo de JSON: " . gettype($precios_json));
+        
+        // ✅ PASO 1: ELIMINAR RELACIONES ANTERIORES
+        $sqlDelete = "DELETE FROM rel_articulounidadescompra 
+                     WHERE articulo_id = :articulo_id";
+        
+        $stmtDelete = $conectar->prepare($sqlDelete);
+        $stmtDelete->bindParam(':articulo_id', $articulo_id, PDO::PARAM_INT);
+        $stmtDelete->execute();
+        
+        $eliminados = $stmtDelete->rowCount();
+        error_log("✅ Relaciones eliminadas: " . $eliminados);
+        
+        // ✅ PASO 2: Si no hay precios, retornar
+        if (empty($precios_json) || $precios_json === 'null' || $precios_json === null) {
+            error_log("⚠️ No hay precios para guardar");
+            
+            // También limpiar el JSON en la tabla articulo
+            $sqlUpdateArticulo = "UPDATE articulo SET precios_json = NULL WHERE id = :articulo_id";
+            $stmtUpdate = $conectar->prepare($sqlUpdateArticulo);
+            $stmtUpdate->bindParam(':articulo_id', $articulo_id, PDO::PARAM_INT);
+            $stmtUpdate->execute();
+            
+            return true;
+        }
+        
+        // ✅ PASO 3: Decodificar JSON
+        $precios = json_decode($precios_json, true);
+        
+        error_log("JSON decodificado: " . print_r($precios, true));
+        error_log("Es array: " . (is_array($precios) ? 'SI' : 'NO'));
+        error_log("Cantidad de elementos: " . (is_array($precios) ? count($precios) : 0));
+        
+        if (!is_array($precios) || empty($precios)) {
+            error_log("⚠️ JSON no válido o vacío");
+            return true;
+        }
+        
+        error_log("📊 Cantidad de presentaciones a insertar: " . count($precios));
+        
+        // ✅ PASO 4: Insertar nuevas relaciones
+        $sqlInsert = "INSERT INTO rel_articulounidadescompra 
+                     (articulo_id, unidadescompra_id, created_at) 
+                     VALUES (:articulo_id, :unidadescompra_id, CURRENT_TIMESTAMP)";
+        
+        $stmtInsert = $conectar->prepare($sqlInsert);
+        $insertados = 0;
+        $errores = [];
+        
+        foreach ($precios as $index => $precio) {
+            error_log("--- Procesando presentación " . ($index + 1) . " ---");
+            error_log("Datos: " . json_encode($precio));
+            
+            if (!isset($precio['unidadescompra_id'])) {
+                error_log("  ⚠️ Falta unidadescompra_id");
+                $errores[] = "Falta unidadescompra_id en índice " . $index;
+                continue;
+            }
+            
+            $unidadescompra_id = intval($precio['unidadescompra_id']);
+            error_log("  unidadescompra_id: " . $unidadescompra_id);
+            
+            // ✅ VERIFICAR que la presentación existe y pertenece a la sucursal
+            $sqlCheck = "SELECT COUNT(*) as existe, presentacion 
+                        FROM unidadescompra 
+                        WHERE id = :unidadescompra_id 
+                        AND sucursal_id = :sucursal_id 
+                        AND deleted_at IS NULL";
+            
+            $stmtCheck = $conectar->prepare($sqlCheck);
+            $stmtCheck->bindParam(':unidadescompra_id', $unidadescompra_id, PDO::PARAM_INT);
+            $stmtCheck->bindParam(':sucursal_id', $sucursal_id, PDO::PARAM_INT);
+            $stmtCheck->execute();
+            
+            $checkResult = $stmtCheck->fetch(PDO::FETCH_ASSOC);
+            
+            if ($checkResult && $checkResult['existe'] > 0) {
+                error_log("  ✓ Presentación válida: " . ($checkResult['presentacion'] ?? 'N/A'));
+                
+                // ✅ INSERTAR
+                $stmtInsert->bindParam(':articulo_id', $articulo_id, PDO::PARAM_INT);
+                $stmtInsert->bindParam(':unidadescompra_id', $unidadescompra_id, PDO::PARAM_INT);
+                
+                if ($stmtInsert->execute()) {
+                    $insertados++;
+                    error_log("  ✓ Insertado correctamente (Total: $insertados)");
+                } else {
+                    $errorInfo = $stmtInsert->errorInfo();
+                    error_log("  ✗ Error al insertar: " . json_encode($errorInfo));
+                    $errores[] = "Error al insertar presentación " . $unidadescompra_id;
+                }
+            } else {
+                error_log("  ✗ Presentación NO válida o no pertenece a la sucursal");
+                $errores[] = "Presentación inválida: " . $unidadescompra_id;
+            }
+        }
+        
+        error_log("=== RESUMEN ===");
+        error_log("Total insertados: " . $insertados);
+        error_log("Total errores: " . count($errores));
+        if (!empty($errores)) {
+            error_log("Errores: " . json_encode($errores));
+        }
+        error_log("===============");
+        
+        // ✅ PASO 5: Actualizar el campo precios_json en la tabla articulo
+        $sqlUpdateArticulo = "UPDATE articulo SET precios_json = :precios_json WHERE id = :articulo_id";
+        $stmtUpdateArticulo = $conectar->prepare($sqlUpdateArticulo);
+        $stmtUpdateArticulo->bindParam(':precios_json', $precios_json, PDO::PARAM_STR);
+        $stmtUpdateArticulo->bindParam(':articulo_id', $articulo_id, PDO::PARAM_INT);
+        $stmtUpdateArticulo->execute();
+        
+        error_log("✅ Campo precios_json actualizado en tabla articulo");
+        
+        return true;
+    } catch (Exception $e) {
+        error_log("❌ ERROR en guardarRelacionesArticuloPresentaciones: " . $e->getMessage());
+        error_log("Stack trace: " . $e->getTraceAsString());
+        throw $e;
+    }
+}
+/**
+
+ * Función auxiliar para validar el JSON de precios
+ */
+function validarPreciosJson($precios_json) {
+    if (empty($precios_json) || $precios_json === 'null') {
+        return ['valido' => false, 'mensaje' => 'JSON vacío'];
+    }
+    
+    $precios = json_decode($precios_json, true);
+    
+    if (json_last_error() !== JSON_ERROR_NONE) {
+        return ['valido' => false, 'mensaje' => 'Error al decodificar JSON: ' . json_last_error_msg()];
+    }
+    
+    if (!is_array($precios)) {
+        return ['valido' => false, 'mensaje' => 'El JSON no contiene un array'];
+    }
+    
+    foreach ($precios as $index => $precio) {
+        if (!isset($precio['unidadescompra_id'])) {
+            return ['valido' => false, 'mensaje' => 'Falta unidadescompra_id en índice ' . $index];
+        }
+        if (!isset($precio['precio'])) {
+            return ['valido' => false, 'mensaje' => 'Falta precio en índice ' . $index];
+        }
+    }
+    
+    return ['valido' => true, 'mensaje' => 'JSON válido', 'datos' => $precios];
 }
 
 function toggle_estado_articulo_completo($id, $accion)
@@ -1408,30 +1775,91 @@ function fnInsertProveedorAlMomentCompra($jsDatos)
     }
 }
 
-function fnUpdateEmisor($jsDatos)
-{
-
+function fnUpdateEmisor($jsDatos) {
     global $conectar;
 
     try {
         $conectar->beginTransaction();
 
         $data = json_decode($jsDatos, true);
-        $sql = "
-        UPDATE emisor SET 
-        ruc = :ruc,
-        razon_social = :razon_social,
-        nombre_comercial = :nombre_comercial,
-        departamento = :departamento,
-        provincia = :provincia,
-        distrito = :distrito,
-        direccion = :direccion,
-        ubigeo = :ubigeo,
-        usuario_sol = :usuario_sol,
-        clave_sol = :clave_sol
-        ";
+        
+        // ✅ VALIDAR SUCURSAL_ID
+        if (!isset($data['sucursal_id']) || empty($data['sucursal_id'])) {
+            echo json_encode([
+                'estado' => false, 
+                'mensaje' => 'Error: sucursal_id no proporcionado'
+            ]);
+            return;
+        }
+        
+        $sucursal_id = $data['sucursal_id'];
+        
+        error_log("=== ACTUALIZAR EMISOR ===");
+        error_log("Sucursal ID: " . $sucursal_id);
+        error_log("Datos: " . json_encode($data));
+        
+        // ✅ VERIFICAR SI YA EXISTE UN EMISOR PARA ESTA SUCURSAL
+        $sqlCheck = "SELECT COUNT(*) as total FROM emisor WHERE sucursal_id = :sucursal_id";
+        $stmtCheck = $conectar->prepare($sqlCheck);
+        $stmtCheck->bindParam(':sucursal_id', $sucursal_id, PDO::PARAM_INT);
+        $stmtCheck->execute();
+        $existe = $stmtCheck->fetch(PDO::FETCH_ASSOC);
+        
+        if ($existe['total'] > 0) {
+            // ✅ ACTUALIZAR EMISOR EXISTENTE
+            $sql = "
+                UPDATE emisor SET 
+                    ruc = :ruc,
+                    razon_social = :razon_social,
+                    nombre_comercial = :nombre_comercial,
+                    departamento = :departamento,
+                    provincia = :provincia,
+                    distrito = :distrito,
+                    direccion = :direccion,
+                    ubigeo = :ubigeo,
+                    usuario_sol = :usuario_sol,
+                    clave_sol = :clave_sol
+                WHERE sucursal_id = :sucursal_id
+            ";
+            
+            error_log("✏️ Actualizando emisor existente");
+        } else {
+            // ✅ INSERTAR NUEVO EMISOR
+            $sql = "
+                INSERT INTO emisor (
+                    sucursal_id,
+                    ruc,
+                    razon_social,
+                    nombre_comercial,
+                    departamento,
+                    provincia,
+                    distrito,
+                    direccion,
+                    ubigeo,
+                    usuario_sol,
+                    clave_sol
+                ) VALUES (
+                    :sucursal_id,
+                    :ruc,
+                    :razon_social,
+                    :nombre_comercial,
+                    :departamento,
+                    :provincia,
+                    :distrito,
+                    :direccion,
+                    :ubigeo,
+                    :usuario_sol,
+                    :clave_sol
+                )
+            ";
+            
+            error_log("➕ Creando nuevo emisor");
+        }
 
         $stmt = $conectar->prepare($sql);
+        
+        // ✅ BIND DE TODOS LOS PARÁMETROS
+        $stmt->bindParam(':sucursal_id', $sucursal_id, PDO::PARAM_INT);
         $stmt->bindParam(':ruc', $data["ruc"]);
         $stmt->bindParam(':razon_social', $data["razon_social"]);
         $stmt->bindParam(':nombre_comercial', $data["nombre_comercial"]);
@@ -1446,11 +1874,25 @@ function fnUpdateEmisor($jsDatos)
         $stmt->execute();
 
         $conectar->commit();
+        
+        error_log("✅ Emisor guardado correctamente");
 
-        echo json_encode(['estado' => true, 'mensaje' => 'Emisor actualizado correctamente']);
+        echo json_encode([
+            'estado' => true, 
+            'mensaje' => 'Emisor actualizado correctamente para la sucursal #' . $sucursal_id
+        ]);
+        
     } catch (Exception $e) {
-        $conectar->rollBack();
+        if ($conectar->inTransaction()) {
+            $conectar->rollBack();
+        }
+        
+        error_log("❌ Error en fnUpdateEmisor: " . $e->getMessage());
+        error_log("Stack trace: " . $e->getTraceAsString());
 
-        echo json_encode(['estado' => false, 'mensaje' => 'Error al procesar la solicitud. Detalles: ' . $e->getMessage()]);
+        echo json_encode([
+            'estado' => false, 
+            'mensaje' => 'Error al actualizar emisor: ' . $e->getMessage()
+        ]);
     }
 }

@@ -1,6 +1,10 @@
 <?php
 include("cabecera.php");
 $sucursal_id = isset($_SESSION['sucursal_id']) ? $_SESSION['sucursal_id'] : null;
+if (!$sucursal_id) {
+    echo '<div class="alert alert-danger">Error: No se ha establecido una sucursal activa.</div>';
+    exit;
+}
 ?>
 
 <div
@@ -51,7 +55,7 @@ $sucursal_id = isset($_SESSION['sucursal_id']) ? $_SESSION['sucursal_id'] : null
                                         </thead>
                                         <tbody>
                                             <?php
-                                            foreach (fnListadoCompras() as $datos) {
+                                            foreach (fnListadoCompras($sucursal_id) as $datos) {
                                                 $datosJSON = json_encode($datos);
                                             ?>
                                                 <tr>
@@ -62,20 +66,16 @@ $sucursal_id = isset($_SESSION['sucursal_id']) ? $_SESSION['sucursal_id'] : null
                                                     <td><?php echo $datos["total"] ?></td>
                                                     <td><?php echo $datos["fecha_registro"] ?></td>
                                                     <td><?php echo $datos["hora"] ?></td>
-
                                                     <td>
                                                         <div class="mt-2 text-center">
-                                                            <a
-                                                                onclick='abrirDetalle(<?php echo $datosJSON ?>)'
-                                                                class="btn btn-secondary btn-round btn-sm"
-                                                                role="button">
+                                                            <a onclick='abrirDetalle(<?php echo $datosJSON ?>)'
+                                                            class="btn btn-secondary btn-round btn-sm"
+                                                            role="button">
                                                                 <i class="fas fa-external-link-square-alt"></i>
                                                             </a>
-
                                                         </div>
                                                     </td>
                                                 </tr>
-
                                             <?php
                                             }
                                             ?>
@@ -970,6 +970,8 @@ $sucursal_id = isset($_SESSION['sucursal_id']) ? $_SESSION['sucursal_id'] : null
 </script>
 
 <script>
+    const SUCURSAL_ID = <?php echo json_encode($sucursal_id); ?>;
+    console.log("🏢 Sucursal ID activa:", SUCURSAL_ID);
     var variable_global_js_articulo;
     var listaArticulosCantidades = [];
     $(document).ready(function() {
@@ -1570,7 +1572,8 @@ $sucursal_id = isset($_SESSION['sucursal_id']) ? $_SESSION['sucursal_id'] : null
 
     //////////////////
     function fnRegistrarProveedor() {
-        if ((document.getElementById("idNombreComercialProveedor").value).length <= 0 || document.getElementById("idNombreComercialProveedor").value === "") {
+        if ((document.getElementById("idNombreComercialProveedor").value).length <= 0 || 
+            document.getElementById("idNombreComercialProveedor").value === "") {
             swal("Upps", "Debes de ingresar el nombre comercial del proveedor 😥", {
                 icon: "error",
                 buttons: {
@@ -1579,8 +1582,8 @@ $sucursal_id = isset($_SESSION['sucursal_id']) ? $_SESSION['sucursal_id'] : null
                     },
                 },
             });
-
-        } else if ((document.getElementById("idRucProveedor").value).length <= 0 || document.getElementById("idNombreComercialProveedor").value === "") {
+        } else if ((document.getElementById("idRucProveedor").value).length <= 0 || 
+                   document.getElementById("idNombreComercialProveedor").value === "") {
             swal("Upps", "Debes de ingresar el RUC del Proveedor 😥", {
                 icon: "error",
                 buttons: {
@@ -1591,16 +1594,22 @@ $sucursal_id = isset($_SESSION['sucursal_id']) ? $_SESSION['sucursal_id'] : null
             });
         } else {
             var jsDatosProveedor = {
+                "sucursal_id": SUCURSAL_ID, // ✅ AGREGAR ESTE CAMPO
                 "nombre_comercial": document.getElementById("idNombreComercialProveedor").value,
                 "razon_social": document.getElementById("idRazonSocialProveedor").value,
                 "numero_documento": document.getElementById("idRucProveedor").value,
-                "telefonofijo": document.getElementById("idNumTelefonoFijoProveedor").value === "" ? null : document.getElementById("idNumTelefonoFijoProveedor").value,
-                "telefonomovil": document.getElementById("idNumCelularProveedor").value === "" ? null : document.getElementById("idNumCelularProveedor").value,
-                "email": document.getElementById("idCorreoProveedor").value === "" ? null : document.getElementById("idCorreoProveedor").value,
+                "telefonofijo": document.getElementById("idNumTelefonoFijoProveedor").value === "" ? 
+                    null : document.getElementById("idNumTelefonoFijoProveedor").value,
+                "telefonomovil": document.getElementById("idNumCelularProveedor").value === "" ? 
+                    null : document.getElementById("idNumCelularProveedor").value,
+                "email": document.getElementById("idCorreoProveedor").value === "" ? 
+                    null : document.getElementById("idCorreoProveedor").value,
                 "tipo_persona": "JURIDICA",
                 "condicion": "PROVEEDOR"
-            }
-            console.log(jsDatosProveedor);
+            };
+            
+            console.log("📤 Datos de proveedor:", jsDatosProveedor);
+            
             $.ajax({
                 url: 'logica/clssInsertPA.php',
                 type: 'POST',
@@ -1608,26 +1617,33 @@ $sucursal_id = isset($_SESSION['sucursal_id']) ? $_SESSION['sucursal_id'] : null
                     accion: 'INSERTPROVEEDORALMOMENTODECOMPRA',
                     jsDatosProveedor: JSON.stringify(jsDatosProveedor)
                 },
+                beforeSend: function() {
+                    swal({
+                        title: "Guardando...",
+                        text: "Registrando proveedor",
+                        icon: "info",
+                        buttons: false,
+                        closeOnClickOutside: false
+                    });
+                },
                 success: function(response) {
-
-                    console.log("Respuesta del servidor: ", response);
+                    console.log("📥 Respuesta del servidor:", response);
 
                     try {
                         var result = JSON.parse(response);
-                        document.getElementById("proveedor").value = result.proveedor;
-                        document.getElementById("proveedor_id").value = result.ultimo_id_proveedor;
                         if (result.estado === true) {
+                            document.getElementById("proveedor").value = result.proveedor;
+                            document.getElementById("proveedor_id").value = result.ultimo_id_proveedor;
+                            
                             swal({
-                                title: "Proveedor Registado con Exito!",
+                                title: "¡Proveedor Registrado!",
                                 text: result.mensaje,
                                 icon: "success",
                                 buttons: false,
                                 timer: 1500
                             }).then(() => {
-                                //
-
                                 $('#idModalRegistrarProveedor').modal('hide');
-                            });;
+                            });
                         } else {
                             swal("Error", result.mensaje, {
                                 icon: "error",
@@ -1639,7 +1655,7 @@ $sucursal_id = isset($_SESSION['sucursal_id']) ? $_SESSION['sucursal_id'] : null
                             });
                         }
                     } catch (e) {
-                        console.log("Error al parsear el JSON: ", e);
+                        console.error("❌ Error al parsear JSON:", e);
                         swal("Error", "No se pudo procesar la respuesta del servidor.", {
                             icon: "error",
                             buttons: {
@@ -1651,7 +1667,7 @@ $sucursal_id = isset($_SESSION['sucursal_id']) ? $_SESSION['sucursal_id'] : null
                     }
                 },
                 error: function(xhr, status, error) {
-                    console.log("Error: " + error);
+                    console.error("❌ Error:", error);
                     swal("Error", "Hubo un problema con la solicitud.", {
                         icon: "error",
                         buttons: {
@@ -1662,32 +1678,25 @@ $sucursal_id = isset($_SESSION['sucursal_id']) ? $_SESSION['sucursal_id'] : null
                     });
                 }
             });
-
         }
-
     }
     //////////////
-    function fn_registrar_articulo() {
-
+function fn_registrar_articulo() {
         if ((document.getElementById("idRegistroNombreArticulo").value).length > 0) {
-
             let categoriaSelect = document.getElementById("idRegistoCategoria");
             let categoria = categoriaSelect.selectedIndex === 0 ? null : categoriaSelect.value;
-            //////////////////////////////
+            
             let tipoSelect = document.getElementById("idRegistoTipo");
             let tipo = tipoSelect.selectedIndex === 0 ? null : tipoSelect.value;
-            /////////////////////////////
+            
             let dimensionSelect = document.getElementById("idRegistroDimension");
             let dimension = dimensionSelect.selectedIndex === 0 ? null : dimensionSelect.value;
 
-            /////////////
             let escalaSelect = document.getElementById("idRegistroEscala");
             let escala = escalaSelect.selectedIndex === 0 ? null : escalaSelect.value;
 
-            /////////////////////////////////////////
             let radios = document.getElementsByName("flexRadioDefault");
             let selectedValue = "";
-
             for (let i = 0; i < radios.length; i++) {
                 if (radios[i].checked) {
                     selectedValue = radios[i].value;
@@ -1697,12 +1706,13 @@ $sucursal_id = isset($_SESSION['sucursal_id']) ? $_SESSION['sucursal_id'] : null
             let corte = selectedValue === "Si" ? true : false;
 
             let colorEscrito = document.getElementById("idRegistroColor").value;
-            let color = (colorEscrito).length > 0 ? colorEscrito : null
-            ///////
+            let color = (colorEscrito).length > 0 ? colorEscrito : null;
+            
             let marcaEscrita = document.getElementById("idRegistroMarca").value;
-            let marca = (marcaEscrita).length > 0 ? marcaEscrita : null
+            let marca = (marcaEscrita).length > 0 ? marcaEscrita : null;
 
             var jsArticulo = {
+                "sucursal_id": SUCURSAL_ID, // ✅ AGREGAR ESTE CAMPO
                 "nombre": document.getElementById("idRegistroNombreArticulo").value,
                 "categoria_id": categoria,
                 "tipo_id": tipo,
@@ -1712,7 +1722,8 @@ $sucursal_id = isset($_SESSION['sucursal_id']) ? $_SESSION['sucursal_id'] : null
                 "color": color,
                 "marca": document.getElementById("idRegistroMarca").value
             };
-            console.log(jsArticulo);
+            
+            console.log("📤 Datos de artículo:", jsArticulo);
 
             $.ajax({
                 url: 'logica/clssInsertPA.php',
@@ -1721,36 +1732,43 @@ $sucursal_id = isset($_SESSION['sucursal_id']) ? $_SESSION['sucursal_id'] : null
                     accion: 'REGISTAR_ARTICULO',
                     jsDatosArticulo: JSON.stringify(jsArticulo)
                 },
+                beforeSend: function() {
+                    swal({
+                        title: "Guardando...",
+                        text: "Registrando artículo",
+                        icon: "info",
+                        buttons: false,
+                        closeOnClickOutside: false
+                    });
+                },
                 success: function(response) {
-                    console.log("Respuesta del servidor PA articulo: ", response);
+                    console.log("📥 Respuesta del servidor:", response);
+                    
                     try {
                         var result = JSON.parse(response);
                         if (result.estado === true) {
                             swal({
-                                title: "Registrado con Exito!",
+                                title: "¡Registrado con Éxito!",
                                 text: result.mensaje,
                                 icon: "success",
                                 buttons: false,
                                 timer: 1500
                             }).then(() => {
-                                //location.reload();
-                                //articulo_formato
-                                //idBuscarArticulos
                                 variable_global_js_articulo = null;
                                 $('#idBuscarArticulos').val(result.articulo_formato);
                                 $('#idArticuloEncontrado').val(result.ultimo_id);
+                                
+                                // Limpiar formulario
                                 document.getElementById("idRegistoCategoria").selectedIndex = 0;
                                 document.getElementById("idRegistoTipo").selectedIndex = 0;
                                 document.getElementById("idRegistroDimension").selectedIndex = 0;
-                                document.getElementById("idRegistroEscala").selectedIndex = 0;
                                 document.getElementById("idRegistroEscala").selectedIndex = 0;
                                 document.getElementById("idRegistroColor").value = "";
                                 document.getElementById("idRegistroMarca").value = "";
                                 document.getElementById("idRegistroNombreArticulo").value = "";
 
                                 $('#modalRegistroArticulos').modal('hide');
-
-                            });;
+                            });
                         } else {
                             swal("Error", result.mensaje, {
                                 icon: "error",
@@ -1762,7 +1780,7 @@ $sucursal_id = isset($_SESSION['sucursal_id']) ? $_SESSION['sucursal_id'] : null
                             });
                         }
                     } catch (e) {
-                        console.log("Error al parsear el JSON: ", e);
+                        console.error("❌ Error al parsear JSON:", e);
                         swal("Error", "No se pudo procesar la respuesta del servidor.", {
                             icon: "error",
                             buttons: {
@@ -1774,7 +1792,7 @@ $sucursal_id = isset($_SESSION['sucursal_id']) ? $_SESSION['sucursal_id'] : null
                     }
                 },
                 error: function(xhr, status, error) {
-                    console.log("Error: " + error);
+                    console.error("❌ Error:", error);
                     swal("Error", "Hubo un problema con la solicitud.", {
                         icon: "error",
                         buttons: {
@@ -1785,10 +1803,8 @@ $sucursal_id = isset($_SESSION['sucursal_id']) ? $_SESSION['sucursal_id'] : null
                     });
                 }
             });
-
-
         } else {
-            swal("Ups!, Debes de ingresar el nombre del Articulo 😩", {
+            swal("Ups!, Debes de ingresar el nombre del Artículo 😩", {
                 icon: "error",
                 buttons: {
                     confirm: {
@@ -1797,13 +1813,12 @@ $sucursal_id = isset($_SESSION['sucursal_id']) ? $_SESSION['sucursal_id'] : null
                 },
             });
         }
-
     }
 </script>
 <script>
     function fn_registrar_compra() {
-
         var json_compra = {
+            sucursal_id: SUCURSAL_ID, // ✅ AGREGAR ESTE CAMPO
             usuario_id: parseInt(document.getElementById("idUsuarioCompra").innerText),
             proveedor_id: parseInt(document.getElementById("proveedor_id").value),
             fecha: document.getElementById("idFechaCompra").value,
@@ -1811,9 +1826,12 @@ $sucursal_id = isset($_SESSION['sucursal_id']) ? $_SESSION['sucursal_id'] : null
             total: parseFloat(document.getElementById("idCompraTotalDeCompra").value),
             js_detalle_compra: listaArticulosCantidades,
         };
-        console.log(json_compra);
-        console.log(listaArticulosCantidades);
-        if (document.getElementById("idFechaCompra").value === "" || (document.getElementById("idFechaCompra").value).length === 0) {
+        
+        console.log("📤 Datos de compra a enviar:", json_compra);
+        console.log("📋 Detalle de compra:", listaArticulosCantidades);
+        
+        if (document.getElementById("idFechaCompra").value === "" || 
+            (document.getElementById("idFechaCompra").value).length === 0) {
             swal("Ups!", "Necesitas ingresar la fecha de compra para realizar el registro.", {
                 icon: "error",
                 buttons: {
@@ -1830,22 +1848,31 @@ $sucursal_id = isset($_SESSION['sucursal_id']) ? $_SESSION['sucursal_id'] : null
                     accion: 'REGISTRAR_COMPRA',
                     jsDatosCompra: JSON.stringify(json_compra)
                 },
+                beforeSend: function() {
+                    swal({
+                        title: "Guardando...",
+                        text: "Registrando compra, por favor espere",
+                        icon: "info",
+                        buttons: false,
+                        closeOnClickOutside: false,
+                        closeOnEsc: false
+                    });
+                },
                 success: function(response) {
-
-                    console.log("Respuesta del servidor: ", response);
+                    console.log("📥 Respuesta del servidor:", response);
 
                     try {
                         var result = JSON.parse(response);
                         if (result.estado === true) {
                             swal({
-                                title: "Compra Registrada con Exito!",
-                                text: "Compra registrada juntos con los articulos",
+                                title: "¡Compra Registrada!",
+                                text: "Compra registrada junto con los artículos",
                                 icon: "success",
                                 buttons: false,
                                 timer: 1500
                             }).then(() => {
                                 location.reload();
-                            });;
+                            });
                         } else {
                             swal("Error", result.mensaje, {
                                 icon: "error",
@@ -1857,7 +1884,8 @@ $sucursal_id = isset($_SESSION['sucursal_id']) ? $_SESSION['sucursal_id'] : null
                             });
                         }
                     } catch (e) {
-                        console.log("Error al parsear el JSON: ", e);
+                        console.error("❌ Error al parsear JSON:", e);
+                        console.error("Respuesta recibida:", response);
                         swal("Error", "No se pudo procesar la respuesta del servidor.", {
                             icon: "error",
                             buttons: {
@@ -1869,8 +1897,9 @@ $sucursal_id = isset($_SESSION['sucursal_id']) ? $_SESSION['sucursal_id'] : null
                     }
                 },
                 error: function(xhr, status, error) {
-                    console.log("Error: " + error);
-                    swal("Error", "Hubo un problema con la solicitud.", {
+                    console.error("❌ Error AJAX:", error);
+                    console.error("Response:", xhr.responseText);
+                    swal("Error", "Hubo un problema con la solicitud: " + error, {
                         icon: "error",
                         buttons: {
                             confirm: {
@@ -1881,9 +1910,6 @@ $sucursal_id = isset($_SESSION['sucursal_id']) ? $_SESSION['sucursal_id'] : null
                 }
             });
         }
-
-
-
     }
 </script>
 

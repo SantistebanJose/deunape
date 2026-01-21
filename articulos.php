@@ -391,7 +391,9 @@ function generarFormularioArticulo(isEdit, datosArticulo) {
     html += isEdit ? 'Modifica los datos del artículo' : 'Aquí podrás <strong>registrar</strong> los Artículos <strong>NUEVOS.</strong>';
     html += '</div>';
     
+    // ============================================
     // TABS PRINCIPALES
+    // ============================================
     html += '<ul class="nav nav-tabs nav-tabs-custom mb-3" role="tablist">';
     html += '<li class="nav-item" role="presentation">';
     html += '<button class="nav-link active" id="datos-tab" data-bs-toggle="tab" data-bs-target="#datos-panel" type="button" role="tab">';
@@ -418,11 +420,13 @@ function generarFormularioArticulo(isEdit, datosArticulo) {
     html += '<div class="tab-pane fade show active" id="datos-panel" role="tabpanel">';
     html += '<div class="row g-3">';
     
+    // Nombre del artículo
     html += '<div class="col-md-12">';
     html += '<label class="form-label"><strong>Nombre de Artículo</strong> <span class="text-danger">*</span></label>';
     html += '<input type="text" class="form-control" id="idRegistroNombreArticulo" placeholder="Ej: Blusas Dama Manga Corta" />';
     html += '</div>';
     
+    // Categoría
     html += '<div class="col-md-4">';
     html += '<label class="form-label"><strong>Categoría</strong></label>';
     html += '<select class="form-select form-select-sm" id="idRegistoCategoria">';
@@ -433,6 +437,7 @@ function generarFormularioArticulo(isEdit, datosArticulo) {
     html += '</select>';
     html += '</div>';
     
+    // Tipo de artículo
     html += '<div class="col-md-4">';
     html += '<label class="form-label"><strong>Tipo de Artículo</strong></label>';
     html += '<select class="form-select form-select-sm" id="idRegistoTipo">';
@@ -443,6 +448,7 @@ function generarFormularioArticulo(isEdit, datosArticulo) {
     html += '</select>';
     html += '</div>';
     
+    // Dimensión
     html += '<div class="col-md-4">';
     html += '<label class="form-label"><strong>Dimensión</strong></label>';
     html += '<select class="form-select form-select-sm" id="idRegistroDimension">';
@@ -453,7 +459,7 @@ function generarFormularioArticulo(isEdit, datosArticulo) {
     html += '</select>';
     html += '</div>';
     
-    // CAMPO DE IMPUESTO SUNAT - NUEVO
+    // Impuesto SUNAT
     html += '<div class="col-md-4">';
     html += '<label class="form-label"><strong>Impuesto SUNAT</strong> <span class="text-danger">*</span></label>';
     html += '<select class="form-select form-select-sm" id="idRegistroImpuesto">';
@@ -467,6 +473,7 @@ function generarFormularioArticulo(isEdit, datosArticulo) {
     html += '</div>';
     html += '</div>';
     
+    // Escala
     html += '<div class="col-md-4">';
     html += '<label class="form-label"><strong>Escala</strong></label>';
     html += '<select class="form-select form-select-sm" id="idRegistroEscala">';
@@ -477,21 +484,25 @@ function generarFormularioArticulo(isEdit, datosArticulo) {
     html += '</select>';
     html += '</div>';
     
+    // Marca
     html += '<div class="col-md-4">';
     html += '<label class="form-label"><strong>Marca</strong></label>';
     html += '<input type="text" class="form-control" id="idRegistroMarca" placeholder="Ej: Artesco" />';
     html += '</div>';
     
+    // Color
     html += '<div class="col-md-3">';
     html += '<label class="form-label"><strong>Color</strong></label>';
     html += '<input type="text" class="form-control" id="idRegistroColor" placeholder="Rojo, verde, azul..." />';
     html += '</div>';
     
+    // Stock
     html += '<div class="col-md-3">';
     html += '<label class="form-label"><strong>Stock</strong></label>';
     html += '<input type="number" class="form-control" id="idRegistrarStock" placeholder="0" value="0" />';
     html += '</div>';
     
+    // Precio Compra
     html += '<div class="col-md-4">';
     html += '<label class="form-label"><strong>Precio Compra</strong></label>';
     html += '<div class="input-group">';
@@ -500,6 +511,7 @@ function generarFormularioArticulo(isEdit, datosArticulo) {
     html += '</div>';
     html += '</div>';
     
+    // Precio Venta Base
     html += '<div class="col-md-4">';
     html += '<label class="form-label"><strong>Precio Venta (Base)</strong></label>';
     html += '<div class="input-group">';
@@ -509,6 +521,7 @@ function generarFormularioArticulo(isEdit, datosArticulo) {
     html += '<small class="form-text text-muted">Este es el precio base unitario</small>';
     html += '</div>';
     
+    // Requiere Corte
     html += '<div class="col-md-4">';
     html += '<label class="form-label"><strong>Requiere Corte</strong></label>';
     html += '<div class="d-flex gap-3 mt-2">';
@@ -523,15 +536,16 @@ function generarFormularioArticulo(isEdit, datosArticulo) {
     html += '</div>';
     html += '</div>';
     
-    html += '</div>';
-    html += '</div>';
+    html += '</div>'; // Fin row datos
+    html += '</div>'; // Fin tab datos-panel
     
     // ============================================
-    // TAB 2: PRECIOS POR PRESENTACIÓN
+    // TAB 2: PRECIOS POR PRESENTACIÓN (MEJORADO)
     // ============================================
     html += '<div class="tab-pane fade" id="precios-panel" role="tabpanel">';
     html += '<div class="alert alert-info">';
-    html += '<i class="fas fa-info-circle"></i> <strong>Precios por Presentación:</strong> Define diferentes precios según la cantidad (Ej: DOCENA, MEDIA DC, POR MAYOR)';
+    html += '<i class="fas fa-info-circle"></i> <strong>Precios por Presentación:</strong> ';
+    html += 'Selecciona las presentaciones disponibles y define sus precios (Ej: DOCENA, MEDIA DC, POR MAYOR)';
     html += '</div>';
     
     // Formulario para agregar presentación
@@ -542,77 +556,91 @@ function generarFormularioArticulo(isEdit, datosArticulo) {
     html += '<div class="card-body">';
     html += '<div class="row g-2">';
     
-    html += '<div class="col-md-3">';
+    // Selector de Presentación
+    html += '<div class="col-md-4">';
     html += '<label class="form-label"><strong>Presentación *</strong></label>';
-    html += '<input type="text" class="form-control" id="inputNuevaPresentacion" placeholder="Ej: DOCENA, MEDIA DC" />';
-    html += '<small class="text-muted">Nombre descriptivo</small>';
+    html += '<select class="form-select" id="selectPresentacion">';
+    html += '<option value="">Cargando presentaciones...</option>';
+    html += '</select>';
+    html += '<small class="text-muted">Selecciona de las presentaciones registradas</small>';
     html += '</div>';
     
+    // Código (auto-llenado)
     html += '<div class="col-md-2">';
     html += '<label class="form-label"><strong>Código</strong></label>';
-    html += '<input type="text" class="form-control" id="inputNuevoCodigo" placeholder="Ej: DC" />';
-    html += '<small class="text-muted">Opcional</small>';
+    html += '<input type="text" class="form-control" id="inputNuevoCodigo" readonly ';
+    html += 'placeholder="Auto" style="background-color: #f8f9fa;" />';
+    html += '<small class="text-muted">Automático</small>';
     html += '</div>';
     
+    // Cantidad (auto-llenado)
     html += '<div class="col-md-2">';
-    html += '<label class="form-label"><strong>Cantidad *</strong></label>';
-    html += '<input type="number" step="0.01" class="form-control" id="inputNuevaCantidad" placeholder="1.00" value="1.00" min="0.01" />';
+    html += '<label class="form-label"><strong>Cantidad</strong></label>';
+    html += '<input type="number" step="0.01" class="form-control" id="inputNuevaCantidad" ';
+    html += 'readonly placeholder="Auto" value="1.00" min="0.01" ';
+    html += 'style="background-color: #f8f9fa;" />';
     html += '<small class="text-muted">Unidades</small>';
     html += '</div>';
     
-    html += '<div class="col-md-3">';
+    // Precio
+    html += '<div class="col-md-2">';
     html += '<label class="form-label"><strong>Precio *</strong></label>';
     html += '<div class="input-group">';
     html += '<span class="input-group-text">S/.</span>';
-    html += '<input type="number" step="0.01" class="form-control" id="inputNuevoPrecio" placeholder="0.00" value="0.00" min="0" />';
+    html += '<input type="number" step="0.01" class="form-control" id="inputNuevoPrecio" ';
+    html += 'placeholder="0.00" value="0.00" min="0" />';
     html += '</div>';
     html += '</div>';
     
+    // Botón Agregar
     html += '<div class="col-md-2 d-flex align-items-end">';
     html += '<button type="button" class="btn btn-success w-100" id="btnAgregarPresentacion">';
     html += '<i class="fas fa-plus"></i> Agregar';
     html += '</button>';
     html += '</div>';
     
-    html += '</div>';
-    html += '</div>';
-    html += '</div>';
+    html += '</div>'; // Cierra row
+    html += '</div>'; // Cierra card-body
+    html += '</div>'; // Cierra card formulario
     
-    // Tabla de presentaciones
+    // Tabla de presentaciones agregadas
     html += '<div class="card">';
     html += '<div class="card-header bg-success text-white">';
     html += '<h6 class="mb-0"><i class="fas fa-list"></i> Presentaciones Registradas</h6>';
     html += '</div>';
     html += '<div class="card-body p-0">';
     
+    // Mensaje cuando no hay presentaciones
     html += '<div id="noPreciosMsg" class="text-center py-4">';
     html += '<i class="fas fa-tags fa-3x text-muted mb-2"></i>';
     html += '<p class="text-muted">No hay presentaciones de precios agregadas aún</p>';
     html += '</div>';
     
+    // Tabla
     html += '<div class="table-responsive">';
     html += '<table class="table table-hover mb-0">';
     html += '<thead class="table-light">';
     html += '<tr>';
-    html += '<th style="width: 30%;">Presentación</th>';
+    html += '<th style="width: 35%;">Presentación</th>';
     html += '<th style="width: 15%;">Código</th>';
-    html += '<th style="width: 15%;">Cantidad</th>';
-    html += '<th style="width: 25%;">Precio</th>';
-    html += '<th style="width: 15%;" class="text-center">Acciones</th>';
+    html += '<th style="width: 20%;">Cantidad</th>';
+    html += '<th style="width: 20%;">Precio</th>';
+    html += '<th style="width: 10%;" class="text-center">Acciones</th>';
     html += '</tr>';
     html += '</thead>';
     html += '<tbody id="tablaPresentacionesBody">';
+    html += '<!-- Se llenará dinámicamente con JavaScript -->';
     html += '</tbody>';
     html += '</table>';
     html += '</div>';
     
-    html += '</div>';
-    html += '</div>';
+    html += '</div>'; // Cierra card-body
+    html += '</div>'; // Cierra card tabla
     
-    html += '</div>';
+    html += '</div>'; // Fin tab precios-panel
     
     // ============================================
-    // TAB 3: IMÁGENES (Mantener el código original)
+    // TAB 3: IMÁGENES
     // ============================================
     html += '<div class="tab-pane fade" id="imagenes-panel" role="tabpanel">';
     
@@ -631,6 +659,7 @@ function generarFormularioArticulo(isEdit, datosArticulo) {
     
     html += '<div class="tab-content">';
     
+    // Sub-tab URL Web
     html += '<div class="tab-pane fade show active" id="url-panel" role="tabpanel">';
     html += '<label class="form-label"><strong>URL de Imagen Web</strong></label>';
     html += '<div class="input-group mb-2">';
@@ -643,6 +672,7 @@ function generarFormularioArticulo(isEdit, datosArticulo) {
     html += '<small class="form-text text-muted">Ingrese la URL completa de una imagen en internet</small>';
     html += '</div>';
     
+    // Sub-tab Google Drive
     html += '<div class="tab-pane fade" id="drive-panel" role="tabpanel">';
     html += '<label class="form-label"><strong>Enlace de Google Drive</strong></label>';
     html += '<div class="input-group mb-2">';
@@ -657,10 +687,11 @@ function generarFormularioArticulo(isEdit, datosArticulo) {
     html += '</small>';
     html += '</div>';
     
-    html += '</div>';
+    html += '</div>'; // Fin sub-tabs content
     
     html += '<hr>';
     
+    // Lista de imágenes
     html += '<div class="mb-3">';
     html += '<label class="form-label"><strong>Imágenes Agregadas</strong></label>';
     html += '<div class="images-section" id="listaImagenes">';
@@ -671,11 +702,13 @@ function generarFormularioArticulo(isEdit, datosArticulo) {
     html += '</div>';
     html += '</div>';
     
-    html += '</div>';
+    html += '</div>'; // Fin tab imagenes-panel
     
-    html += '</div>'; // Fin tab-content
+    html += '</div>'; // Fin tab-content principal
     
-    // Botones finales
+    // ============================================
+    // BOTONES FINALES
+    // ============================================
     html += '<div class="row mt-4">';
     html += '<div class="col-12 text-center">';
     html += '<button id="' + (isEdit ? 'btnEditarArticulo' : 'btnRegistrarArticulo') + '" class="btn btn-success btn-lg btn-round">';
@@ -684,12 +717,12 @@ function generarFormularioArticulo(isEdit, datosArticulo) {
     html += '</div>';
     html += '</div>';
     
-    html += '</div>';
-    html += '</div>';
+    html += '</div>'; // Cierra card-body
+    html += '</div>'; // Cierra card
     
     return html;
-}
 
+}
     // ============================================
     // FUNCIÓN PARA MOSTRAR INFO DEL IMPUESTO
     // ============================================
@@ -1018,6 +1051,9 @@ function generarFormularioArticulo(isEdit, datosArticulo) {
             configurarEventosImagenes();
             configurarEventoImpuesto(); // Configurar evento del select de impuesto
             renderizarListaImagenes();
+            
+            configurarEventosPrecios(); // <-- VERIFICAR QUE ESTA LÍNEA EXISTA
+
 
             document.getElementById("btnRegistrarArticulo").addEventListener("click", function() {
                 var nombreArticulo = document.getElementById("idRegistroNombreArticulo");
@@ -1147,21 +1183,15 @@ function generarFormularioArticulo(isEdit, datosArticulo) {
     function fn_editar_articulo(datosArticulo) {
         console.log("=== DATOS RECIBIDOS PARA EDITAR ===");
         console.log("Datos completos:", datosArticulo);
+        console.log("Artículo ID:", datosArticulo.articulo_id);
         
+        // Limpiar arrays globales
         imagenesArticulo = [];
         imagenPrincipalIndex = 0;
+        presentacionesPrecios = []; // ✅ Limpiar presentaciones también
+        
+        // Generar formulario
         document.getElementById("contenidoArticulo").innerHTML = generarFormularioArticulo(true, datosArticulo);
-
-        var setSelectValueById = function(elementId, value) {
-            var select = document.getElementById(elementId);
-            if (select) {
-                if (value === null || value === undefined || value === "") {
-                    select.value = "";
-                } else {
-                    select.value = value;
-                }
-            }
-        };
 
         setTimeout(function() {
             // ✅ CARGAR VALORES EN LOS SELECTS
@@ -1180,7 +1210,7 @@ function generarFormularioArticulo(isEdit, datosArticulo) {
             setSelectValueById("idRegistoTipo", datosArticulo.tipo_id);
             setSelectValueById("idRegistroDimension", datosArticulo.dimension_id);
             setSelectValueById("idRegistroEscala", datosArticulo.escala_id);
-            setSelectValueById("idRegistroImpuesto", datosArticulo.impuesto_id); // ✅ Cargar impuesto
+            setSelectValueById("idRegistroImpuesto", datosArticulo.impuesto_id);
             
             // ✅ CARGAR VALORES EN INPUTS DE TEXTO
             var nombreInput = document.getElementById("idRegistroNombreArticulo");
@@ -1213,34 +1243,81 @@ function generarFormularioArticulo(isEdit, datosArticulo) {
             // ✅ CARGAR IMÁGENES
             cargarImagenesDesdeJson(datosArticulo.json_url_img);
             
-            // ✅ CARGAR PRECIOS DE PRESENTACIÓN (NUEVO)
-            if (datosArticulo.precios_json) {
-                cargarPreciosDesdeJson(datosArticulo.precios_json);
-            } else {
-                limpiarPrecios();
-            }
-            
-            // ✅ CONFIGURAR TODOS LOS EVENTOS
+            // ✅ CONFIGURAR TODOS LOS EVENTOS PRIMERO
             configurarEventosImagenes();
-            configurarEventosPrecios(); // ✅ LÍNEA NUEVA - MUY IMPORTANTE
+            configurarEventosPrecios(); // ✅ MUY IMPORTANTE - Configurar antes de cargar
+            // ✅ DEBUG: Verificar qué datos llegan
+            setTimeout(function() {
+                console.log("🔍 === VERIFICACIÓN DE CARGA DE PRECIOS ===");
+                console.log("Artículo ID a cargar:", datosArticulo.articulo_id);
+                console.log("Sucursal ID:", SUCURSAL_ID);
+                
+                // Hacer llamada AJAX manualmente para ver la respuesta
+                $.ajax({
+                    url: 'logica/clssInsertPA.php',
+                    type: 'POST',
+                    data: {
+                        accion: 'OBTENER_PRECIOS_ARTICULO',
+                        articulo_id: datosArticulo.articulo_id,
+                        sucursal_id: SUCURSAL_ID
+                    },
+                    success: function(response) {
+                        console.log("📥 RESPUESTA CRUDA DEL SERVIDOR:");
+                        console.log("Tipo:", typeof response);
+                        console.log("Contenido:", response);
+                        
+                        if (typeof response === 'string') {
+                            try {
+                                var parsed = JSON.parse(response);
+                                console.log("📦 JSON PARSEADO:", parsed);
+                                console.log("Estado:", parsed.estado);
+                                console.log("Datos:", parsed.datos);
+                                console.log("Total:", parsed.total);
+                            } catch (e) {
+                                console.error("❌ Error al parsear:", e);
+                            }
+                        } else {
+                            console.log("✅ Ya es objeto JSON:", response);
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error("❌ ERROR AJAX:");
+                        console.error("Status:", status);
+                        console.error("Error:", error);
+                        console.error("Response:", xhr.responseText);
+                    }
+                });
+            }, 500);
             configurarEventoImpuesto();
+            
+            // ✅✅✅ CARGAR PRECIOS DE PRESENTACIÓN (CORREGIDO)
+            // IMPORTANTE: Usar cargarPreciosArticulo() en lugar de cargarPreciosDesdeJson()
+            if (datosArticulo.articulo_id) {
+                console.log("🔄 Cargando precios para artículo ID:", datosArticulo.articulo_id);
+                cargarPreciosArticulo(datosArticulo.articulo_id);
+            } else {
+                console.warn("⚠️ No se encontró articulo_id, iniciando sin precios");
+                presentacionesPrecios = [];
+                renderizarTablaPresentaciones();
+                actualizarContadorPresentaciones();
+            }
             
             // ✅ TRIGGER PARA MOSTRAR INFO DEL IMPUESTO
             if (datosArticulo.impuesto_id) {
                 $('#idRegistroImpuesto').trigger('change');
             }
         }, 100);
+        
+        // Abrir modal
         var modal = new bootstrap.Modal(document.getElementById("modalArticulo"));
         modal.show();
 
-        setTimeout(function() {
-            configurarEventosImagenes();
-        }, 150);
-
+        // Configurar botón de guardar
         setTimeout(function() {
             var btnEditar = document.getElementById("btnEditarArticulo");
             if (btnEditar) {
                 btnEditar.addEventListener("click", function() {
+    
                     var nombreArticulo = document.getElementById("idRegistroNombreArticulo");
                     
                     if (!nombreArticulo || nombreArticulo.value.trim().length === 0) {
@@ -1284,6 +1361,15 @@ function generarFormularioArticulo(isEdit, datosArticulo) {
 
                     // ✅ CAPTURAR PRECIOS DE PRESENTACIÓN
                     var preciosJson = obtenerJsonPrecios();
+                    
+                    console.log("🔍 === DEBUG ANTES DE GUARDAR ===");
+                    console.log("📊 presentacionesPrecios:", presentacionesPrecios);
+                    console.log("📦 preciosJson generado:", preciosJson);
+                    console.log("🔢 Cantidad de presentaciones:", presentacionesPrecios.length);
+                    
+                    if (presentacionesPrecios.length === 0) {
+                        console.warn("⚠️ No hay presentaciones en memoria!");
+                    }
 
                     var jsArticulo = {
                         "id": datosArticulo.articulo_id,
@@ -1292,31 +1378,34 @@ function generarFormularioArticulo(isEdit, datosArticulo) {
                         "tipo_id": tipoSelect && tipoSelect.value !== "" ? tipoSelect.value : null,
                         "dimension_id": dimensionSelect && dimensionSelect.value !== "" ? dimensionSelect.value : null,
                         "escala_id": escalaSelect && escalaSelect.value !== "" ? escalaSelect.value : null,
-                        "impuesto_id": impuestoSelect.value, // ✅ CAMPO IMPUESTO
-                        "f_sunat": "G", // ✅ Valor por defecto (Gravado)
+                        "impuesto_id": impuestoSelect.value,
+                        "f_sunat": "G",
                         "corte": selectedValue === "Si",
                         "color": color && color.value.trim() !== "" ? color.value.trim() : null,
                         "stock": stock && stock.value !== "" ? parseFloat(stock.value) : 0,
                         "precio_venta": precioVenta && precioVenta.value !== "" ? parseFloat(precioVenta.value) : 0,
                         "precio_compra": precioCompra && precioCompra.value !== "" ? parseFloat(precioCompra.value) : 0,
                         "marca": marca && marca.value.trim() !== "" ? marca.value.trim() : null,
-                        "sucursal_id": SUCURSAL_ID, // ✅ CAMPO SUCURSAL
+                        "sucursal_id": SUCURSAL_ID,
                         "json_url_img": obtenerJsonImagenes(),
-                        "precios_json": preciosJson // ✅ CAMPO PRECIOS POR PRESENTACIÓN
-                    };
+                        "precios_json": preciosJson
+                        };
 
-                    console.log("Datos a actualizar:", jsArticulo);
+                        console.log("📤 === DATOS A ENVIAR ===");
+                        console.log("Objeto completo:", jsArticulo);
+                        console.log("Campo precios_json:", jsArticulo.precios_json);
 
-                    $.ajax({
-                        url: 'logica/clssInsertPA.php',
-                        type: 'POST',
-                        data: {
-                            accion: 'EDITAR_ARTICULO_COMPLETO',
-                            jsDatosArticulo: JSON.stringify(jsArticulo)
-                        },
-                        success: function(response) {
-                            console.log("Respuesta del servidor:", response);
-                            try {
+                        $.ajax({
+                            url: 'logica/clssInsertPA.php',
+                            type: 'POST',
+                            data: {
+                                accion: 'EDITAR_ARTICULO_COMPLETO',
+                                jsDatosArticulo: JSON.stringify(jsArticulo)
+                            },
+                            success: function(response) {
+                                console.log("📥 === RESPUESTA DEL SERVIDOR ===");
+                                console.log("Response completo:", response);
+                                    try {
                                 var result = JSON.parse(response);
                                 if (result.estado === true) {
                                     swal({
@@ -1335,7 +1424,7 @@ function generarFormularioArticulo(isEdit, datosArticulo) {
                                     });
                                 }
                             } catch (e) {
-                                console.error("Error al parsear JSON:", e);
+                                console.error("❌ Error al parsear JSON:", e);
                                 console.error("Respuesta recibida:", response);
                                 swal("Error", "No se pudo procesar la respuesta del servidor.", {
                                     icon: "error",
@@ -1344,7 +1433,7 @@ function generarFormularioArticulo(isEdit, datosArticulo) {
                             }
                         },
                         error: function(xhr, status, error) {
-                            console.error("Error AJAX:", error);
+                            console.error("❌ Error AJAX:", error);
                             console.error("Response:", xhr.responseText);
                             swal("Error", "Hubo un problema con la solicitud: " + error, {
                                 icon: "error",
@@ -1356,7 +1445,6 @@ function generarFormularioArticulo(isEdit, datosArticulo) {
             }
         }, 150);
     }
-
     function fn_bloquear_articulo(datosArticulo) {
         Swal.fire({
             title: '¿Estás seguro?',
@@ -1478,6 +1566,9 @@ function generarFormularioArticulo(isEdit, datosArticulo) {
             }
         });
     }
+
+
+    
 </script>
 
 <?php

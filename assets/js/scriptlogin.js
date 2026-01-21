@@ -112,9 +112,11 @@ async function iniciarSesion() {
 
 document.addEventListener("DOMContentLoaded", function () {
     const loginForm = document.getElementById("form-login");
-    loginForm.addEventListener('keypress', function (e) {
-        if (e.key === 'Enter') {
-            iniciarSesion();
-        }
-    });
+    if (loginForm) {
+        loginForm.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                iniciarSesion();
+            }
+        });
+    }
 });

@@ -1,10 +1,6 @@
 <?php
 include("bd.php");
 
-
-
-
-
 if (isset($_POST["accion"])) {
     $accion = $_POST["accion"];
     controladorConsultasPTMRE($accion);
@@ -1824,17 +1820,34 @@ function fnListadoDeReservasWeb(): array
 }
 
 
-function fnListadoDeEmisor(): array
-{
-    $query = "SELECT * FROM emisor";
-
-
-    $result = executeQuery($query);
-
-    //var_dump($result);
-
-
-    return $result;
+function fnListadoDeEmisor($sucursal_id = null) {
+    global $conectar;
+    
+    try {
+        error_log("=== LISTAR EMISOR ===");
+        error_log("Sucursal ID: " . $sucursal_id);
+        
+        if ($sucursal_id === null) {
+            error_log("⚠️ No se proporcionó sucursal_id");
+            return [];
+        }
+        
+        $sql = "SELECT * FROM emisor WHERE sucursal_id = :sucursal_id LIMIT 1";
+        
+        $stmt = $conectar->prepare($sql);
+        $stmt->bindParam(':sucursal_id', $sucursal_id, PDO::PARAM_INT);
+        $stmt->execute();
+        
+        $resultado = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        error_log("✅ Emisores encontrados: " . count($resultado));
+        
+        return $resultado;
+        
+    } catch (Exception $e) {
+        error_log("❌ Error en fnListadoDeEmisor: " . $e->getMessage());
+        return [];
+    }
 }
 
 
@@ -2055,4 +2068,251 @@ function fnRankingClientes() {
     ";
     
     return executeQuery($query);
+}
+
+function fnObtenerPermisosUsuario($usuario_id): array
+{
+    $query = "
+        SELECT 
+            r.id_rol,
+            r.nombre_rol,
+            r.permisos,
+            -- Módulos permitidos
+            COALESCE(
+                (
+                    SELECT json_agg(
+                        json_build_object(
+                            'id_modulo', m.id_modulo,
+                            'nombre_modulo', m.nombre_modulo,
+                            'icono', m.icono,
+                            'identificador', m.identificador,
+                            'orden', m.orden
+                        ) ORDER BY m.orden
+                    )
+                    FROM modulos m
+                    INNER JOIN permisos_modulos pm ON m.id_modulo = pm.id_modulo
+                    WHERE pm.id_rol = r.id_rol 
+                    AND pm.puede_ver = 1 
+                    AND m.estado = 1
+                ), '[]'::json
+            ) as modulos_permitidos,
+            -- Submódulos permitidos
+            COALESCE(
+                (
+                    SELECT json_agg(
+                        json_build_object(
+                            'id_submodulo', s.id_submodulo,
+                            'id_modulo', s.id_modulo,
+                            'nombre_submodulo', s.nombre_submodulo,
+                            'url', s.url,
+                            'identificador', s.identificador,
+                            'orden', s.orden
+                        ) ORDER BY s.orden
+                    )
+                    FROM submodulos s
+                    INNER JOIN permisos_submodulos ps ON s.id_submodulo = ps.id_submodulo
+                    WHERE ps.id_rol = r.id_rol 
+                    AND ps.puede_ver = 1 
+                    AND s.estado = 1
+                ), '[]'::json
+            ) as submodulos_permitidos
+        FROM usuario u
+        INNER JOIN roles r ON u.id_rol = r.id_rol
+        WHERE u.id = :usuario_id
+        AND u.deleted_at IS NULL
+        AND r.estado = 1
+        LIMIT 1
+    ";
+    
+    return executeQuery($query, ['usuario_id' => $usuario_id]);
+}
+
+/**
+ * Verifica si un usuario tiene permiso para acceder a un módulo
+ */
+function fnTienePermisoModulo($usuario_id, $identificador_modulo): bool
+{
+    $query = "
+        SELECT COUNT(*) as tiene_permiso
+        FROM usuario u
+        INNER JOIN roles r ON u.id_rol = r.id_rol
+        INNER JOIN permisos_modulos pm ON r.id_rol = pm.id_rol
+        INNER JOIN modulos m ON pm.id_modulo = m.id_modulo
+        WHERE u.id = :usuario_id
+        AND m.identificador = :identificador
+        AND pm.puede_ver = 1
+        AND u.deleted_at IS NULL
+        AND r.estado = 1
+        AND m.estado = 1
+    ";
+    
+    $result = executeQuery($query, [
+        'usuario_id' => $usuario_id,
+        'identificador' => $identificador_modulo
+    ]);
+    
+    return isset($result[0]) && $result[0]['tiene_permiso'] > 0;
+}
+
+/**
+ * Verifica si un usuario tiene permiso para acceder a una página específica
+ */
+function fnTienePermisoPagina($usuario_id, $url_pagina): bool
+{
+    $query = "
+        SELECT COUNT(*) as tiene_permiso
+        FROM usuario u
+        INNER JOIN roles r ON u.id_rol = r.id_rol
+        INNER JOIN permisos_submodulos ps ON r.id_rol = ps.id_rol
+        INNER JOIN submodulos s ON ps.id_submodulo = s.id_submodulo
+        WHERE u.id = :usuario_id
+        AND s.url = :url
+        AND ps.puede_ver = 1
+        AND u.deleted_at IS NULL
+        AND r.estado = 1
+        AND s.estado = 1
+    ";
+    
+    $result = executeQuery($query, [
+        'usuario_id' => $usuario_id,
+        'url' => $url_pagina
+    ]);
+    
+    return isset($result[0]) && $result[0]['tiene_permiso'] > 0;
+}
+
+/**
+ * Lista todos los roles disponibles
+ */
+function fnListarRoles($sucursal_id = null): array
+{
+    if ($sucursal_id === null) {
+        $query = "SELECT * FROM roles WHERE estado = 1 ORDER BY nombre_rol";
+        return executeQuery($query);
+    }
+    
+    $query = "SELECT * FROM roles WHERE sucursal_id = :sucursal_id AND estado = 1 ORDER BY nombre_rol";
+    return executeQuery($query, ['sucursal_id' => $sucursal_id]);
+}
+
+/**
+ * Obtiene todos los módulos del sistema
+ */
+function fnListarModulos(): array
+{
+    $query = "SELECT * FROM modulos WHERE estado = 1 ORDER BY orden";
+    return executeQuery($query);
+}
+
+/**
+ * Obtiene todos los submódulos de un módulo específico
+ */
+function fnListarSubmodulosPorModulo($id_modulo): array
+{
+    $query = "
+        SELECT * FROM submodulos 
+        WHERE id_modulo = :id_modulo 
+        AND estado = 1 
+        ORDER BY orden
+    ";
+    return executeQuery($query, ['id_modulo' => $id_modulo]);
+}
+
+/**
+ * Obtiene los permisos de un rol específico
+ */
+function fnObtenerPermisosRol($id_rol): array
+{
+    $query = "
+        SELECT 
+            r.id_rol,
+            r.nombre_rol,
+            r.descripcion,
+            -- Permisos de módulos
+            COALESCE(
+                (
+                    SELECT json_agg(
+                        json_build_object(
+                            'id_modulo', pm.id_modulo,
+                            'puede_ver', pm.puede_ver
+                        )
+                    )
+                    FROM permisos_modulos pm
+                    WHERE pm.id_rol = r.id_rol
+                ), '[]'::json
+            ) as permisos_modulos,
+            -- Permisos de submódulos
+            COALESCE(
+                (
+                    SELECT json_agg(
+                        json_build_object(
+                            'id_submodulo', ps.id_submodulo,
+                            'puede_ver', ps.puede_ver
+                        )
+                    )
+                    FROM permisos_submodulos ps
+                    WHERE ps.id_rol = r.id_rol
+                ), '[]'::json
+            ) as permisos_submodulos
+        FROM roles r
+        WHERE r.id_rol = :id_rol
+        LIMIT 1
+    ";
+    
+    return executeQuery($query, ['id_rol' => $id_rol]);
+}
+
+/**
+ * Función auxiliar para generar el menú con permisos
+ */
+function fnGenerarMenuConPermisos($usuario_id): string
+{
+    $permisos = fnObtenerPermisosUsuario($usuario_id);
+    
+    if (empty($permisos)) {
+        return '<li class="nav-item"><a href="#"><p>No tiene permisos asignados</p></a></li>';
+    }
+    
+    $modulos = json_decode($permisos[0]['modulos_permitidos'], true);
+    $submodulos = json_decode($permisos[0]['submodulos_permitidos'], true);
+    
+    if (empty($modulos)) {
+        return '<li class="nav-item"><a href="#"><p>No tiene módulos permitidos</p></a></li>';
+    }
+    
+    $menu_html = '';
+    
+    foreach ($modulos as $modulo) {
+        // Filtrar submódulos de este módulo
+        $subs_modulo = array_filter($submodulos, function($sub) use ($modulo) {
+            return $sub['id_modulo'] == $modulo['id_modulo'];
+        });
+        
+        if (empty($subs_modulo)) {
+            continue;
+        }
+        
+        $menu_html .= '<li class="nav-item">';
+        $menu_html .= '<a data-bs-toggle="collapse" href="#' . $modulo['identificador'] . '" class="collapsed" aria-expanded="false">';
+        $menu_html .= '<i class="' . $modulo['icono'] . '"></i>';
+        $menu_html .= '<p>' . $modulo['nombre_modulo'] . '</p>';
+        $menu_html .= '<span class="caret"></span>';
+        $menu_html .= '</a>';
+        $menu_html .= '<div class="collapse" id="' . $modulo['identificador'] . '">';
+        $menu_html .= '<ul class="nav nav-collapse">';
+        
+        foreach ($subs_modulo as $submodulo) {
+            $menu_html .= '<li>';
+            $menu_html .= '<a href="' . $submodulo['url'] . '">';
+            $menu_html .= '<span class="sub-item">' . $submodulo['nombre_submodulo'] . '</span>';
+            $menu_html .= '</a>';
+            $menu_html .= '</li>';
+        }
+        
+        $menu_html .= '</ul>';
+        $menu_html .= '</div>';
+        $menu_html .= '</li>';
+    }
+    
+    return $menu_html;
 }

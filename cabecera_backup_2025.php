@@ -19,7 +19,7 @@ $flagRespuesta = fnVerificarUsarioSession($_SESSION['id']);
 if ($flagRespuesta == 0) {
     $ape_usuario = $_SESSION['ape'];
     $id_usuario_s = $_SESSION['id'];
-    $rol = $_SESSION['nombre_rol'];
+    $rol = $_SESSION['rol'];
     $usuario = $_SESSION['usuario'];
     $nombre = $_SESSION['nombre'];
     $correo = $_SESSION['correo'];
@@ -39,13 +39,13 @@ if ($flagRespuesta == 0) {
 } else {
     $ape_usuario = $_SESSION['ape'];
     $id_usuario_s = $_SESSION['id'];
-    $rol = $_SESSION['nombre_rol'];
+    $rol = $_SESSION['rol'];
     $nombre = $_SESSION['nombre'];
     $correo = $_SESSION['correo'];
 }
 
 // Inicializar MenuManager con el rol del usuario
-require_once('MenuManager.php');
+require_once('/MenuManager.php');
 $menuManager = new MenuManager($rol);
 
 // Función de compatibilidad para mantener el código existente

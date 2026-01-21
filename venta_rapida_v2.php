@@ -141,24 +141,129 @@ $sucursal_id = $_SESSION["sucursal_id"];
 
     #productosTable {
     font-size: 14px;
+    margin-bottom: 0;
+}
+
+#productosTable thead {
+    background: linear-gradient(135deg, #2a2f5b 0%, #1a1f3a 100%);
 }
 
 #productosTable thead th {
     position: sticky;
     top: 0;
     z-index: 10;
-    background-color: #2a2f5b !important;
+    background-color: transparent !important;
     color: white !important;
+    border: none;
+    padding: 15px 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 12px;
+    letter-spacing: 0.5px;
 }
 
 #productosTable tbody tr {
-    transition: all 0.2s ease;
+    transition: all 0.3s ease;
+    border-bottom: 1px solid #dee2e6;
 }
 
 #productosTable tbody tr:hover {
     background-color: #f0f8ff;
-    transform: scale(1.01);
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    transform: scale(1.002);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+#productosTable tbody td {
+    padding: 12px;
+    vertical-align: middle;
+}
+/* Badge de sin stock mejorado */
+#productosTable .badge.bg-danger {
+    background-color: #ffe5e5 !important;
+    color: #dc3545 !important;
+    border: 1px solid #dc3545;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+/* Precio mejorado */
+#productosTable .text-success {
+    color: #28a745 !important;
+    font-weight: 700 !important;
+    font-size: 16px !important;
+}
+/* Botón agregar mejorado */
+#productosTable .btn-success.btn-sm {
+    background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%) !important;
+    border: none !important;
+    border-radius: 20px !important;
+    padding: 8px 16px !important;
+    font-weight: 600 !important;
+    font-size: 12px !important;
+    transition: all 0.3s ease !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2) !important;
+}
+
+#productosTable .btn-success.btn-sm:hover:not(:disabled) {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3) !important;
+    background: linear-gradient(135deg, #1e7e34 0%, #28a745 100%) !important;
+}
+
+#productosTable .btn-success.btn-sm:disabled {
+    background: #6c757d !important;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+/* Stock bajo (nuevo estilo) */
+#productosTable tbody td.text-center strong {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    display: inline-block;
+}
+
+/* Tabla responsive mejorada */
+.table-responsive {
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    background: white;
+}
+
+/* Responsivo para móviles */
+@media (max-width: 768px) {
+    #productosTable {
+        font-size: 12px;
+    }
+    
+    #productosTable th,
+    #productosTable td {
+        padding: 8px 6px;
+    }
+    
+    #productosTable .btn-sm {
+        padding: 6px 12px !important;
+        font-size: 11px !important;
+    }
+
+    #productosTable .text-success {
+        font-size: 14px !important;
+    }
+}
+
+@media (max-width: 576px) {
+    #productosTable {
+        font-size: 11px;
+    }
+
+    #productosTable .badge {
+        font-size: 10px;
+        padding: 4px 8px;
+    }
 }
 
 /* Responsivo para móviles */
