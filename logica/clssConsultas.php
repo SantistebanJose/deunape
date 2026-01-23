@@ -140,23 +140,18 @@ function listarUsuarios(): array
 {
     $query = "
         SELECT 
-            u.id, 
-           u.username, 
-            CASE 
-                WHEN  u.rol = '1' THEN 'ADMINISTRADOR'
-                ELSE 'EMPLEADO'
-            END AS rol,
-            CONCAT(p.numero_documento, ' - ', p.nombres, ' ', p.apellidos) AS persona_concatenada,
-            CASE 
-                WHEN u.deleted_at IS NULL THEN 'ACTIVO'
-                ELSE 'BLOQUEADO'
-            END AS estado
+        u.id, 
+        u.username, 
+        o.nombre AS rol,
+        CONCAT(p.numero_documento, ' - ', p.nombres, ' ', p.apellidos) AS persona_concatenada,
+        CASE 
+            WHEN u.deleted_at IS NULL THEN 'ACTIVO'
+            ELSE 'BLOQUEADO'
+        END AS estado
         FROM 
-            usuario AS u
-        INNER JOIN 
-            persona AS p 
-        ON 
-            u.persona_id = p.id
+        usuario AS u
+        INNER JOIN persona AS p ON u.persona_id = p.id
+        INNER JOIN roles AS o ON o.id_rol = u.id_rol
         order BY u.id;
     ";
     return executeQuery($query);

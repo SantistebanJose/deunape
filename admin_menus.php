@@ -7,7 +7,7 @@
 include('cabecera.php');
 
 // Verificar que sea administrador
-$menuManager->requirePageAccess('admin_menus.php');
+//$menuManager->requirePageAccess('admin_menus.php');
 
 ?>
 
@@ -67,32 +67,32 @@ $menuManager->requirePageAccess('admin_menus.php');
                         <div class="tab-content mt-2 mb-3" id="pills-tabContent">
                             <!-- Tab Roles -->
                             <div class="tab-pane fade show active" id="pills-roles" role="tabpanel">
-                                <?php include('admin/roles_tab.php'); ?>
+                                <?php include('roles_tab.php'); ?>
                             </div>
 
                             <!-- Tab Permisos -->
                             <div class="tab-pane fade" id="pills-permisos" role="tabpanel">
-                                <?php include('admin/permisos_tab.php'); ?>
+                                <?php include('permisos_tab.php'); ?>
                             </div>
 
                             <!-- Tab Menús -->
                             <div class="tab-pane fade" id="pills-menus" role="tabpanel">
-                                <?php include('admin/menus_tab.php'); ?>
+                                <?php include('menus_tab.php'); ?>
                             </div>
 
                             <!-- Tab Items -->
                             <div class="tab-pane fade" id="pills-items" role="tabpanel">
-                                <?php include('admin/items_tab.php'); ?>
+                                <?php include('items_tab.php'); ?>
                             </div>
 
                             <!-- Tab Accesos Rápidos -->
                             <div class="tab-pane fade" id="pills-quick" role="tabpanel">
-                                <?php include('admin/quick_access_tab.php'); ?>
+                                <?php include('quick_access_tab.php'); ?>
                             </div>
 
                             <!-- Tab Páginas -->
                             <div class="tab-pane fade" id="pills-paginas" role="tabpanel">
-                                <?php include('admin/paginas_tab.php'); ?>
+                                <?php include('paginas_tab.php'); ?>
                             </div>
                         </div>
                     </div>

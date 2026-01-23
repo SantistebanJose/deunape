@@ -3,7 +3,6 @@
  * cabecera.php
  * Header del sistema con MenuManager integrado
  */
-
 include('logica/clssConsultas.php');
 
 session_start();
@@ -95,6 +94,8 @@ function tienePermiso($moduloPermiso = '', $permisoEspecifico = '') {
 }
 
 ?>
+
+
 
 <!DOCTYPE html>
 <html lang="es">

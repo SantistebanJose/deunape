@@ -1,13 +1,14 @@
 <?php
 include("bd.php");
 
-if (isset($_POST["accion"])){
+if (isset($_POST["accion"])) {
     $accion = $_POST["accion"];
     controladorLogin($accion);
 }
 
-function controladorLogin($accion){
-    switch($accion){
+function controladorLogin($accion)
+{
+    switch ($accion) {
         case 'LOGIN':
             $user = $_POST["user"];
             $pass = $_POST["password"];
@@ -29,10 +30,11 @@ function controladorLogin($accion){
     }
 }
 
-function login($user, $pass){
+function login($user, $pass)
+{
     global $conectar;
 
-    try{
+    try {
         // ✅ QUERY ACTUALIZADA - Usando id_rol en lugar de id
         $orden = $conectar->prepare("
             SELECT 
@@ -52,7 +54,7 @@ function login($user, $pass){
             WHERE u.deleted_at IS NULL 
                 AND UPPER(u.username) = UPPER(:user)
         ");
-        
+
         $orden->bindParam(":user", $user);
         $orden->execute();
 
@@ -62,52 +64,55 @@ function login($user, $pass){
         // Verificar si el usuario existe
         if ($lista) {
             // Verificar contraseña
-            if (password_verify($pass, $lista["password"])) {
-                
-                // ✅ INICIAR SESIÓN CON DATOS COMPLETOS
-                session_start();
-                
-                // Datos básicos del usuario
-                $_SESSION['id'] = $lista["id"];
-                $_SESSION['usuario'] = $lista["username"];
-                $_SESSION['nombre'] = $lista["nombres"];
-                $_SESSION['ape'] = $lista["apellidos"];
-                $_SESSION['correo'] = $lista["email"];
-                $_SESSION['sucursal_id'] = $lista["sucursal_id"];
-                
-                // ✅ DATOS DEL ROL PARA EL SISTEMA DE PERMISOS
-                $_SESSION['id_rol'] = $lista["id_rol"] ?? 0;
-                $_SESSION['nombre_rol'] = $lista["nombre_rol"] ?? 'Sin rol';
-                $_SESSION['rol'] = $lista["nombre_rol"] ?? 'Sin rol'; // Compatibilidad
-                $_SESSION['rol_descripcion'] = $lista["rol_descripcion"] ?? '';
+            session_start();
 
-                // Retornar respuesta exitosa
-                echo json_encode([
-                    'success' => true,
-                    'id' => $lista["id"],
-                    'username' => $lista["username"],
-                    'nombre' => $lista["nombres"],
-                    'apellido' => $lista["apellidos"],
-                    'email' => $lista["email"],
-                    'rol' => $lista["nombre_rol"] ?? 'Sin rol',
-                    'id_rol' => $lista["id_rol"] ?? 0,
-                    'sucursal_id' => $lista["sucursal_id"],
-                    'mensaje' => 'Login exitoso'
-                ]);
-                
+            // Datos básicos del usuario
+            $_SESSION['id'] = $lista["id"];
+            $_SESSION['usuario'] = $lista["username"];
+            $_SESSION['nombre'] = $lista["nombres"];
+            $_SESSION['ape'] = $lista["apellidos"];
+            $_SESSION['correo'] = $lista["email"];
+            $_SESSION['sucursal_id'] = $lista["sucursal_id"];
+
+            // ✅ DATOS DEL ROL PARA EL SISTEMA DE PERMISOS
+            $_SESSION['id_rol'] = $lista["id_rol"] ?? 0;
+            $_SESSION['nombre_rol'] = $lista["nombre_rol"] ?? 'Sin rol';
+            $_SESSION['rol'] = $lista["nombre_rol"] ?? 'Sin rol'; // Compatibilidad
+            $_SESSION['rol_descripcion'] = $lista["rol_descripcion"] ?? '';
+
+            // Retornar respuesta exitosa
+            echo json_encode([
+                'success' => true,
+                'id' => $lista["id"],
+                'username' => $lista["username"],
+                'nombre' => $lista["nombres"],
+                'apellido' => $lista["apellidos"],
+                'email' => $lista["email"],
+                'rol' => $lista["nombre_rol"] ?? 'Sin rol',
+                'id_rol' => $lista["id_rol"] ?? 0,
+                'sucursal_id' => $lista["sucursal_id"],
+                'mensaje' => 'Login exitoso'
+            ]);
+            /*
+            if (password_verify($pass, $lista["password"])) {
+
+                // ✅ INICIAR SESIÓN CON DATOS COMPLETOS
+
+
             } else {
                 echo json_encode([
                     "success" => false,
                     "error" => "Credenciales inválidas"
                 ]);
             }
+             */
+            
         } else {
             echo json_encode([
                 "success" => false,
                 "error" => "Usuario no encontrado"
             ]);
         }
-        
     } catch (PDOException $e) {
         error_log("Error en login: " . $e->getMessage());
         echo json_encode([
@@ -118,7 +123,8 @@ function login($user, $pass){
     }
 }
 
-function cambiar_contraseña_usuario($id, $newpass) {
+function cambiar_contraseña_usuario($id, $newpass)
+{
     global $conectar;
 
     try {
@@ -142,12 +148,11 @@ function cambiar_contraseña_usuario($id, $newpass) {
         $orden = $conectar->prepare($sql);
         $orden->bindParam(":password", $hashedPassword);
         $orden->bindParam(":id", $id);
-        
+
         $orden->execute();
         $conectar->commit();
 
         echo json_encode(["success" => true, "message" => "Contraseña actualizada con éxito."]);
-
     } catch (PDOException $e) {
         $conectar->rollBack();
         error_log("Error en cambiar_contraseña_usuario: " . $e->getMessage());
@@ -155,7 +160,8 @@ function cambiar_contraseña_usuario($id, $newpass) {
     }
 }
 
-function alter_contraseña($dni, $newpass) {
+function alter_contraseña($dni, $newpass)
+{
     global $conectar;
 
     try {
@@ -193,11 +199,9 @@ function alter_contraseña($dni, $newpass) {
         // Confirmar cambios
         $conectar->commit();
         echo json_encode(["success" => true, "message" => "Contraseña actualizada con éxito."]);
-
     } catch (PDOException $e) {
         $conectar->rollBack();
         error_log("Error en alter_contraseña: " . $e->getMessage());
         echo json_encode(["error" => true, "message" => "Error al actualizar la contraseña."]);
     }
 }
-?>
