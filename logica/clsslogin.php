@@ -47,10 +47,14 @@ function login($user, $pass)
                 p.apellidos, 
                 p.email,
                 r.nombre as nombre_rol, 
-                r.descripcion as rol_descripcion
+                r.descripcion as rol_descripcion,
+                s.razon_social,
+                s.nombre_comercial
             FROM usuario AS u 
             INNER JOIN persona AS p ON u.persona_id = p.id 
+            INNER JOIN sucursal AS s ON s.id = u.sucursal_id
             LEFT JOIN roles AS r ON u.id_rol = r.id_rol
+
             WHERE u.deleted_at IS NULL 
                 AND UPPER(u.username) = UPPER(:user)
         ");
@@ -73,6 +77,9 @@ function login($user, $pass)
             $_SESSION['ape'] = $lista["apellidos"];
             $_SESSION['correo'] = $lista["email"];
             $_SESSION['sucursal_id'] = $lista["sucursal_id"];
+            $_SESSION['nombre_comercial'] = $lista["nombre_comercial"];
+            $_SESSION['razon_social'] = $lista["razon_social"];
+            
 
             // ✅ DATOS DEL ROL PARA EL SISTEMA DE PERMISOS
             $_SESSION['id_rol'] = $lista["id_rol"] ?? 0;

@@ -102,10 +102,10 @@ function tienePermiso($moduloPermiso = '', $permisoEspecifico = '') {
 
 <head>
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <title>Caracol Captain</title>
+    <title>CAPTAIN <?php echo " | ". $_SESSION["nombre_comercial"]?></title>
     <meta charset="UTF-8">
     <meta content="width=device-width, initial-scale=1.0, shrink-to-fit=no" name="viewport" />
-    <link rel="icon" href="assets/img/caracoles.png" type="image/x-icon" />
+    <link rel="icon" href="assets/img/Captain-logo.svg" type="image/x-icon" />
 
     <!-- Fonts and icons -->
     <script src="assets/js/plugin/webfont/webfont.min.js"></script>
@@ -144,8 +144,11 @@ function tienePermiso($moduloPermiso = '', $permisoEspecifico = '') {
             <div class="sidebar-logo">
                 <div class="logo-header" data-background-color="dark">
                     <a href="index.php" class="logo">
-                        <img src="assets/img/caracoles.png" alt="navbar brand" class="navbar-brand" height="30" /> 
-                        <span style="color: white; font-size: 14px;">Caracol Soft - <strong>CAPTAIN</strong></span>
+    <!-- 
+                    <img src="assets/img/development.png" alt="navbar brand" class="navbar-brand" height="30" />
+                    -->
+                        
+                        <span style="color: white; font-size: 12px;"><?php echo $_SESSION["nombre_comercial"]?> | <strong>CAPTAIN</strong></span>
                     </a>
                     <div class="nav-toggle">
                         <button class="btn btn-toggle toggle-sidebar">
@@ -205,6 +208,10 @@ function tienePermiso($moduloPermiso = '', $permisoEspecifico = '') {
                         <nav class="navbar navbar-header-left navbar-expand-lg navbar-form nav-search p-0 d-none d-lg-flex">
                         </nav>
 
+
+                        
+                        
+                        <span><i class="fab fa-telegram-plane"></i> Hola 👋,</span> <span><strong> <?php echo " ". $_SESSION["nombre_comercial"]." "?></strong>, Realiza todos tus movimientos desde el sistema de <strong>CAPTAIN 🫡</strong></span>
                         <ul class="navbar-nav topbar-nav ms-md-auto align-items-center">
                             <a name="" id="" class="btn" href="index.php" role="button">
                                 <i class="fas fa-home"></i>

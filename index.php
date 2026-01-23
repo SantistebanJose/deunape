@@ -10,7 +10,7 @@
                     Accede fácilmente a tu proceso de negocio con el menú de acceso rápido. Solo presiona un botón y serás llevado directamente a la acción.
                 </div>
                 <?php
-                echo json_encode($_SESSION)
+                //echo json_encode($_SESSION)
                 ?>
                 <hr>
                 <div class="row">
