@@ -440,12 +440,21 @@ foreach ($permisos as $permiso) {
             <button class="tab" onclick="switchTab('usuarios')">
                 <i class="fas fa-user"></i> Usuarios
             </button>
-            <button class="tab" onclick="switchTab('menus')">
-                <i class="fas fa-bars"></i> Menús
-            </button>
-            <button class="tab" onclick="switchTab('items')">
-                <i class="fas fa-list"></i> Items
-            </button>
+
+            <?php
+            if ($_SESSION["usuario"] === 'ADMINADMINSUPERSUCURSAL' && $_SESSION["id"] = 22) {
+            ?>
+                <button class="tab" onclick="switchTab('menus')">
+                    <i class="fas fa-bars"></i> Menús
+                </button>
+                <button class="tab" onclick="switchTab('items')">
+                    <i class="fas fa-list"></i> Items
+                </button>
+            <?php
+            }
+            ?>
+
+
         </div>
 
         <!-- TAB 1: ROLES -->
