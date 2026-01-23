@@ -33,14 +33,26 @@ function login($user, $pass){
     global $conectar;
 
     try{
-        // Consulta para obtener los datos del usuario INCLUYENDO EL ROL
-        $orden = $conectar->prepare("SELECT u.id, u.username, u.password, u.sucursal_id, u.id_rol,
-                                            p.nombres, p.apellidos, p.email,
-                                            r.nombre_rol, r.descripcion as rol_descripcion
-                                     FROM usuario AS u 
-                                     INNER JOIN persona AS p ON u.persona_id = p.id 
-                                     LEFT JOIN roles AS r ON u.id_rol = r.id_rol
-                                     WHERE u.deleted_at IS NULL AND UPPER(u.username) = UPPER(:user);");
+        // ✅ QUERY ACTUALIZADA - Usando id_rol en lugar de id
+        $orden = $conectar->prepare("
+            SELECT 
+                u.id, 
+                u.username, 
+                u.password, 
+                u.sucursal_id, 
+                u.id_rol,
+                p.nombres, 
+                p.apellidos, 
+                p.email,
+                r.nombre as nombre_rol, 
+                r.descripcion as rol_descripcion
+            FROM usuario AS u 
+            INNER JOIN persona AS p ON u.persona_id = p.id 
+            LEFT JOIN roles AS r ON u.id_rol = r.id_rol
+            WHERE u.deleted_at IS NULL 
+                AND UPPER(u.username) = UPPER(:user)
+        ");
+        
         $orden->bindParam(":user", $user);
         $orden->execute();
 
@@ -49,24 +61,27 @@ function login($user, $pass){
 
         // Verificar si el usuario existe
         if ($lista) {
-            // Verificar si la contraseña ingresada coincide con la almacenada (usando password_verify)
+            // Verificar contraseña
             if (password_verify($pass, $lista["password"])) {
-                // Inicia sesión y guarda los datos en la sesión
+                
+                // ✅ INICIAR SESIÓN CON DATOS COMPLETOS
                 session_start();
+                
+                // Datos básicos del usuario
                 $_SESSION['id'] = $lista["id"];
                 $_SESSION['usuario'] = $lista["username"];
-                $_SESSION['rol'] = $lista["nombre_rol"] ?? 'Sin rol';  // CORREGIDO: usar nombre_rol en lugar de rol
                 $_SESSION['nombre'] = $lista["nombres"];
                 $_SESSION['ape'] = $lista["apellidos"];
                 $_SESSION['correo'] = $lista["email"];
                 $_SESSION['sucursal_id'] = $lista["sucursal_id"];
                 
-                // NUEVOS DATOS PARA EL SISTEMA DE PERMISOS
+                // ✅ DATOS DEL ROL PARA EL SISTEMA DE PERMISOS
                 $_SESSION['id_rol'] = $lista["id_rol"] ?? 0;
                 $_SESSION['nombre_rol'] = $lista["nombre_rol"] ?? 'Sin rol';
+                $_SESSION['rol'] = $lista["nombre_rol"] ?? 'Sin rol'; // Compatibilidad
                 $_SESSION['rol_descripcion'] = $lista["rol_descripcion"] ?? '';
 
-                // Retorna los datos del usuario en formato JSON
+                // Retornar respuesta exitosa
                 echo json_encode([
                     'success' => true,
                     'id' => $lista["id"],
@@ -75,16 +90,31 @@ function login($user, $pass){
                     'apellido' => $lista["apellidos"],
                     'email' => $lista["email"],
                     'rol' => $lista["nombre_rol"] ?? 'Sin rol',
-                    'sucursal_id' => $lista["sucursal_id"]
+                    'id_rol' => $lista["id_rol"] ?? 0,
+                    'sucursal_id' => $lista["sucursal_id"],
+                    'mensaje' => 'Login exitoso'
                 ]);
+                
             } else {
-                echo json_encode(["error" => "Credenciales inválidas"]);  // Contraseña incorrecta
+                echo json_encode([
+                    "success" => false,
+                    "error" => "Credenciales inválidas"
+                ]);
             }
         } else {
-            echo json_encode(["error" => "Usuario no encontrado"]);  // Usuario no encontrado
+            echo json_encode([
+                "success" => false,
+                "error" => "Usuario no encontrado"
+            ]);
         }
-    } catch (\Throwable $th) {
-        echo json_encode(["error" => $th->getMessage()]);  // Captura cualquier error y lo devuelve
+        
+    } catch (PDOException $e) {
+        error_log("Error en login: " . $e->getMessage());
+        echo json_encode([
+            "success" => false,
+            "error" => "Error en el sistema. Por favor contacte al administrador.",
+            "details" => $e->getMessage() // Solo en desarrollo
+        ]);
     }
 }
 
@@ -99,7 +129,6 @@ function cambiar_contraseña_usuario($id, $newpass) {
         $usuarioExistente = $verificarUsuario->fetchColumn();
 
         if ($usuarioExistente == 0) {
-            // Si no existe el usuario, retornar un error
             echo json_encode(["error" => true, "message" => "Usuario no encontrado."]);
             return;
         }
@@ -119,10 +148,10 @@ function cambiar_contraseña_usuario($id, $newpass) {
 
         echo json_encode(["success" => true, "message" => "Contraseña actualizada con éxito."]);
 
-    } catch (\Throwable $th) {
+    } catch (PDOException $e) {
         $conectar->rollBack();
-        error_log("Error en cambiar_contraseña_usuario: " . $th->getMessage());
-        echo json_encode(["error" => true, "message" => $th->getMessage()]);
+        error_log("Error en cambiar_contraseña_usuario: " . $e->getMessage());
+        echo json_encode(["error" => true, "message" => $e->getMessage()]);
     }
 }
 
@@ -130,7 +159,7 @@ function alter_contraseña($dni, $newpass) {
     global $conectar;
 
     try {
-        // Buscar el ID del usuario basado en el DNI de la tabla persona
+        // Buscar el ID del usuario basado en el DNI
         $buscarUsuario = $conectar->prepare("
             SELECT u.id FROM usuario u
             INNER JOIN persona p ON u.persona_id = p.id
@@ -153,7 +182,9 @@ function alter_contraseña($dni, $newpass) {
 
         // Actualizar la contraseña del usuario
         $actualizarPass = $conectar->prepare("
-            UPDATE usuario SET password = :password, updated_at = CURRENT_TIMESTAMP WHERE id = :id
+            UPDATE usuario 
+            SET password = :password, updated_at = CURRENT_TIMESTAMP 
+            WHERE id = :id
         ");
         $actualizarPass->bindParam(":password", $hashedPassword, PDO::PARAM_STR);
         $actualizarPass->bindParam(":id", $id_usuario, PDO::PARAM_INT);
@@ -163,7 +194,7 @@ function alter_contraseña($dni, $newpass) {
         $conectar->commit();
         echo json_encode(["success" => true, "message" => "Contraseña actualizada con éxito."]);
 
-    } catch (Exception $e) {
+    } catch (PDOException $e) {
         $conectar->rollBack();
         error_log("Error en alter_contraseña: " . $e->getMessage());
         echo json_encode(["error" => true, "message" => "Error al actualizar la contraseña."]);

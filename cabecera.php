@@ -1,28 +1,30 @@
 <?php
-
 /**
  * cabecera.php
- * Nueva cabecera del sistema usando MenuManager
- * Caracol Captain - Sistema de gestión
+ * Header del sistema con MenuManager integrado
  */
 
 include('logica/clssConsultas.php');
 
 session_start();
 
+// Verificar si hay sesión activa
 if (!isset($_SESSION['id'])) {
     header("Location: login.php");
     exit();
 }
 
 $flagRespuesta = fnVerificarUsarioSession($_SESSION['id']);
+
 if ($flagRespuesta == 0) {
+    // Usuario bloqueado
     $ape_usuario = $_SESSION['ape'];
     $id_usuario_s = $_SESSION['id'];
-    $rol = $_SESSION['nombre_rol'];
     $usuario = $_SESSION['usuario'];
     $nombre = $_SESSION['nombre'];
-    $correo = $_SESSION['correo'];
+    $correo = $_SESSION['correo'] ?? '';
+    $rol = $_SESSION['nombre_rol'] ?? 'Sin rol';
+    
     echo '<div style="text-align: center; background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; padding: 20px; border-radius: 10px; font-size: 18px; font-weight: bold;">
         <i class="fas fa-exclamation-triangle" style="margin-right: 10px;"></i> 
         Usuario BLOQUEADO - ' . strtoupper($nombre) . ' ' . strtoupper($ape_usuario) . ' [' . strtoupper($usuario) . '] 😞 ❌
@@ -30,27 +32,65 @@ if ($flagRespuesta == 0) {
       <br>
       <div style="text-align: center;">
         <img src="assets/img/mebloqueaste.png" alt="Usuario Bloqueado" />
-        </div>
-     <br>
-    <div style="text-align: center;"> <b>Comunicate con los dueños para que te den acceso</b> </div>
-
-      ';
+      </div>
+      <br>
+      <div style="text-align: center;"> <b>Comunicate con los dueños para que te den acceso</b> </div>';
     exit();
-} else {
-    $ape_usuario = $_SESSION['ape'];
-    $id_usuario_s = $_SESSION['id'];
-    $rol = $_SESSION['nombre_rol'];
-    $nombre = $_SESSION['nombre'];
-    $correo = $_SESSION['correo'];
 }
 
-// Inicializar MenuManager con el rol del usuario
-require_once('MenuManager.php');
-$menuManager = new MenuManager($rol);
+// Usuario activo - cargar datos
+$ape_usuario = $_SESSION['ape'];
+$id_usuario_s = $_SESSION['id'];
+$nombre = $_SESSION['nombre'];
+$correo = $_SESSION['correo'] ?? '';
+$usuario = $_SESSION['usuario'] ?? '';
 
-// Función de compatibilidad para mantener el código existente
+// ✅ OBTENER ROL DEL USUARIO
+// Prioridad: nombre_rol > rol > 'Sin rol'
+$rol = $_SESSION['nombre_rol'] ?? $_SESSION['rol'] ?? 'Sin rol';
+
+// Si no hay rol en sesión, obtenerlo de la BD
+if ($rol === 'Sin rol' && isset($_SESSION['id'])) {
+    include("logica/bd.php");
+    
+    try {
+        $query = "
+            SELECT r.nombre_rol
+            FROM usuario u
+            INNER JOIN roles r ON u.id_rol = r.id_rol
+            WHERE u.id = $1
+        ";
+        
+        $stmt = $conectar->prepare($query);
+        $stmt->execute([$_SESSION['id']]);
+        $userRol = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        if ($userRol) {
+            $rol = $userRol['nombre_rol'];
+            $_SESSION['nombre_rol'] = $rol;
+        }
+    } catch (PDOException $e) {
+        error_log("Error obteniendo rol en cabecera: " . $e->getMessage());
+    }
+}
+
+// ✅ INICIALIZAR MENUMANAGER
+require_once('MenuManager.php');
+
+$menuManager = null;
+try {
+    $menuManager = new MenuManager($rol);
+} catch (Exception $e) {
+    error_log("Error inicializando MenuManager: " . $e->getMessage());
+    // Continuar sin MenuManager (modo degradado)
+}
+
+// Función de compatibilidad
 function tienePermiso($moduloPermiso = '', $permisoEspecifico = '') {
     global $menuManager;
+    if ($menuManager === null) {
+        return false;
+    }
     return $menuManager->tienePermiso($moduloPermiso, $permisoEspecifico);
 }
 
@@ -63,18 +103,11 @@ function tienePermiso($moduloPermiso = '', $permisoEspecifico = '') {
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <title>Caracol Captain</title>
     <meta charset="UTF-8">
-
-    <meta
-        content="width=device-width, initial-scale=1.0, shrink-to-fit=no"
-        name="viewport" />
-    <link
-        rel="icon"
-        href="assets/img/caracoles.png"
-        type="image/x-icon" />
+    <meta content="width=device-width, initial-scale=1.0, shrink-to-fit=no" name="viewport" />
+    <link rel="icon" href="assets/img/caracoles.png" type="image/x-icon" />
 
     <!-- Fonts and icons -->
     <script src="assets/js/plugin/webfont/webfont.min.js"></script>
-
     <script>
         WebFont.load({
             google: {
@@ -99,14 +132,8 @@ function tienePermiso($moduloPermiso = '', $permisoEspecifico = '') {
     <link rel="stylesheet" href="assets/css/bootstrap.min.css" />
     <link rel="stylesheet" href="assets/css/plugins.min.css" />
     <link rel="stylesheet" href="assets/css/kaiadmin.min.css" />
-
-    <!-- CSS Just for demo purpose, don't include it in your project -->
     <link rel="stylesheet" href="assets/css/demo.css" />
     <link rel="stylesheet" href="assets/css/stylePerzo.css" />
-    <!-- Efectos especiales -->
-    <!-- <link rel="stylesheet" href="assets/css/christmas-effects.css" /> -->
-    <!-- <link rel="stylesheet" href="assets/css/new-year.css"/> -->
-
 </head>
 
 <body>
@@ -114,18 +141,11 @@ function tienePermiso($moduloPermiso = '', $permisoEspecifico = '') {
         <!-- Sidebar -->
         <div class="sidebar" data-background-color="dark">
             <div class="sidebar-logo">
-                <!-- Logo Header -->
                 <div class="logo-header" data-background-color="dark">
-
                     <a href="index.php" class="logo">
-                        <img
-                            src="assets/img/caracoles.png"
-                            alt="navbar brand"
-                            class="navbar-brand"
-                            height="30" /> 
+                        <img src="assets/img/caracoles.png" alt="navbar brand" class="navbar-brand" height="30" /> 
                         <span style="color: white; font-size: 14px;">Caracol Soft - <strong>LB RODRI</strong></span>
                     </a>
-
                     <div class="nav-toggle">
                         <button class="btn btn-toggle toggle-sidebar">
                             <i class="gg-menu-right"></i>
@@ -138,15 +158,18 @@ function tienePermiso($moduloPermiso = '', $permisoEspecifico = '') {
                         <i class="gg-more-vertical-alt"></i>
                     </button>
                 </div>
-                <!-- End Logo Header -->
             </div>
             
             <div class="sidebar-wrapper scrollbar scrollbar-inner">
                 <div class="sidebar-content">
                     <ul class="nav nav-secondary">
                         <?php 
-                        // Renderizar el menú dinámicamente usando MenuManager
-                        echo $menuManager->renderMenu(); 
+                        // ✅ Renderizar el menú dinámicamente
+                        if ($menuManager !== null) {
+                            echo $menuManager->renderMenu(); 
+                        } else {
+                            echo '<li class="nav-item"><p style="color: white; padding: 15px;">Error cargando menú</p></li>';
+                        }
                         ?>
                     </ul>
                 </div>
@@ -157,14 +180,9 @@ function tienePermiso($moduloPermiso = '', $permisoEspecifico = '') {
         <div class="main-panel">
             <div class="main-header">
                 <div class="main-header-logo">
-                    <!-- Logo Header -->
                     <div class="logo-header" data-background-color="dark">
                         <a href="index.php" class="logo">
-                            <img
-                                src="assets/img/kaiadmin/logo_light.svg"
-                                alt="navbar brand"
-                                class="navbar-brand"
-                                height="20" />
+                            <img src="assets/img/kaiadmin/logo_light.svg" alt="navbar brand" class="navbar-brand" height="20" />
                         </a>
                         <div class="nav-toggle">
                             <button class="btn btn-toggle toggle-sidebar">
@@ -178,7 +196,6 @@ function tienePermiso($moduloPermiso = '', $permisoEspecifico = '') {
                             <i class="gg-more-vertical-alt"></i>
                         </button>
                     </div>
-                    <!-- End Logo Header -->
                 </div>
                 
                 <!-- Navbar Header -->
@@ -188,20 +205,12 @@ function tienePermiso($moduloPermiso = '', $permisoEspecifico = '') {
                         </nav>
 
                         <ul class="navbar-nav topbar-nav ms-md-auto align-items-center">
-                            <a
-                                name=""
-                                id=""
-                                class="btn"
-                                href="index.php"
-                                role="button"><i class="fas fa-home"></i>
+                            <a name="" id="" class="btn" href="index.php" role="button">
+                                <i class="fas fa-home"></i>
                             </a>
                             
                             <li class="nav-item topbar-icon dropdown hidden-caret">
-                                <a
-                                    class="nav-link"
-                                    data-bs-toggle="dropdown"
-                                    href="#"
-                                    aria-expanded="false">
+                                <a class="nav-link" data-bs-toggle="dropdown" href="#" aria-expanded="false">
                                     <i class="fas fa-layer-group"></i>
                                 </a>
                                 <div class="dropdown-menu quick-actions animated fadeIn">
@@ -213,8 +222,10 @@ function tienePermiso($moduloPermiso = '', $permisoEspecifico = '') {
                                         <div class="quick-actions-items">
                                             <div class="row m-0">
                                                 <?php 
-                                                // Renderizar accesos rápidos dinámicamente
-                                                echo $menuManager->renderQuickAccess(); 
+                                                // ✅ Renderizar accesos rápidos
+                                                if ($menuManager !== null) {
+                                                    echo $menuManager->renderQuickAccess(); 
+                                                }
                                                 ?>
                                             </div>
                                         </div>
@@ -223,18 +234,10 @@ function tienePermiso($moduloPermiso = '', $permisoEspecifico = '') {
                             </li>
                             
                             <li class="nav-item topbar-user dropdown hidden-caret">
-                                <a
-                                    class="dropdown-toggle profile-pic"
-                                    data-bs-toggle="dropdown"
-                                    href="#"
-                                    aria-expanded="false">
+                                <a class="dropdown-toggle profile-pic" data-bs-toggle="dropdown" href="#" aria-expanded="false">
                                     <div class="avatar-sm">
-                                        <img
-                                            src="assets/img/usuario.png"
-                                            alt="..."
-                                            class="avatar-img rounded-circle" />
+                                        <img src="assets/img/usuario.png" alt="..." class="avatar-img rounded-circle" />
                                     </div>
-
                                     <span class="profile-username">
                                         <span class="op-7">Hola,</span>
                                         <span class="fw-bold"><?php echo htmlspecialchars($nombre); ?></span>
@@ -245,15 +248,14 @@ function tienePermiso($moduloPermiso = '', $permisoEspecifico = '') {
                                         <li>
                                             <div class="user-box">
                                                 <div class="avatar-lg">
-                                                    <img
-                                                        src="assets/img/usuario.png"
-                                                        alt="image profile"
-                                                        class="avatar-img rounded" />
+                                                    <img src="assets/img/usuario.png" alt="image profile" class="avatar-img rounded" />
                                                 </div>
                                                 <div class="u-text">
-                                                    <h4><?php echo htmlspecialchars($nombre); ?></h4>
+                                                    <h4><?php echo htmlspecialchars($nombre . ' ' . $ape_usuario); ?></h4>
                                                     <p class="text-muted"><?php echo htmlspecialchars($correo ? $correo : 'Sin correo'); ?></p>
-                                                    <p class="text-muted"><small>Rol: <?php echo htmlspecialchars($rol); ?></small></p>
+                                                    <p class="text-muted">
+                                                        <small>Rol: <strong><?php echo htmlspecialchars($rol); ?></strong></small>
+                                                    </p>
                                                 </div>
                                             </div>
                                         </li>
@@ -272,10 +274,6 @@ function tienePermiso($moduloPermiso = '', $permisoEspecifico = '') {
 
             <br>
 
-            <!-- Efectos especiales -->
-            <!-- <script src="assets/js/christmas-effects.js"></script> -->
-            <!-- <script src="assets/js/new-year.js"></script> -->
-
             <script>
                 // Script para marcar el menú activo
                 document.addEventListener("DOMContentLoaded", function() {
@@ -288,17 +286,14 @@ function tienePermiso($moduloPermiso = '', $permisoEspecifico = '') {
                             menuPath = menuPath.split("/").pop().split("?")[0];
                             
                             if (currentPath === menuPath && menuPath !== "") {
-                                // Remover active de todos
                                 document.querySelectorAll(".nav-item").forEach(nav => {
                                     nav.classList.remove("active");
                                 });
                                 
-                                // Agregar active al elemento correcto
                                 let navItem = item.closest(".nav-item");
                                 if (navItem) {
                                     navItem.classList.add("active");
                                     
-                                    // Si está dentro de un collapse, abrirlo
                                     let collapse = item.closest(".collapse");
                                     if (collapse) {
                                         collapse.classList.add("show");

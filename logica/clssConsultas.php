@@ -2316,3 +2316,9 @@ function fnGenerarMenuConPermisos($usuario_id): string
     
     return $menu_html;
 }
+
+function contenidomenu($usuario){
+    $query = "SELECT * FROM perfil_acceso_usuario WHERE usuario_id = :usuario_id;";
+
+    return executeQuery($query, ['usuario_id' => $usuario]);  
+}
