@@ -34,7 +34,7 @@ function login($user, $pass){
 
     try{
         // Consulta para obtener los datos del usuario INCLUYENDO EL ROL
-        $orden = $conectar->prepare("SELECT u.id, u.username, u.rol, u.password, u.sucursal_id, u.id_rol,
+        $orden = $conectar->prepare("SELECT u.id, u.username, u.password, u.sucursal_id, u.id_rol,
                                             p.nombres, p.apellidos, p.email,
                                             r.nombre_rol, r.descripcion as rol_descripcion
                                      FROM usuario AS u 
@@ -55,7 +55,7 @@ function login($user, $pass){
                 session_start();
                 $_SESSION['id'] = $lista["id"];
                 $_SESSION['usuario'] = $lista["username"];
-                $_SESSION['rol'] = $lista["rol"];  // Rol antiguo (por compatibilidad)
+                $_SESSION['rol'] = $lista["nombre_rol"] ?? 'Sin rol';  // CORREGIDO: usar nombre_rol en lugar de rol
                 $_SESSION['nombre'] = $lista["nombres"];
                 $_SESSION['ape'] = $lista["apellidos"];
                 $_SESSION['correo'] = $lista["email"];
