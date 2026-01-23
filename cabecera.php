@@ -144,7 +144,7 @@ function tienePermiso($moduloPermiso = '', $permisoEspecifico = '') {
                 <div class="logo-header" data-background-color="dark">
                     <a href="index.php" class="logo">
                         <img src="assets/img/caracoles.png" alt="navbar brand" class="navbar-brand" height="30" /> 
-                        <span style="color: white; font-size: 14px;">Caracol Soft - <strong>LB RODRI</strong></span>
+                        <span style="color: white; font-size: 14px;">Caracol Soft - <strong>CAPTAIN</strong></span>
                     </a>
                     <div class="nav-toggle">
                         <button class="btn btn-toggle toggle-sidebar">

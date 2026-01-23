@@ -50,15 +50,16 @@ foreach ($permisos as $permiso) {
 
 <style>
     .permission-card {
-        border: 1px solid #ddd;
+        border: 1px solid #e0e6ed;
         border-radius: 8px;
         padding: 15px;
         margin-bottom: 15px;
         background: white;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
     }
 
     .permission-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
         color: white;
         padding: 12px 20px;
         border-radius: 6px;
@@ -90,29 +91,32 @@ foreach ($permisos as $permiso) {
 
     .permission-code {
         font-family: monospace;
-        background: #f0f0f0;
+        background: #e8ecef;
         padding: 2px 8px;
         border-radius: 4px;
         font-size: 0.85em;
         margin-right: 10px;
+        color: #495057;
     }
 
     .role-tab {
         cursor: pointer;
         padding: 12px 20px;
-        border: 2px solid #e0e0e0;
+        border: 2px solid #e0e6ed;
         border-radius: 8px 8px 0 0;
         margin-right: 5px;
         background: white;
         transition: all 0.3s;
+        color: #495057;
     }
 
     .role-tab:hover {
         background: #f8f9fa;
+        border-color: #5a6c7d;
     }
 
     .role-tab.active {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
         color: white;
         border-bottom: 2px solid transparent;
     }
@@ -124,6 +128,12 @@ foreach ($permisos as $permiso) {
         font-size: 0.75em;
         font-weight: 600;
         margin-left: 8px;
+        background: #5a6c7d;
+        color: white;
+    }
+
+    .role-tab.active .role-badge {
+        background: rgba(255,255,255,0.3);
     }
 
     .switch {
@@ -164,7 +174,7 @@ foreach ($permisos as $permiso) {
     }
 
     input:checked+.slider {
-        background-color: #667eea;
+        background-color: #2c3e50;
     }
 
     input:checked+.slider:before {
@@ -190,11 +200,24 @@ foreach ($permisos as $permiso) {
     }
 
     .stats-card {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
         color: white;
         padding: 20px;
         border-radius: 10px;
         margin-bottom: 20px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .stats-card h2 {
+        font-size: 2.5em;
+        margin: 0;
+        font-weight: 700;
+    }
+
+    .stats-card p {
+        margin: 5px 0 0 0;
+        opacity: 0.9;
+        font-size: 0.95em;
     }
 
     .category-badge {
@@ -207,43 +230,73 @@ foreach ($permisos as $permiso) {
     }
 
     .category-admin {
-        background: #e74c3c;
+        background: #c0392b;
         color: white;
     }
 
     .category-negocio {
-        background: #3498db;
+        background: #2980b9;
         color: white;
     }
 
     .category-sunat {
-        background: #2ecc71;
+        background: #27ae60;
         color: white;
     }
 
     .category-datos {
-        background: #f39c12;
+        background: #d68910;
         color: white;
     }
 
     .category-credito {
-        background: #9b59b6;
+        background: #8e44ad;
         color: white;
     }
 
     .category-reserva {
-        background: #1abc9c;
+        background: #16a085;
         color: white;
     }
 
     .category-venta {
-        background: #e67e22;
+        background: #d35400;
         color: white;
     }
 
     .category-sistema {
         background: #34495e;
         color: white;
+    }
+
+    .btn-success {
+        background: #27ae60;
+        border-color: #27ae60;
+    }
+
+    .btn-success:hover {
+        background: #229954;
+        border-color: #229954;
+    }
+
+    .btn-danger {
+        background: #c0392b;
+        border-color: #c0392b;
+    }
+
+    .btn-danger:hover {
+        background: #a93226;
+        border-color: #a93226;
+    }
+
+    .btn-primary {
+        background: #2c3e50;
+        border-color: #2c3e50;
+    }
+
+    .btn-primary:hover {
+        background: #1a252f;
+        border-color: #1a252f;
     }
 </style>
 
@@ -278,19 +331,19 @@ foreach ($permisos as $permiso) {
                 </div>
             </div>
             <div class="col-md-3">
-                <div class="stats-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                <div class="stats-card" style="background: linear-gradient(135deg, #2980b9 0%, #3498db 100%);">
                     <h2><?= count($permisos) ?></h2>
                     <p>Permisos Totales</p>
                 </div>
             </div>
             <div class="col-md-3">
-                <div class="stats-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                <div class="stats-card" style="background: linear-gradient(135deg, #16a085 0%, #1abc9c 100%);">
                     <h2><?= count($permisosPorCategoria) ?></h2>
                     <p>Categorías</p>
                 </div>
             </div>
             <div class="col-md-3">
-                <div class="stats-card" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+                <div class="stats-card" style="background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);">
                     <h2 id="totalAsignados">0</h2>
                     <p>Permisos Asignados</p>
                 </div>
@@ -300,12 +353,12 @@ foreach ($permisos as $permiso) {
         <!-- Tabs de Roles -->
         <div class="card">
             <div class="card-body">
-                <div class="d-flex" style="border-bottom: 2px solid #e0e0e0; margin-bottom: 20px;">
+                <div class="d-flex" style="border-bottom: 2px solid #e0e6ed; margin-bottom: 20px;">
                     <?php foreach ($roles as $index => $rol): ?>
                         <div class="role-tab <?= $index === 0 ? 'active' : '' ?>"
                             onclick="selectRole(<?= $rol['id_rol'] ?>, '<?= htmlspecialchars($rol['nombre']) ?>')">
                             <?= htmlspecialchars($rol['nombre']) ?>
-                            <span class="role-badge bg-info" id="badge-<?= $rol['id_rol'] ?>">0</span>
+                            <span class="role-badge" id="badge-<?= $rol['id_rol'] ?>">0</span>
                         </div>
                     <?php endforeach; ?>
                 </div>
