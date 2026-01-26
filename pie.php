@@ -1,6 +1,6 @@
 <footer class="footer">
   <div class="text-center">
-    <i class="fa fa-desktop text-muted"></i> 2025, Desarrollado Por <strong>Captain - Librería Bazar Rodri</strong>
+    <i class="fa fa-desktop text-muted"></i> 2026, Desarrollado Por <strong>CAPTAIN</strong>
   </div>
 </footer>
 </div>

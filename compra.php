@@ -1057,16 +1057,20 @@ if (!$sucursal_id) {
         // Búsqueda de artículos (campo de texto para artículos)
         $('#idBuscarArticulos').on('input', function() {
             var busqueda = $(this).val();
+            console.log(SUCURSAL_ID);
             if (busqueda.length >= 2) { // Si hay al menos 2 caracteres
                 $.ajax({
                     url: 'logica/clssConsultas.php',
                     type: 'POST',
                     data: {
                         accion: "BUSQUEDAD_FILTRO_ARTICULOS",
-                        cadenaBusqueda: busqueda // El valor de lo que escribe el usuario
+                        cadenaBusqueda: busqueda, // El valor de lo que escribe el usuario
+                        sucursal_id: SUCURSAL_ID
+
                     },
                     dataType: 'json',
                     success: function(data) {
+                        console.log(data)
                         var suggestions = '';
                         $.each(data, function(index, articulo) {
                             var articuloJson = JSON.stringify(articulo);

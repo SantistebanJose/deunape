@@ -148,7 +148,7 @@ function tienePermiso($moduloPermiso = '', $permisoEspecifico = '') {
                     <img src="assets/img/development.png" alt="navbar brand" class="navbar-brand" height="30" />
                     -->
                         
-                        <span style="color: white; font-size: 12px;"><?php echo $_SESSION["nombre_comercial"]?> | <strong>CAPTAIN</strong></span>
+                        <span style="color: white; font-size: 12px;"><?php echo $_SESSION["nombre_comercial"]?> | <strong>DeUnaPe 😎</strong></span>
                     </a>
                     <div class="nav-toggle">
                         <button class="btn btn-toggle toggle-sidebar">
@@ -211,7 +211,7 @@ function tienePermiso($moduloPermiso = '', $permisoEspecifico = '') {
 
                         
                         
-                        <span><i class="fab fa-telegram-plane"></i> Hola 👋,</span> <span><strong> <?php echo " ". $_SESSION["nombre_comercial"]." "?></strong>, Realiza todos tus movimientos desde el sistema de <strong>CAPTAIN 🫡</strong></span>
+                        <span><i class="fab fa-telegram-plane"></i> Hola 👋,</span> <span><strong> <?php echo " ". $_SESSION["nombre_comercial"]." "?></strong>, Realiza todos tus movimientos desde el sistema de <strong>DeUnaPe 😎</strong></span>
                         <ul class="navbar-nav topbar-nav ms-md-auto align-items-center">
                             <a name="" id="" class="btn" href="index.php" role="button">
                                 <i class="fas fa-home"></i>

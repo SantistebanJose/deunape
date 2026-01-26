@@ -47,12 +47,11 @@ function controladorConsultasPTMRE($accion)
             }
             break;
         case 'BUSQUEDAD_FILTRO_ARTICULOS':
-            if (isset($_POST["cadenaBusqueda"])) {
-                $cadena = $_POST["cadenaBusqueda"];
-                $result = fnListadoProductos($cadena);
+            $cadena = $_POST["cadenaBusqueda"];
+            $sucursal_id = $_POST["sucursal_id"];
+            $result = fnListadoProductos($cadena, $sucursal_id);
 
-                echo json_encode($result ? $result : []);
-            }
+            echo json_encode($result ? $result : []);
             break;
         //EJECUTARETL
         case 'EJECUTARETL':
@@ -62,7 +61,7 @@ function controladorConsultasPTMRE($accion)
                 echo json_encode($result ? $result : []);
             }
             break;
-        
+
         case 'EJECUTARETLARTICULOSNUBE':
             if (isset($_POST["EJECUTARETLARTICULOSNUBE"])) {
                 $cadena = $_POST["EJECUTARETLARTICULOSNUBE"];
@@ -157,7 +156,8 @@ function listarUsuarios(): array
     return executeQuery($query);
 }
 
-function fnListForVentasPorRango($fecha_inicio, $fecha_fin, $sucursal_id) {
+function fnListForVentasPorRango($fecha_inicio, $fecha_fin, $sucursal_id)
+{
     $query = "
         SELECT 
             v.fecha_fin_transaccion,
@@ -202,7 +202,7 @@ function fnListForVentasPorRango($fecha_inicio, $fecha_fin, $sucursal_id) {
         AND v.fecha_fin_transaccion::DATE BETWEEN :fecha_inicio AND :fecha_fin
         ORDER BY v.fecha_fin_transaccion DESC
     ";
-    
+
     return executeQuery($query, [
         'fecha_inicio' => $fecha_inicio,
         'fecha_fin' => $fecha_fin,
@@ -356,7 +356,7 @@ function listarArticuloSinview($sucursal_id = null): array
     WHERE a.deleted_at IS NULL
     AND a.sucursal_id = :sucursal_id
     ORDER BY a.id DESC";
-    
+
     return executeQuery($query, ['sucursal_id' => $sucursal_id]);
 }
 function listarVentaReservaCorte($sucursal_id = null): array
@@ -1501,7 +1501,7 @@ function fnListadoProveedores($cadena): array
     return executeQuery($query, ['busqueda' => '%' . $cadena . '%']);
 }
 
-function fnListadoProductos($cadena): array
+function fnListadoProductos($cadena, $sucursal_id): array
 {
     // La consulta SQL para buscar proveedores
     $query = "   
@@ -1514,13 +1514,22 @@ function fnListadoProductos($cadena): array
     END articulo_formato ,
     *
     FROM view_articulos 
-    WHERE articulo LIKE UPPER(:busqueda) LIMIT 10;
+    WHERE articulo ILIKE UPPER(:busqueda)
+    AND sucursal_id = :sucursal_id
+    
+    LIMIT 10;
     ";
 
     // Ejecuta la consulta con el parámetro de búsqueda
-    return executeQuery($query, ['busqueda' => '%' . $cadena . '%']);
+    return executeQuery(
+        query: $query,
+        params: [
+            'busqueda' => '%' . $cadena . '%',
+            'sucursal_id' => $sucursal_id
+        ]
+    );
 }
-function fnListadoCompras(): array
+function fnListadoCompras($sucursal_id): array
 {
     // La consulta SQL para buscar proveedores
     $query = "   
@@ -1562,11 +1571,15 @@ function fnListadoCompras(): array
     FROM compra c
     JOIN usuario u ON u.id = c.usuario_id AND c.created_at::DATE >= CURRENT_DATE - INTERVAL '3 months'
     JOIN persona us ON u.persona_id = us.id
-    LEFT JOIN persona proveedor ON c.proveedor_id = proveedor.id;
+    LEFT JOIN persona proveedor ON c.proveedor_id = proveedor.id
+    WHERE c.sucursal_id = :sucursal_id;
     ";
 
     // Ejecuta la consulta con el parámetro de búsqueda
-    return executeQuery($query);
+    return executeQuery(
+        query: $query,
+        params: ["sucursal_id" => $sucursal_id]
+    );
 }
 
 //
@@ -1815,30 +1828,30 @@ function fnListadoDeReservasWeb(): array
 }
 
 
-function fnListadoDeEmisor($sucursal_id = null) {
+function fnListadoDeEmisor($sucursal_id = null)
+{
     global $conectar;
-    
+
     try {
         error_log("=== LISTAR EMISOR ===");
         error_log("Sucursal ID: " . $sucursal_id);
-        
+
         if ($sucursal_id === null) {
             error_log("⚠️ No se proporcionó sucursal_id");
             return [];
         }
-        
+
         $sql = "SELECT * FROM emisor WHERE sucursal_id = :sucursal_id LIMIT 1";
-        
+
         $stmt = $conectar->prepare($sql);
         $stmt->bindParam(':sucursal_id', $sucursal_id, PDO::PARAM_INT);
         $stmt->execute();
-        
+
         $resultado = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        
+
         error_log("✅ Emisores encontrados: " . count($resultado));
-        
+
         return $resultado;
-        
     } catch (Exception $e) {
         error_log("❌ Error en fnListadoDeEmisor: " . $e->getMessage());
         return [];
@@ -1880,14 +1893,14 @@ function fnGenerarTicket($idVenta): void
     // Crear PDF en formato ticket térmico (80mm de ancho)
     $pdf = new FPDF('P', 'mm', array(80, 200));
     $pdf->AddPage();
-    
+
     $logoPath = 'logica/logo.jpeg';
 
     // Verificar si la imagen existe
     if (file_exists($logoPath)) {
         $logoWidth = 20; // Ancho del logo
         $centerX = (80 - $logoWidth) / 2; // Centrado en una página de 80mm de ancho
-        
+
         $pdf->Image($logoPath, $centerX, 5, $logoWidth); // Ajustar la posición y tamaño del logo
         $pdf->Ln(20);
     } else {
@@ -2044,7 +2057,8 @@ function fnGenerarTicket($idVenta): void
     $pdf->Output('I', 'ticket_venta.pdf');
 }
 
-function fnRankingClientes() {
+function fnRankingClientes()
+{
     $query = "
         SELECT
             p.nombres || ' ' || p.apellidos AS nombre_cliente,
@@ -2061,7 +2075,7 @@ function fnRankingClientes() {
         ORDER BY
             total_compras_acumulado DESC
     ";
-    
+
     return executeQuery($query);
 }
 
@@ -2118,7 +2132,7 @@ function fnObtenerPermisosUsuario($usuario_id): array
         AND r.estado = 1
         LIMIT 1
     ";
-    
+
     return executeQuery($query, ['usuario_id' => $usuario_id]);
 }
 
@@ -2140,12 +2154,12 @@ function fnTienePermisoModulo($usuario_id, $identificador_modulo): bool
         AND r.estado = 1
         AND m.estado = 1
     ";
-    
+
     $result = executeQuery($query, [
         'usuario_id' => $usuario_id,
         'identificador' => $identificador_modulo
     ]);
-    
+
     return isset($result[0]) && $result[0]['tiene_permiso'] > 0;
 }
 
@@ -2167,12 +2181,12 @@ function fnTienePermisoPagina($usuario_id, $url_pagina): bool
         AND r.estado = 1
         AND s.estado = 1
     ";
-    
+
     $result = executeQuery($query, [
         'usuario_id' => $usuario_id,
         'url' => $url_pagina
     ]);
-    
+
     return isset($result[0]) && $result[0]['tiene_permiso'] > 0;
 }
 
@@ -2185,7 +2199,7 @@ function fnListarRoles($sucursal_id = null): array
         $query = "SELECT * FROM roles WHERE estado = 1 ORDER BY nombre_rol";
         return executeQuery($query);
     }
-    
+
     $query = "SELECT * FROM roles WHERE sucursal_id = :sucursal_id AND estado = 1 ORDER BY nombre_rol";
     return executeQuery($query, ['sucursal_id' => $sucursal_id]);
 }
@@ -2253,7 +2267,7 @@ function fnObtenerPermisosRol($id_rol): array
         WHERE r.id_rol = :id_rol
         LIMIT 1
     ";
-    
+
     return executeQuery($query, ['id_rol' => $id_rol]);
 }
 
@@ -2263,30 +2277,30 @@ function fnObtenerPermisosRol($id_rol): array
 function fnGenerarMenuConPermisos($usuario_id): string
 {
     $permisos = fnObtenerPermisosUsuario($usuario_id);
-    
+
     if (empty($permisos)) {
         return '<li class="nav-item"><a href="#"><p>No tiene permisos asignados</p></a></li>';
     }
-    
+
     $modulos = json_decode($permisos[0]['modulos_permitidos'], true);
     $submodulos = json_decode($permisos[0]['submodulos_permitidos'], true);
-    
+
     if (empty($modulos)) {
         return '<li class="nav-item"><a href="#"><p>No tiene módulos permitidos</p></a></li>';
     }
-    
+
     $menu_html = '';
-    
+
     foreach ($modulos as $modulo) {
         // Filtrar submódulos de este módulo
-        $subs_modulo = array_filter($submodulos, function($sub) use ($modulo) {
+        $subs_modulo = array_filter($submodulos, function ($sub) use ($modulo) {
             return $sub['id_modulo'] == $modulo['id_modulo'];
         });
-        
+
         if (empty($subs_modulo)) {
             continue;
         }
-        
+
         $menu_html .= '<li class="nav-item">';
         $menu_html .= '<a data-bs-toggle="collapse" href="#' . $modulo['identificador'] . '" class="collapsed" aria-expanded="false">';
         $menu_html .= '<i class="' . $modulo['icono'] . '"></i>';
@@ -2295,7 +2309,7 @@ function fnGenerarMenuConPermisos($usuario_id): string
         $menu_html .= '</a>';
         $menu_html .= '<div class="collapse" id="' . $modulo['identificador'] . '">';
         $menu_html .= '<ul class="nav nav-collapse">';
-        
+
         foreach ($subs_modulo as $submodulo) {
             $menu_html .= '<li>';
             $menu_html .= '<a href="' . $submodulo['url'] . '">';
@@ -2303,17 +2317,18 @@ function fnGenerarMenuConPermisos($usuario_id): string
             $menu_html .= '</a>';
             $menu_html .= '</li>';
         }
-        
+
         $menu_html .= '</ul>';
         $menu_html .= '</div>';
         $menu_html .= '</li>';
     }
-    
+
     return $menu_html;
 }
 
-function contenidomenu($usuario){
+function contenidomenu($usuario)
+{
     $query = "SELECT * FROM perfil_acceso_usuario WHERE usuario_id = :usuario_id;";
 
-    return executeQuery($query, ['usuario_id' => $usuario]);  
+    return executeQuery($query, ['usuario_id' => $usuario]);
 }

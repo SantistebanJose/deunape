@@ -2,4178 +2,2340 @@
 include("cabecera.php");
 include("logica/clssVenta.php");
 
-
 if (isset($_GET['id'])) {
     $id = $_GET['id'];
 }
 
 $sucursal_id = $_SESSION["sucursal_id"];
-
 ?>
+
 <style>
+    /* ===== VARIABLES DE COLOR ===== */
+    :root {
+        --primary-color: #2a2f5b;
+        --primary-dark: #1a1f3a;
+        --success-color: #28a745;
+        --success-dark: #1e7e34;
+        --danger-color: #dc3545;
+        --warning-color: #ffc107;
+        --light-bg: #f8f9fa;
+        --card-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+        --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* ===== UTILIDADES GENERALES ===== */
+    .card {
+        border-radius: 12px;
+        box-shadow: var(--card-shadow);
+        border: none;
+        margin-bottom: 1.5rem;
+    }
+
+    .card-header {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+        color: white;
+        border-radius: 12px 12px 0 0 !important;
+        padding: 1.25rem;
+    }
+
+    .btn-round {
+        border-radius: 25px;
+        padding: 0.5rem 1.5rem;
+        font-weight: 600;
+        transition: var(--transition);
+    }
+
+    .btn-round:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    /* ===== TABLA DE PRODUCTOS ===== */
+    #productosTable {
+        font-size: 14px;
+        margin-bottom: 0;
+    }
+
+    #productosTable thead {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+    }
+
+    #productosTable thead th {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        color: white !important;
+        border: none;
+        padding: 15px 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 12px;
+        letter-spacing: 0.5px;
+    }
+
+    #productosTable tbody tr {
+        transition: var(--transition);
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    #productosTable tbody tr:hover {
+        background-color: #f0f8ff;
+        transform: scale(1.002);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    #productosTable tbody td {
+        padding: 12px;
+        vertical-align: middle;
+    }
+
+    #productosTable .badge.bg-danger {
+        background-color: #ffe5e5 !important;
+        color: var(--danger-color) !important;
+        border: 1px solid var(--danger-color);
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    #productosTable .text-success {
+        color: var(--success-color) !important;
+        font-weight: 700 !important;
+        font-size: 16px !important;
+    }
+
+    #productosTable .btn-success.btn-sm {
+        background: linear-gradient(135deg, var(--success-color) 0%, var(--success-dark) 100%) !important;
+        border: none !important;
+        border-radius: 20px !important;
+        padding: 8px 16px !important;
+        font-weight: 600 !important;
+        font-size: 12px !important;
+        transition: var(--transition) !important;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2) !important;
+    }
+
+    #productosTable .btn-success.btn-sm:hover:not(:disabled) {
+        transform: translateY(-2px) !important;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3) !important;
+    }
+
+    #productosTable .btn-success.btn-sm:disabled {
+        background: #6c757d !important;
+        cursor: not-allowed;
+        opacity: 0.6;
+    }
+
+    /* ===== TABLA DE ARTÍCULOS (VENTA) ===== */
+    #tabla_articulos th:nth-child(1),
+    #tabla_articulos td:nth-child(1),
+    #tabla_articulos th:nth-child(6),
+    #tabla_articulos td:nth-child(6),
+    #tabla_articulos th:nth-child(7),
+    #tabla_articulos td:nth-child(7) {
+        display: none !important;
+    }
+
+    /* ===== FILTROS ===== */
+    .table-filters .form-select {
+        border-radius: 25px;
+        border: 2px solid var(--primary-color);
+        transition: var(--transition);
+    }
+
+    .table-filters .form-select:focus {
+        border-color: var(--primary-dark);
+        box-shadow: 0 0 0 0.2rem rgba(42, 47, 91, 0.25);
+    }
+
+    /* ===== MODALES ===== */
+    .modal-content {
+        border-radius: 15px;
+        border: none;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    }
+
+    .modal-header {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+        color: white;
+        border-radius: 15px 15px 0 0;
+        padding: 1.25rem;
+    }
+
+    .modal-header .btn-close {
+        filter: brightness(0) invert(1);
+    }
+
+    #modalCliente .modal-content {
+        background-color: #f0f8ff;
+        border: 2px solid var(--primary-color);
+    }
+
+    /* ===== CARDS DE TOTALES ===== */
+    .card-stats {
+        border-radius: 15px;
+        transition: var(--transition);
+    }
+
+    .card-stats:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    .card-primary {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+        color: white;
+    }
+
+    /* ===== VALIDACIÓN ===== */
+    .error-input {
+        border: 2px solid var(--danger-color);
+        animation: shake 0.3s;
+    }
+
+    .error-message {
+        color: var(--danger-color);
+        font-size: 0.9em;
+        margin-top: 5px;
+        animation: fadeIn 0.3s;
+    }
+
+    .input-autocompleted {
+        animation: pulseGreen 0.5s ease;
+    }
+
+    @keyframes shake {
+
+        0%,
+        100% {
+            transform: translateX(0);
+        }
+
+        25% {
+            transform: translateX(-10px);
+        }
+
+        75% {
+            transform: translateX(10px);
+        }
+    }
+
+    @keyframes pulseGreen {
+        0% {
+            background-color: #d4edda;
+        }
+
+        100% {
+            background-color: white;
+        }
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* ===== PAGINACIÓN ===== */
+    .pagination {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        margin: 20px 0;
+    }
+
+    .pagination button {
+        transition: var(--transition);
+    }
+
+    .pagination button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    /* ===== SECCIÓN DE VUELTO ===== */
+    #seccionVuelto {
+        animation: slideDown 0.3s ease;
+    }
+
+    @keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    #vuelto {
+        font-size: 1.2rem;
+        font-weight: 700;
+    }
+
+    #totalAPagar {
+        background-color: #f8f9fa;
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 768px) {
+        #productosTable {
+            font-size: 12px;
+        }
+
+        #productosTable th,
+        #productosTable td {
+            padding: 8px 4px;
+        }
+
+        .card-stats {
+            margin-bottom: 1rem;
+        }
+
+        #seccionVuelto .btn-group {
+            flex-wrap: wrap;
+        }
+
+        #seccionVuelto .btn-group .btn {
+            margin: 2px;
+        }
+    }
+
+    /* ===== SPINNER API ===== */
+    .spinner-api {
+        color: var(--primary-color);
+    }
+
+    /* ===== SUGERENCIAS AUTOCOMPLETE ===== */
     #sugerencias {
         max-height: 200px;
         overflow-y: auto;
         z-index: 1050;
-        /* Para asegurar que esté sobre otros elementos */
     }
 
     #sugerencias .list-group-item {
         cursor: pointer;
     }
 
-    #tabla_articulos th:nth-child(1),
-    #tabla_articulos td:nth-child(1),
-    #tabla_articulos th:nth-child(10),
-    #tabla_articulos td:nth-child(10),
-    #tabla_articulos th:nth-child(11),
-    #tabla_articulos td:nth-child(11) {
-        display: none !important;
-    }
-
-    .error-input {
-        border: 2px solid red;
-    }
-
-    .error-message {
-        color: red;
-        font-size: 0.9em;
-        margin-top: 5px;
-    }
-
-    #modalCliente {
-        z-index: 1060 !important;
-        /* Asegúrate de que sea más alto que el de los demás modales */
-    }
-
-    .modal-header {
-        background-color: rgb(255, 255, 255);
-        /* Fondo azul */
-        color: #2a2f5b;
-        /* Texto blanco */
-    }
-
-    /* Estilo para cambiar el color de fondo y bordes del modal */
-    #modalCliente .modal-content {
+    #sugerencias .list-group-item:hover {
         background-color: #f0f8ff;
-        /* Color de fondo claro (puedes cambiarlo) */
-        border-radius: 10px;
-        /* Bordes redondeados */
-        border: 2px solid #2a2f5b;
-        /* Borde azul para darle más protagonismo */
     }
-
-    /* Agregar una sombra para resaltar más el modal */
-    #modalCliente .modal-dialog {
-        box-shadow: 0 4px 10px #2a2f5b;
-        /* Sombra azul para resaltar el modal */
-    }
-
-    /* Título del modal más grande y con un color diferente */
-    #modalCliente .modal-header {
-        background-color: #2a2f5b;
-        /* Fondo azul */
-        color: white;
-        /* Texto blanco */
-    }
-
-    #modalCliente .btn-close {
-        background-color: #f0f8ff;
-        /* Botón de cerrar rojo */
-    }
-
-    .pagination {
-        display: flex;
-        justify-content: center;
-        flex-wrap: wrap;
-        gap: 5px;
-        margin: 10px 0;
-    }
-
-    .pagination a {
-        text-decoration: none;
-        padding: 8px 12px;
-        border: 1px solid #ddd;
-        color: #333;
-        border-radius: 4px;
-        transition: background-color 0.3s;
-    }
-
-    .pagination a:hover {
-        background-color: #f0f0f0;
-    }
-
-    .pagination a.active {
-        background-color: #007bff;
-        color: white;
-    }
-
-    /* Hacer que la paginación se ajuste en pantallas pequeñas */
-    @media (max-width: 768px) {
-        .pagination {
-            font-size: 12px;
-        }
-
-        .pagination a {
-            padding: 6px 10px;
-        }
-
-        table {
-            font-size: 14px;
-        }
-    }
-
-    @media (max-width: 480px) {
-        .pagination {
-            font-size: 10px;
-        }
-
-        .pagination a {
-            padding: 5px 8px;
-        }
-
-        table {
-            font-size: 12px;
-        }
-    }
-
-
-
-    #productosTable {
-    font-size: 14px;
-    margin-bottom: 0;
-}
-
-#productosTable thead {
-    background: linear-gradient(135deg, #2a2f5b 0%, #1a1f3a 100%);
-}
-
-#productosTable thead th {
-    position: sticky;
-    top: 0;
-    z-index: 10;
-    background-color: transparent !important;
-    color: white !important;
-    border: none;
-    padding: 15px 12px;
-    font-weight: 600;
-    text-transform: uppercase;
-    font-size: 12px;
-    letter-spacing: 0.5px;
-}
-
-#productosTable tbody tr {
-    transition: all 0.3s ease;
-    border-bottom: 1px solid #dee2e6;
-}
-
-#productosTable tbody tr:hover {
-    background-color: #f0f8ff;
-    transform: scale(1.002);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-}
-
-#productosTable tbody td {
-    padding: 12px;
-    vertical-align: middle;
-}
-/* Badge de sin stock mejorado */
-#productosTable .badge.bg-danger {
-    background-color: #ffe5e5 !important;
-    color: #dc3545 !important;
-    border: 1px solid #dc3545;
-    padding: 6px 12px;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: 600;
-}
-
-/* Precio mejorado */
-#productosTable .text-success {
-    color: #28a745 !important;
-    font-weight: 700 !important;
-    font-size: 16px !important;
-}
-/* Botón agregar mejorado */
-#productosTable .btn-success.btn-sm {
-    background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%) !important;
-    border: none !important;
-    border-radius: 20px !important;
-    padding: 8px 16px !important;
-    font-weight: 600 !important;
-    font-size: 12px !important;
-    transition: all 0.3s ease !important;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2) !important;
-}
-
-#productosTable .btn-success.btn-sm:hover:not(:disabled) {
-    transform: translateY(-2px) !important;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.3) !important;
-    background: linear-gradient(135deg, #1e7e34 0%, #28a745 100%) !important;
-}
-
-#productosTable .btn-success.btn-sm:disabled {
-    background: #6c757d !important;
-    cursor: not-allowed;
-    opacity: 0.6;
-}
-
-/* Stock bajo (nuevo estilo) */
-#productosTable tbody td.text-center strong {
-    padding: 6px 12px;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: 600;
-    display: inline-block;
-}
-
-/* Tabla responsive mejorada */
-.table-responsive {
-    border-radius: 10px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    background: white;
-}
-
-/* Responsivo para móviles */
-@media (max-width: 768px) {
-    #productosTable {
-        font-size: 12px;
-    }
-    
-    #productosTable th,
-    #productosTable td {
-        padding: 8px 6px;
-    }
-    
-    #productosTable .btn-sm {
-        padding: 6px 12px !important;
-        font-size: 11px !important;
-    }
-
-    #productosTable .text-success {
-        font-size: 14px !important;
-    }
-}
-
-@media (max-width: 576px) {
-    #productosTable {
-        font-size: 11px;
-    }
-
-    #productosTable .badge {
-        font-size: 10px;
-        padding: 4px 8px;
-    }
-}
-
-/* Responsivo para móviles */
-@media (max-width: 768px) {
-    #productosTable {
-        font-size: 12px;
-    }
-    
-    #productosTable th,
-    #productosTable td {
-        padding: 8px 4px;
-    }
-    
-    #productosTable .btn-sm {
-        padding: 4px 8px;
-        font-size: 11px;
-    }
-}
-
-
-
-/* Estilos para el spinner de carga */
-.spinner-api {
-    color: #6861ce;
-}
-
-/* Animación para cuando se autocompletan los campos */
-.input-autocompleted {
-    animation: pulseGreen 0.5s ease;
-}
-
-@keyframes pulseGreen {
-    0% {
-        background-color: #d4edda;
-    }
-    100% {
-        background-color: white;
-    }
-}
 </style>
 
-<div
-    class="container">
+<div class="container">
     <div class="page-inner">
-        <div
-            class="card">
-
+        <!-- HEADER PRINCIPAL -->
+        <div class="card">
             <div class="card-body">
-
-                <h4 class="card-title"><i class="fas fa-dolly"></i> Venta Rapida</h4>
-                <div class="mb-3">
-                    <div class="card-sub">
-                        Aquí podrás realizar ventas de cuando un cliente viene a realizar corte y/o compra de materiales.
-                    </div>
-                    <div class="col-md-12">
-                        <div class="card">
-                            <div class="card-header d-flex justify-content-between">
-                                <h6 class="card-title"><i class="fas fa-chess-queen"></i> Artículos</h6>
-                            </div>
-                            <div class="card-body">
-                                <div class="d-flex justify-content-center flex-wrap">
-                                    <ul class="nav d-flex flex-wrap justify-content-center">
-                                        <?php
-                                        foreach (listarMovimientos($sucursal_id) as $datos) {
-                                            $datosJSON = json_encode($datos);
-                                        ?>
-                                            <li class="nav-item me-3 mb-2">
-                                                <button class="btn btn-secondary btn-round btn-sm btn-lg-sm" onclick='fn_servicios(<?php echo $datosJSON ?>)'>
-                                                    <i class="fas fa-external-link-alt"></i> <?php echo $datos["descripcion"] ?>
-                                                </button>
-                                            </li>
-                                        <?php
-                                        }
-                                        ?>
-
-                                        <li class="nav-item me-3">
-                                            <button class="btn btn-secondary btn-round btn-sm btn-lg-sm" id="btnAbrirModalSolo"><i class="fas fa-cut"></i> SOLO CORTE</button>
-                                        </li>
-                                        <li class="nav-item me-3">
-                                            <button class="btn btn-secondary btn-round btn-sm btn-lg-sm" id="btnAbrirModalSolov2"><i class="fas fa-print"></i> IMPRESIÓN 3D</button>
-                                        </li>
-                                    </ul>
-                                </div>
-
-
-                                <br>
-
-                                <div class="table-filters mb-3">
-                                    <div class="row justify-content-center align-items-center g-2">
-                                        <div class="col-md-2">
-                                            <select id="filterCategoria" class="form-select" style="border-radius: 25px; border: 2px solid #6861ce;">
-                                                <option value="">Filtrar por Categoría</option>
-                                                <!-- Aquí se agregarán las opciones de categorías dinámicamente -->
-                                            </select>
-                                        </div>
-                                        <div class="col-md-2">
-                                            <select id="filterTipo" class="form-select" style="border-radius: 25px; border: 2px solid #6861ce;">
-                                                <option value="">Filtrar por Tipo</option>
-                                                <!-- Aquí se agregarán las opciones de tipo dinámicamente -->
-                                            </select>
-                                        </div>
-                                        <div class="col-md-2">
-                                            <select id="filterDimension" class="form-select" style="border-radius: 25px; border: 2px solid #6861ce;">
-                                                <option value="">Filtrar por Dimensión</option>
-                                                <!-- Aquí se agregarán las opciones de dimensión dinámicamente -->
-                                            </select>
-                                        </div>
-                                        <div class="col-md-2">
-                                            <select id="filterColor" class="form-select" style="border-radius: 25px; border: 2px solid #6861ce;">
-                                                <option value="">Filtrar por Color</option>
-                                                <!-- Aquí se agregarán las opciones de dimensión dinámicamente -->
-                                            </select>
-                                        </div>
-                                        <div class="col-md-2">
-                                            <button id="clearFilters" class="btn btn-warning btn-round btn-md" role="button"><i class="fas fa-broom"></i> Limpiar Filtros</button>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Buscador de texto -->
-                                <div class="d-flex justify-content-center mt-4">
-                                    <input type="text" id="searchInput" class="form-control" placeholder="Buscar Articulo..." onkeyup="filterProducts()">
-                                </div>
-
-
-                                <!-- Contenedor para las tarjetas de productos -->
-                                <div class="table-responsive mt-4">
-                                    <table class="table table-hover table-striped align-middle" id="productosTable">
-                                        <thead class="table-dark">
-                                            <tr>
-                                                <th>Artículo</th>
-                                                <th>Categoría</th>
-                                                <th>Tipo</th>
-                                                <th>Dimensión</th>
-                                                <th>Color</th>
-                                                <th class="text-center">Stock</th>
-                                                <th class="text-end">Precio</th>
-                                                <th class="text-center">Acción</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="productoContainer">
-                                            <!-- Los productos se generarán dinámicamente aquí -->
-                                        </tbody>
-                                    </table>
-                                </div>
-
-                                <!-- Paginación -->
-                                <div id="pagination" class="d-flex justify-content-center mt-4">
-                                    <button id="prevPage" class="btn btn-secondary btn-round mx-2" onclick="changePage(-1)">
-                                        <i class="fas fa-chevron-left"></i> Anterior
-                                    </button>
-                                    <button id="nextPage" class="btn btn-secondary btn-round mx-2" onclick="changePage(1)">
-                                        Siguiente <i class="fas fa-chevron-right"></i>
-                                    </button>
-                                </div>
-
-
-
-
-                                <script>
-                                    const products = <?php echo json_encode(listarProductosVenta1($sucursal_id)); ?>;
-                                    let currentPage = 1;
-                                    const itemsPerPage = 6;
-                                    let filteredProducts = products; // Productos que se mostrarán después del filtro
-                                    const allCategories = [...new Set(products.map(product => product.categoria))]; // Lista única de categorías
-                                    const allTypes = [...new Set(products.map(product => product.tipo))]; // Lista única de tipos
-                                    const allDimensions = [...new Set(products.map(product => product.dimension))]; // Lista única de dimensiones
-                                    const allColores = [...new Set(products.map(product => product.color))]; // Lista única de colores
-
-
-                                    // Función para llenar los selectores de filtro
-                                    function populateFilters() {
-                                        const categorySelect = document.getElementById('filterCategoria');
-                                        const typeSelect = document.getElementById('filterTipo');
-                                        const dimensionSelect = document.getElementById('filterDimension');
-                                        const colorSelect = document.getElementById('filterColor');
-
-                                        allCategories.forEach(category => {
-                                            categorySelect.innerHTML += `<option value="${category}">${category}</option>`;
-                                        });
-
-                                        allTypes.forEach(type => {
-                                            typeSelect.innerHTML += `<option value="${type}">${type}</option>`;
-                                        });
-
-                                        allDimensions.forEach(dimension => {
-                                            dimensionSelect.innerHTML += `<option value="${dimension}">${dimension}</option>`;
-                                        });
-                                        allColores.forEach(color => {
-                                            colorSelect.innerHTML += `<option value="${color}">${color}</option>`;
-                                        });
-                                    }
-
-                                    // Función para renderizar los productos
-                                    function renderProducts(productsToDisplay) {
-                                        const container = document.getElementById('productoContainer');
-                                        container.innerHTML = '';
-                                        
-                                        productsToDisplay.forEach(product => {
-                                            const stock = parseFloat(product.stock);
-                                            const flag_color = stock === 0.00 ? "text-danger fw-bold" : "";
-                                            const flag_badge = stock === 0.00 ? '<span class="badge bg-danger ms-2">SIN STOCK</span>' : "";
-                                            
-                                            const row = document.createElement('tr');
-                                            row.className = stock === 0.00 ? 'table-danger' : '';
-                                            
-                                            row.innerHTML = `
-                                                <td class="${flag_color}">
-                                                    <strong>${product.articulo}</strong> 
-                                                    ${flag_badge}
-                                                </td>
-                                                <td><span class="badge bg-info">${product.categoria}</span></td>
-                                                <td>${product.tipo}</td>
-                                                <td>${product.dimension}</td>
-                                                <td>${product.color}</td>
-                                                <td class="text-center ${flag_color}">
-                                                    <strong>${product.stock}</strong>
-                                                </td>
-                                                <td class="text-end">
-                                                    <strong class="text-success">S/ ${product.precio_venta}</strong>
-                                                </td>
-                                                <td class="text-center">
-                                                    <button 
-                                                        class="btn btn-success btn-sm btn-round" 
-                                                        onclick='fn_agregar_venta(${JSON.stringify(product).replace(/'/g, "&#39;")})'
-                                                        ${stock === 0.00 ? 'disabled' : ''}>
-                                                        <i class="fas fa-plus"></i> Agregar
-                                                    </button>
-                                                </td>
-                                            `;
-                                            container.appendChild(row);
-                                        });
-                                        // Si no hay productos, mostrar mensaje
-                                        if (productsToDisplay.length === 0) {
-                                            const row = document.createElement('tr');
-                                            row.innerHTML = `
-                                                <td colspan="8" class="text-center text-muted py-4">
-                                                    <i class="fas fa-inbox fa-3x mb-3"></i>
-                                                    <p class="mb-0">No se encontraron productos</p>
-                                                </td>
-                                            `;
-                                            container.appendChild(row);
-                                        }
-
-                                    }
-
-                                    // Función para cambiar la página
-                                    function changePage(direction) {
-                                        currentPage += direction;
-                                        if (currentPage < 1) currentPage = 1;
-                                        if (currentPage > totalPages()) currentPage = totalPages();
-                                        renderPage();
-                                    }
-
-                                    // Función para calcular el total de páginas
-                                    function totalPages() {
-                                        return Math.ceil(filteredProducts.length / itemsPerPage);
-                                    }
-
-                                    // Función para renderizar la página actual
-                                    function renderPage() {
-                                        const start = (currentPage - 1) * itemsPerPage;
-                                        const end = start + itemsPerPage;
-                                        const productsToDisplay = filteredProducts.slice(start, end);
-
-                                        renderProducts(productsToDisplay);
-
-                                        document.getElementById('prevPage').disabled = currentPage === 1;
-                                        document.getElementById('nextPage').disabled = currentPage === totalPages();
-                                    }
-
-                                    // Función para filtrar los productos por las opciones seleccionadas
-                                    function filterProducts() {
-                                        const searchText = document.getElementById('searchInput').value.toLowerCase();
-                                        const category = document.getElementById('filterCategoria').value;
-                                        const type = document.getElementById('filterTipo').value;
-                                        const dimension = document.getElementById('filterDimension').value;
-                                        const color = document.getElementById('filterColor').value;
-
-
-                                        filteredProducts = products.filter(product => {
-                                            return (
-                                                (category === '' || product.categoria === category) &&
-                                                (type === '' || product.tipo === type) &&
-                                                (dimension === '' || product.dimension === dimension) &&
-                                                (color === '' || product.color === color) &&
-                                                (product.articulo.toLowerCase().includes(searchText) || product.categoria.toLowerCase().includes(searchText) || product.tipo.toLowerCase().includes(searchText))
-                                            );
-                                        });
-
-                                        currentPage = 1; // Volver a la primera página después de filtrar
-                                        renderPage();
-                                    }
-
-                                    // Función para limpiar los filtros
-                                    function clearFilters() {
-                                        document.getElementById('filterCategoria').value = '';
-                                        document.getElementById('filterTipo').value = '';
-                                        document.getElementById('filterDimension').value = '';
-                                        document.getElementById('filterColor').value = '';
-
-                                        document.getElementById('searchInput').value = '';
-
-                                        filteredProducts = products;
-                                        currentPage = 1;
-                                        renderPage();
-                                    }
-
-                                    // Inicializar los filtros y la página
-                                    populateFilters();
-                                    renderPage();
-
-                                    // Asociar eventos de filtro
-                                    document.getElementById('filterCategoria').addEventListener('change', filterProducts);
-                                    document.getElementById('filterTipo').addEventListener('change', filterProducts);
-                                    document.getElementById('filterDimension').addEventListener('change', filterProducts);
-                                    document.getElementById('filterColor').addEventListener('change', filterProducts);
-                                    document.getElementById('clearFilters').addEventListener('click', clearFilters);
-                                </script>
-
-
-
-
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 
-                        <label for="" class="form-label">Movimiento</label>
-                        <select
-                        class="form-select form-select-md"
-                        name=""
-                        id="">
-                        <option selected>Seleccione</option>
-                        
-                        <?php
-                        /**
-                         foreach (listarMovimientos2() as $movimiento): ?>
-                            <option value="<?php echo htmlspecialchars($movimiento['id']); ?>">
-                                <?php echo htmlspecialchars($movimiento['descripcion']); ?>
-                            </option>
-                        <?php endforeach  
-                         */
-                        ?>
-
-                    </select>
-                    -->
-
-                </div>
-
-
-                <div class=" modal fade" id="modalSoloCorte" tabindex="-1" aria-labelledby="modalSoloCorteLabel" aria-hidden="true">
-                    <div class="modal-dialog modal-dialog-centered">
-                        <div class="modal-content">
-
-                            <div class="modal-body">
-                                <div class="col-12 p-4 bg-light rounded">
-                                    <h4 class="card-title text-center"><i class="fas fa-cut"></i> Opciones de Corte</h4>
-
-                                    <div class="card-sub text-center">
-                                        Aqui podras agregar los minutos y el precio del servicio solo corte.
-                                    </div>
-                                    <div class="mb-4">
-                                        <!-- Minutos Corte -->
-                                        <div class="text-center" style="flex: 1;">
-                                            <p class="mb-1">Minutos Corte</p>
-                                            <div class="d-flex justify-content-center align-items-center mb-2">
-                                                <button id="btnRestarSoloCorte" class="btn btn-danger btn-round">-</button>
-                                                <input id="cantidad_solocorte" type="number" class="form-control text-center mx-2" value="0" style="width: 80px; font-size: 1.2rem;" />
-                                                <button id="btnSumarSoloCorte" class="btn btn-success btn-round">+</button>
-                                            </div>
-                                        </div>
-
-                                        <!-- Línea divisoria -->
-                                        <hr>
-
-                                        <!-- Precio Corte -->
-                                        <div class="text-center" style="flex: 1;">
-
-                                            <p class="mb-1">Precio Corte</p>
-                                            <div class="w-100 d-flex justify-content-center mb-1">
-                                                <input id="precioSoloCorte" type="number" class="form-control text-center mx-2" value="1.5" style="width: 90px; font-size: 1.2rem;" />
-                                            </div>
-                                            <div class="d-flex justify-content-center">
-                                                <button id="btnIncremento05SoloCorte" class="btn btn-outline-primary btn-sm me-1" style="font-size: 0.9rem;">+0.5</button>
-                                                <button id="btnIncremento1SoloCorte" class="btn btn-outline-primary btn-sm me-1" style="font-size: 0.9rem;">+1</button>
-                                                <button id="btnIncremento2SoloCorte" class="btn btn-outline-primary btn-sm me-1" style="font-size: 0.9rem;">+2</button>
-                                                <button id="btnIncremento5SoloCorte" class="btn btn-outline-primary btn-sm" style="font-size: 0.9rem;">+5</button>
-                                            </div>
-                                        </div>
-                                        <div class="text-center mt-3">
-                                            <button type="button" class="btn btn-secondary rounded-5" id="btn_agregar_solocorte">Agregar</button>
-                                        </div>
-                                    </div>
-
-                                </div>
-                            </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-danger rounded-5" data-bs-dismiss="modal">Cerrar</button>
-
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class=" modal fade" id="modalSoloCorteMaquina2" tabindex="-1" aria-labelledby="modalSoloCorteLabel" aria-hidden="true">
-                    <div class="modal-dialog modal-dialog-centered">
-                        <div class="modal-content">
-
-                            <div class="modal-body">
-                                <div class="col-12 p-4 bg-light rounded">
-
-                                    <h4 class="card-title text-center"><i class="fas fa-print"></i> Máquina de Impresión 3D</h4>
-
-                                    <div class="card-sub text-center">
-                                        Aqui podras agregar los minutos y el precio del servicio de impresión.
-                                    </div>
-                                    <div class="mb-4">
-                                        <!-- Minutos Corte -->
-                                        <div class="text-center" style="flex: 1;">
-
-                                            <p class="mb-1"><strong>Minutos impresión</strong></p>
-                                            <div class="d-flex justify-content-center align-items-center mb-2">
-                                                <button id="btnRestarSoloCortev2" class="btn btn-danger btn-sm btn-round" onclick='fnAumentoOrResta("-")'><i class="fas fa-minus"></i></button>
-                                                <input id="cantidad_solocortev2" type="number" class="form-control text-center mx-2" value="10" style="width: 80px; font-size: 1.2rem;" />
-                                                <button id="btnSumarSoloCortev2" class="btn btn-success btn-sm btn-round" onclick='fnAumentoOrResta("+")'><i class="fas fa-plus"></i></button>
-
-                                            </div>
-                                        </div>
-
-
-                                        <div class="d-flex justify-content-center">
-                                            <button id="btnIncremento05SoloCortev2" class="btn btn-outline-primary btn-sm me-1 btn-round" style="font-size: 0.9rem;" onclick="fnAumentarMin(15)">15 Min.</button>
-                                            <button id="btnIncremento1SoloCortev2" class="btn btn-outline-primary btn-sm me-1 btn-round" style="font-size: 0.9rem;" onclick="fnAumentarMin(30)">30 Min.</button>
-                                            <button id="btnIncremento2SoloCortev2" class="btn btn-outline-primary btn-sm me-1 btn-round" style="font-size: 0.9rem;" onclick="fnAumentarMin(45)">45 Min.</button>
-                                            <button id="btnIncremento2SoloCortev2" class="btn btn-outline-primary btn-sm me-1 btn-round" style="font-size: 0.9rem;" onclick="fnAumentarMin(60)">1 Hor.</button>
-                                            <button id="btnIncremento2SoloCortev2" class="btn btn-outline-primary btn-sm me-1 btn-round" style="font-size: 0.9rem;" onclick="fnAumentarMin(120)">2 Hor.</button>
-                                            <button id="btnIncremento2SoloCortev2" class="btn btn-outline-primary btn-sm me-1 btn-round" style="font-size: 0.9rem;" onclick="fnAumentarMin(180)">3 Hor.</button>
-                                        </div>
-                                        <div class="card-sub text-center">
-                                            Puedes Seleccionar los minutos de manera rápida
-                                        </div>
-                                        <script>
-                                            function fnAumentoOrResta(accion) {
-                                                if (accion === "+") {
-                                                    var x = parseFloat(document.getElementById("cantidad_solocortev2").value)
-                                                    var x = x + 1;
-                                                    document.getElementById("cantidad_solocortev2").value = x;
-                                                } else if (accion === "-") {
-                                                    var x = parseFloat(document.getElementById("cantidad_solocortev2").value)
-                                                    var x = x - 1;
-                                                    document.getElementById("cantidad_solocortev2").value = x;
-                                                }
-
-                                            }
-
-                                            function fnAumentarMin(dato) {
-                                                document.getElementById("cantidad_solocortev2").value = dato;
-                                            }
-
-                                            function fnAumentaPrecioImpresion(dato) {
-                                                const acum = parseFloat(document.getElementById("precioSoloCortev2").value);
-                                                document.getElementById("precioSoloCortev2").value = acum + parseFloat(dato);
-                                            }
-
-                                            function limpiar() {
-                                                document.getElementById("precioSoloCortev2").value = 0;
-                                            }
-                                        </script>
-
-                                        <!-- Línea divisoria -->
-                                        <hr>
-
-
-                                        <!-- Precio Corte -->
-                                        <div class="text-center" style="flex: 1;">
-                                            <p class="mb-1"><strong>Precio Impresión</strong></p>
-                                            <div class="w-100 d-flex justify-content-center mb-1">
-
-                                                <input id="precioSoloCortev2" type="number" class="form-control text-center mx-2" value="1.5" style="width: 90px; font-size: 1.2rem;" />
-                                                <button id="" class="btn btn-danger btn-sm" onclick="limpiar()"><i class="fas fa-broom"></i></button>
-                                            </div>
-                                            <br>
-                                            <div class="d-flex justify-content-center">
-
-
-                                                <button id="btnIncremento05SoloCortev2" class="btn btn-outline-primary btn-sm me-1 btn-round" style="font-size: 0.9rem;" onclick="fnAumentaPrecioImpresion(0.5)">+0.5</button>
-                                                <button id="btnIncremento1SoloCortev2" class="btn btn-outline-primary btn-sm me-1 btn-round" style="font-size: 0.9rem;" onclick="fnAumentaPrecioImpresion(1)">+1</button>
-                                                <button id="btnIncremento2SoloCortev2" class="btn btn-outline-primary btn-sm me-1 btn-round" style="font-size: 0.9rem;" onclick="fnAumentaPrecioImpresion(2)">+2</button>
-                                                <button id="btnIncremento5SoloCortev2" class="btn btn-outline-primary btn-sm btn-round" style="font-size: 0.9rem;" onclick="fnAumentaPrecioImpresion(5)">+5</button>
-                                            </div>
-                                        </div>
-                                        <!-- Precio Corte -->
-                                        <hr>
-                                        <div class="text-center">
-                                            <p class="mb-1"><strong>Nota</strong></p>
-                                            <textarea class="form-control" name="" id="" rows="3" placeholder="Escribe por ejemplo: Maquina de 3D"></textarea>
-
-                                        </div>
-
-                                        <div class="text-center mt-3">
-                                            <button type="button" class="btn btn-secondary rounded-5" id="btn_agregar_solocortev2"><i class="fas fa-plus-circle"></i> Agregar</button>
-                                        </div>
-                                    </div>
-
-                                </div>
-                            </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-danger rounded-5" data-bs-dismiss="modal">Cerrar</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-
-                <!-- Modal Unificado -->
-                <div class="modal fade " data-bs-backdrop="static" id="modalCantidad" tabindex="-1" aria-labelledby="modalCantidadCorteLabel" aria-hidden="true">
-                    <div class="modal-dialog modal-dialog-centered">
-                        <div class="modal-content">
-
-                            <div class="modal-body">
-                                <h4 class="card-title text-center" id="modalCantidadCorteLabel">Configurar Cantidad o Corte</h4>
-
-                                <div class="card-sub text-center">
-                                    Aquí ingresa la cantidad y/o corte del articulo
-                                </div>
-                                <div class="container-fluid">
-                                    <!-- Sección de cantidad -->
-                                    <div class="row mb-3">
-                                        <div class="col-12 p-3 bg-light rounded">
-                                            <h6 id="nombreArticulo" class="fw-bold text-center mb-3">Nombre del artículo</h6>
-                                            <div class="d-flex justify-content-center align-items-center">
-                                                <button id="btnRestarCantidad" class="btn btn-danger btn-round">-</button>
-                                                <input id="inputCantidad" type="number" class="form-control text-center mx-2 " value="1" style="width: 80px; font-size: 1.2rem;" />
-                                                <button id="btnSumarCantidad" class="btn btn-success btn-round">+</button>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <!-- Sección de corte (solo visible si cantidad = 1) -->
-                                    <div id="seccionCorte" class="row mb-3" style="display: none;">
-                                        <div class="col-12 p-4 bg-light rounded">
-                                            <div class="mb-4">
-                                                <div class="text-center" style="flex: 1;">
-                                                    <div class="row justify-content-center align-items-center g-2">
-                                                        <div class="col-sm-6">
-                                                            <p class="mb-1">Minutos Corte</p>
-                                                            <div class="d-flex justify-content-center align-items-center mb-2">
-                                                                <button id="btnRestarCorte" class="btn btn-danger btn-round">-</button>
-                                                                <input id="cantidadCorte" type="number" class="form-control text-center mx-2 " value="0" style="width: 80px; font-size: 1.2rem;" />
-                                                                <button id="btnSumarCorte" class="btn btn-success btn-round">+</button>
-                                                            </div>
-                                                        </div>
-                                                        <div class="col-sm-6">
-                                                            <div class="text-center" style="flex: 1;">
-                                                                <p class="mb-1">Precio Corte</p>
-                                                                <div class="w-100 d-flex justify-content-center mb-1">
-                                                                    <input id="precioCorte" type="number" class="form-control text-center mx-2 " value="1.5" style="width: 90px; font-size: 1.2rem;" />
-                                                                </div>
-                                                                <div class="d-flex justify-content-center">
-                                                                    <button id="btnIncremento05" class="btn btn-outline-primary btn-sm me-1" style="font-size: 0.9rem;">+0.5</button>
-                                                                    <button id="btnIncremento1" class="btn btn-outline-primary btn-sm me-1" style="font-size: 0.9rem;">+1</button>
-                                                                    <button id="btnIncremento2" class="btn btn-outline-primary btn-sm me-1" style="font-size: 0.9rem;">+2</button>
-                                                                    <button id="btnIncremento5" class="btn btn-outline-primary btn-sm" style="font-size: 0.9rem;">+5</button>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <hr>
-
-                                                <div class="mb-3">
-                                                    <p class="mb-1">Detalle</p>
-                                                    <textarea class="form-control" name="" id="idTextAreaDetalleInsert" rows="3" placeholder="Describa medidas, restante, etc."></textarea>
-                                                </div>
-
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="text-center mb-3">
-                                        <button id="btnConfirmarCantidad" class="btn btn-secondary rounded-5" style="width: 120px;">Confirmar</button>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="modal-footer">
-                                <!-- Botón Confirmar a la izquierda -->
-                                <button type="button" class="btn btn-danger rounded-5" data-bs-dismiss="modal">Cerrar</button>
-
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Modal para registrar Cliente -->
-                <!-- Modal para registrar Cliente -->
-                <div class="modal fade" id="modalCliente" tabindex="-1" aria-labelledby="modalClienteLabel" aria-hidden="true">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="modalClienteLabel">Registrar Cliente</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body">
-                            <!-- Pills para seleccionar entre Persona y Empresa -->
-                            <ul class="nav nav-pills nav-secondary nav-pills-no-bd" id="pills-tab" role="tablist">
-                                <li class="nav-item">
-                                    <button class="nav-link active" id="pills-persona-tab" data-bs-toggle="pill" data-bs-target="#pills-persona" type="button" role="tab" aria-controls="pills-persona" aria-selected="true">Persona</button>
-                                </li>
-                                <li class="nav-item">
-                                    <button class="nav-link" id="pills-empresa-tab" data-bs-toggle="pill" data-bs-target="#pills-empresa" type="button" role="tab" aria-controls="pills-empresa" aria-selected="false">Empresa</button>
-                                </li>
-                            </ul>
-                            <hr>
-                            <div class="tab-content mt-3" id="pills-tabContent">
-                                <!-- ============ FORMULARIO PERSONA ============ -->
-                                <div class="tab-pane fade show active" id="pills-persona" role="tabpanel" aria-labelledby="pills-persona-tab">
-                                    <div class="mb-3">
-                                        <label for="numeroDocumentoPersona" class="form-label">
-                                            Número de DNI <span class="fw-bold text-danger">*</span>
-                                            <small class="text-muted">(Autocompletado)</small>
-                                        </label>
-                                        <div class="input-group">
-                                            <input type="text" 
-                                                class="form-control" 
-                                                id="numeroDocumentoPersona" 
-                                                placeholder="Ingrese DNI de 8 dígitos"
-                                                maxlength="8">
-                                            <button class="btn btn-outline-primary" 
-                                                    type="button" 
-                                                    id="btnBuscarDNI"
-                                                    title="Buscar DNI">
-                                                <i class="fas fa-search"></i> Buscar
-                                            </button>
-                                        </div>
-                                        <div class="invalid-feedback" id="error-numeroDocumentoPersona"></div>
-                                    </div>
-                                    
-                                    <div class="mb-3">
-                                        <label for="nombresPersona" class="form-label">Nombres <span class="fw-bold text-danger">*</span></label>
-                                        <input type="text" class="form-control" id="nombresPersona" placeholder="Nombres">
-                                        <div class="invalid-feedback" id="error-nombresPersona"></div>
-                                    </div>
-                                    
-                                    <div class="mb-3">
-                                        <label for="apellidosPersona" class="form-label">Apellidos <span class="fw-bold text-danger">*</span></label>
-                                        <input type="text" class="form-control" id="apellidosPersona" placeholder="Apellidos">
-                                        <div class="invalid-feedback" id="error-apellidosPersona"></div>
-                                    </div>
-                                    
-                                    <div class="mb-3">
-                                        <label for="telefonoPersona" class="form-label">Teléfono Móvil</label>
-                                        <input type="text" class="form-control" id="telefonoPersona" placeholder="Teléfono Móvil" maxlength="9">
-                                        <div class="invalid-feedback" id="error-telefonoPersona"></div>
-                                    </div>
-                                    
-                                    <div class="mb-3">
-                                        <label for="emailPersona" class="form-label">Email</label>
-                                        <input type="email" class="form-control" id="emailPersona" placeholder="Email">
-                                        <div class="invalid-feedback" id="error-emailPersona"></div>
-                                    </div>
-                                </div>
-
-                                <!-- ============ FORMULARIO EMPRESA ============ -->
-                                <div class="tab-pane fade" id="pills-empresa" role="tabpanel" aria-labelledby="pills-empresa-tab">
-                                    <div class="mb-3">
-                                        <label for="numeroDocumentoEmpresa" class="form-label">
-                                            Número de RUC <span class="fw-bold text-danger">*</span>
-                                            <small class="text-muted">(Autocompletado)</small>
-                                        </label>
-                                        <div class="input-group">
-                                            <input type="text" 
-                                                class="form-control" 
-                                                id="numeroDocumentoEmpresa" 
-                                                placeholder="Ingrese RUC de 11 dígitos"
-                                                maxlength="11">
-                                            <button class="btn btn-outline-primary" 
-                                                    type="button" 
-                                                    id="btnBuscarRUC"
-                                                    title="Buscar RUC">
-                                                <i class="fas fa-search"></i> Buscar
-                                            </button>
-                                        </div>
-                                        <div class="invalid-feedback" id="error-numeroDocumentoEmpresa"></div>
-                                    </div>
-                                    
-                                    <div class="mb-3">
-                                        <label for="nombreComercial" class="form-label">Nombre Comercial <span class="fw-bold text-danger">*</span></label>
-                                        <input type="text" class="form-control" id="nombreComercial" placeholder="Nombre Comercial">
-                                        <div class="invalid-feedback" id="error-nombreComercial"></div>
-                                    </div>
-                                    
-                                    <div class="mb-3">
-                                        <label for="razonSocial" class="form-label">Razón Social <span class="fw-bold text-danger">*</span></label>
-                                        <input type="text" class="form-control" id="razonSocial" placeholder="Razón Social">
-                                        <div class="invalid-feedback" id="error-razonSocial"></div>
-                                    </div>
-                                    
-                                    <div class="mb-3">
-                                        <label for="emailEmpresa" class="form-label">Email</label>
-                                        <input type="email" class="form-control" id="emailEmpresa" placeholder="Email">
-                                        <div class="invalid-feedback" id="error-emailEmpresa"></div>
-                                    </div>
-                                    
-                                    <div class="mb-3">
-                                        <label for="telefonoEmpresa" class="form-label">Teléfono Móvil</label>
-                                        <input type="text" class="form-control" id="telefonoEmpresa" placeholder="Teléfono Móvil" maxlength="9">
-                                        <div class="invalid-feedback" id="error-telefonoEmpresa"></div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="alert alert-light p-3" role="alert">
-                                <p class="mb-0">Los campos con <span class="fw-bold text-danger">*</span> son obligatorios.</p>
-                            </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cerrar</button>
-                            <button type="button" class="btn btn-success" id="btnRegistrarCliente">Registrar</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-                <!-- Modal Body -->
-                <div
-                    class="modal fade"
-                    id="modalRealizarPago"
-                    tabindex="-1"
-                    data-bs-backdrop="static"
-                    data-bs-keyboard="false"
-
-                    role="dialog"
-                    aria-labelledby="modalTitleId"
-                    aria-hidden="true">
-                    <div
-                        class="modal-dialog modal-dialog-scrollable modal-dialog-centered modal-lg"
-                        role="document">
-                        <div class="modal-content">
-
-                            <div class="modal-body">
-                                <div
-                                    class="card border-primary">
-                                    <div class="card-body">
-
-                                        <div class="card-body text-center">
-                                            <h4 class="card-title fs-1 fw-bold"><i class="fas fa-credit-card"></i> Realizar Pago </h4>
-                                            <h1 class="card-title fw-bold" style="font-size: 3rem;"> S/ <span id="idMontoVentaTitulo">#</span></h1>
-                                        </div>
-                                        <!--<div class="card-body text-center">
-                            <h1 class="card-title">S/ xx.xx</h1>
-                        </div>-->
-
-                                        <div class="card-sub">
-                                            Aquí realiza tus pagos
-                                        </div>
-                                        <div>
-                                            <span>ID Venta: <span id="idVenta">#</span></span> |
-                                            <span>ID Cliente: <span id="idPersona">#</span></span> |
-                                            <span>ID Usuario Reserva: <span id="idUsuario"><?php echo $id_usuario_s ?></span>
-                                                <br>
-                                                <span><strong>Atendiendo la Transacción:</strong> <span id="idAtencionFinal"><?php echo $id_usuario_s . "-" . $nombre . ", " . $ape_usuario ?></span></span>
-                                        </div>
-                                        <hr>
-                                        <div class="accordion" id="accordionExample">
-                                            <div class="accordion-item">
-                                                <h2 class="accordion-header" id="headingOne">
-                                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
-                                                        Datos del Cliente
-                                                    </button>
-                                                </h2>
-                                                <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#accordionExample">
-                                                    <div class="accordion-body">
-                                                        <div class="mb-3">
-                                                            <label for="" class="form-label"><strong><i class="fas fa-user-tie"></i> Cliente</strong></label>
-                                                            <div class="d-flex align-items-center">
-                                                                <input
-                                                                    type="text"
-                                                                    class="form-control"
-                                                                    id="nombreCliente"
-                                                                    placeholder="AGREGAR EL NOMBRE DEL CLIENTE O DNI" />
-                                                                <!-- Botón "+" al lado del input -->
-                                                                <button type="button" class="btn btn-primary ms-2 rounded-5" id="btnAbrirModalCliente">
-                                                                    <i class="fas fa-user-plus"></i> <!-- Ícono "+" -->
-                                                                </button>
-                                                            </div>
-                                                            <!-- Contenedor para las sugerencias -->
-                                                            <div id="sugerencias" class="list-group position-absolute w-100"></div>
-                                                        </div>
-                                                        <div class="row justify-content-center align-items-center g-2">
-                                                            <div class="col-md-6">
-                                                                <div class="mb-3">
-                                                                    <label for="" class="form-label"><i class="fas fa-phone-square"></i><strong> Número de Telefono</strong></label>
-                                                                    <input
-                                                                        type="number"
-                                                                        class="form-control"
-                                                                        name=""
-                                                                        id="idUpdateNumTelefonoCliente"
-                                                                        aria-describedby="helpId"
-                                                                        placeholder="" />
-                                                                </div>
-                                                            </div>
-                                                            <div class="col-md-6">
-                                                                <div class="mb-3">
-                                                                    <label for="" class="form-label"><i class="fas fa-envelope"></i> <strong>Correo Electronico</strong></label>
-                                                                    <input
-                                                                        type="email"
-                                                                        class="form-control"
-                                                                        name=""
-                                                                        id="idUpdateCorreoCliente"
-                                                                        aria-describedby="helpId"
-                                                                        placeholder="" />
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                        </div>
-                                        <hr>
-
-                                        <!-- Monto Total -->
-                                        <div
-                                            class="row justify-content-center align-items-center md-2">
-                                            <div class="col-md-6">
-                                                <div class="mb-3">
-                                                    <label for="montoTotal" class="form-label"><strong>Monto Original de Venta</strong> </label>
-                                                    <div class="input-group">
-                                                        <span class="input-group-text">S/</span>
-                                                        <input
-                                                            type="text"
-                                                            class="form-control"
-                                                            id="montoTotal"
-                                                            readonly />
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <div class="mb-3">
-                                                    <label for="montoVentaFinal" class="form-label">Monto Final de Venta</label>
-                                                    <div class="input-group">
-                                                        <span class="input-group-text">S/</span>
-                                                        <input
-                                                            type="number"
-                                                            class="form-control"
-                                                            id="montoTotalFinal"
-                                                            placeholder="Monto con descuento a clientes" />
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                        </div>
-
-
-                                        <div class="card-body">
-                                            <ul class="nav nav-pills nav-secondary  nav-pills-no-bd nav-pills-icons justify-content-center" id="pills-tab-with-icon" role="tablist">
-                                                <li class="nav-item">
-                                                    <a class="nav-link active rounded-5" id="pills-home-tab-icon" data-bs-toggle="pill" href="#pago-directo" role="tab" aria-controls="pago-directo" aria-selected="true">
-                                                        Pago Directo
-                                                    </a>
-                                                </li>
-                                                <li class="nav-item">
-                                                    <a class="nav-link rounded-5" id="pills-profile-tab-icon" data-bs-toggle="pill" href="#pago-credito" role="tab" aria-controls="pago-credito" aria-selected="false">
-                                                        Pago Crédito
-                                                    </a>
-                                                </li>
-                                            </ul>
-
-                                            <div class="tab-content mt-2 mb-3" id="pills-with-icon-tabContent">
-                                                <div class="tab-pane fade show active" id="pago-directo" role="tabpanel" aria-labelledby="pills-home-tab-icon">
-                                                    <form id="form-pago-directo">
-                                                        <div id="panel_forma_pago" class="mb-3">
-                                                            <div class="card-sub">
-                                                                <div class="text-center">
-                                                                    Aquí podrás elegir si realizan pagos Directo.
-                                                                </div>
-                                                            </div>
-
-                                                            <div class="text-center">
-                                                                <div class="form-group">
-
-                                                                    <label class="form-label d-block"><strong>Seleccione Tipo de Comprobante</strong></label>
-                                                                    <div
-                                                                        class="selectgroup selectgroup-secondary selectgroup-pills">
-
-                                                                        <label class="selectgroup-item">
-                                                                            <input
-                                                                                type="radio"
-                                                                                name="icon-input"
-                                                                                value="boleta"
-                                                                                checked=""
-                                                                                class="selectgroup-input" />
-                                                                            <span
-                                                                                class="selectgroup-button selectgroup-button-icon">Boleta</span>
-                                                                        </label>
-                                                                        <label class="selectgroup-item">
-                                                                            <input
-                                                                                type="radio"
-                                                                                name="icon-input"
-                                                                                value="factura"
-                                                                                class="selectgroup-input" />
-                                                                            <span
-                                                                                class="selectgroup-button selectgroup-button-icon">Factura</span>
-                                                                        </label>
-
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-
-
-                                                            <!--<label for="" class="form-label"><strong>Forma de Pago</strong></label> -->
-                                                            <div class="text-center">
-                                                                <button id="btnAgregarPago" class="btn btn-secondary btn-sm" type="button"> <i class="fas fa-plus"></i> Agregar Monto (S/) Forma de Pago</button>
-                                                            </div>
-                                                            <br>
-                                                            <!-- Botón de agregar más formas de pago -->
-
-                                                            <div class="d-flex align-items-center">
-                                                                <!-- Select de formas de pago -->
-                                                                <select class="form-select form-select-md" name="formaPago" id="formaPagoSelect">
-                                                                    <?php
-                                                                    foreach (listarFormaPago() as $datosFormaPago) {
-                                                                        $datosFormaPagoJSON = json_encode($datosFormaPago);
-                                                                    ?>
-                                                                        <option value="<?php echo $datosFormaPago["id"] ?>"><?php echo $datosFormaPago["nombre"] ?></option>
-                                                                    <?php
-                                                                    }
-                                                                    ?>
-                                                                </select>
-
-                                                                <!-- Caja de texto para monto -->
-                                                                <input type="number" class="form-control form-control-md ms-2" placeholder="Monto" min="0" name="monto" id="montoSelect_0">
-                                                            </div>
-
-                                                            <!-- Contenedor para los selects adicionales -->
-                                                            <div id="contenedorPagos" class="mt-3"></div>
-                                                        </div>
-
-                                                        <hr>
-
-                                                        <!-- Monto Total -->
-                                                        <!--
-                                        <div id="panelMontos" class="row justify-content-center align-items-center g-2">
-                                            <div class="col-md-4">
-                                                <label for="" class="form-label"><b>Falta Pagar</b></label>
-                                                <div class="input-group">
-                                                    <span class="input-group-text">S/</span>
-                                                    <input type="number" class="form-control" name="faltaPagar" placeholder="" readonly />
-                                                </div>
-                                            </div>
-                                            <div class="col-md-4">
-                                                <label for="" class="form-label"><b>Paga Con</b></label>
-                                                <div class="input-group">
-                                                    <span class="input-group-text">S/</span>
-                                                    <input type="number" class="form-control" name="pagaCon" placeholder="" />
-                                                </div>
-                                            </div>
-                                            <div class="col-md-4">
-                                                <label for="" class="form-label"><b>Vuelto (S/)</b></label>
-                                                <div class="input-group">
-                                                    <span class="input-group-text">S/</span>
-                                                    <input type="number" class="form-control" name="vuelto" placeholder="" />
-                                                </div>
-                                            </div>
-                                            <br>
-                                        </div>
-                                        -->
-                                                    </form>
-                                                    <div class="text-center">
-                                                        <a class="btn btn-success rounded-5" href="#" role="button" onclick="fn_pagar_directo()"><i class="fas fa-hand-holding-usd"></i> Pagar</a>
-                                                    </div>
-                                                </div>
-
-                                                <div class="tab-pane fade" id="pago-credito" role="tabpanel" aria-labelledby="pills-profile-tab-icon">
-                                                    <div class="card-sub">
-                                                        <div class="text-center">
-                                                            Aquí podrás elegir si realizan pagos al Crédito.
-                                                        </div>
-                                                    </div>
-
-                                                    <div class="card-sub">
-                                                        <div class="text-center">
-
-                                                            Si un cliente te deja pagado algo de la venta, <strong>REGISTRALO</strong>.
-                                                            <br>
-                                                            Si no, deja en blanco y darle click al boton Realizar <br><strong>Pago a Credito</strong>
-                                                        </div>
-                                                    </div>
-
-
-
-                                                    <!-- Formulario para el pago a crédito -->
-                                                    <form id="form-pago-credito">
-                                                        <!-- Botón de agregar más formas de pago -->
-                                                        <div class="text-center">
-                                                            <button id="btnAgregarPagoCredito" class="btn btn-secondary btn-sm" type="button"> <i class="fas fa-plus"></i> Agregar Monto (S/) Forma de Pago</button>
-                                                        </div>
-                                                        <br>
-
-                                                        <!-- Primer campo de pago -->
-                                                        <div class="d-flex align-items-center" id="pagoCredito_0">
-                                                            <!-- Select de formas de pago -->
-                                                            <select class="form-select form-select-md" name="formaPagoCredito[]" id="formaPagoCreditoSelect_0">
-                                                                <?php
-                                                                foreach (listarFormaPago() as $datosFormaPago) {
-                                                                    echo '<option value="' . $datosFormaPago["id"] . '">' . $datosFormaPago["nombre"] . '</option>';
-                                                                }
-                                                                ?>
-                                                            </select>
-
-                                                            <!-- Caja de texto para monto -->
-                                                            <input type="number" class="form-control form-control-md ms-2" placeholder="Monto" min="0" name="montoCredito[]" id="montoSelectCredito_0">
-                                                        </div>
-
-                                                        <!-- Contenedor para los selects adicionales -->
-                                                        <div id="contenedorPagosCredito" class="mt-3"></div>
-
-                                                        <br>
-                                                        <!-- Botón para realizar el pago -->
-                                                        <div class="text-center">
-                                                            <a class="btn btn-success rounded-5" href="#" role="button" onclick="fn_pagar_credito()"><i class="fas fa-hands-helping"></i> Realizar Pago a Credito</a>
-                                                        </div>
-                                                    </form>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="modal-footer">
-                                <button
-                                    type="button"
-                                    class="btn btn-danger rounded-5"
-                                    data-bs-dismiss="modal">
-                                    Salir
-                                </button>
-
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-
-                <!-- Modal -->
-                <div class="modal fade" id="miModal" tabindex="-1" aria-labelledby="miModalLabel" aria-hidden="true">
-                    <div class="modal-dialog">
-                        <div class="modal-content">
-                            <!-- Modal Header -->
-                            <div class="modal-header">
-                                <h5 class="modal-title" id="miModalLabel">Agregar Corte de Material</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                            </div>
-
-                            <!-- Modal Body -->
-                            <div class="modal-body">
-                                <!-- Acordeones dinámicos -->
-                                <div class="accordion" id="acordeonContainer">
-                                    <!-- Se llenará dinámicamente -->
-                                </div>
-                                <!-- Sección global -->
-                                <div id="globalContainer" class="mt-3">
-                                    <!-- Se llenará dinámicamente -->
-                                </div>
-                            </div>
-
-                            <!-- Modal Footer -->
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="btn_no">No</button>
-                                <button type="button" class="btn btn-primary" id="btn_si">Sí</button>
-                            </div>
-
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-        </div>
-        <hr>
-
-        <div
-            class="row ">
-
-            <div class="col-md-12">
-                <div class="card">
+                <h4 class="card-title">
+                    <i class="fas fa-shopping-cart"></i> Punto de Venta Rápida
+                </h4>
+                <p class="text-muted">Sistema de ventas optimizado para atención al cliente</p>
+
+                <!-- SECCIÓN DE SERVICIOS -->
+                <div class="card mt-4">
                     <div class="card-header">
-                        <div class="card-title">Detalle Materiales / Corte</div>
+                        <h6 class="mb-0"><i class="fas fa-cube"></i> Servicios Disponibles</h6>
                     </div>
                     <div class="card-body">
-                        <div class="card-sub">
-                            Aquí la venta de los materiales
-                        </div>
-                        <div class="table-responsive">
-                            <table id="tabla_articulos" class="table mt-3">
-                                <thead>
-                                    <tr>
-                                        <th scope="col">ID</th>
-                                        <th scope="col">MINUTOS</th>
-                                        <th scope="col">Tarifa</th>
-                                        <th scope="col">Total Corte o Impresión 3D </th>
-                                        <th scope="col">Articulo</th>
-                                        <th scope="col">Cantidad</th>
-                                        <th scope="col">Precio Unitario</th>
-                                        <th scope="col">Sub Total (S/)</th>
-                                        <th scope="col">Accion</th>
-                                        <th scope="col">IDMOVIMIENTO</th>
-                                        <th scope="col">NOTA ARCHIVO</th>
+                        <div class="d-flex justify-content-center flex-wrap gap-2">
+                            <?php foreach (listarMovimientos($sucursal_id) as $datos): ?>
+                                <button class="btn btn-secondary btn-round btn-sm"
+                                    onclick='fn_servicios(<?php echo json_encode($datos) ?>)'>
+                                    <i class="fas fa-external-link-alt"></i> <?php echo $datos["descripcion"] ?>
+                                </button>
+                            <?php endforeach; ?>
 
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                </tbody>
-                            </table>
-                        </div>
-
-                    </div>
-                </div>
-            </div>
-        </div>
-
-
-        <div class="card p-2">
-            <div class="row mt-2">
-                <div class="col-md-4">
-                    <div class="card card-stats card-round">
-                        <div class="card-body text-center">
-                            <h5 id="label_total_cortes" class="card-title">Total en Cortes y Impresion 3D S/</h5>
-                            <span id="id_subtotal_cortes" style="font-size: 1.3rem;" aria-labelledby="label_total_cortes">00.00</span>
+                            <button class="btn btn-secondary btn-round btn-sm" id="btnAbrirModalSolo">
+                                <i class="fas fa-cut"></i> SOLO CORTE
+                            </button>
+                            <button class="btn btn-secondary btn-round btn-sm" id="btnAbrirModalSolov2">
+                                <i class="fas fa-print"></i> IMPRESIÓN 3D
+                            </button>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-4">
-                    <div class="card card-stats card-round">
-                        <div class="card-body text-center">
-                            <h5 id="label_total_articulos" class="card-title">Total Artículos S/</h5>
-                            <span id="id_subtotal_articulos" style="font-size: 1.3rem;" aria-labelledby="label_total_articulos">00.00</span>
+
+                <!-- FILTROS DE BÚSQUEDA -->
+                <div class="table-filters mt-4">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-2">
+                            <select id="filterCategoria" class="form-select">
+                                <option value="">Todas las Categorías</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <select id="filterTipo" class="form-select">
+                                <option value="">Todos los Tipos</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <select id="filterDimension" class="form-select">
+                                <option value="">Todas las Dimensiones</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <select id="filterColor" class="form-select">
+                                <option value="">Todos los Colores</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <input type="text" id="searchInput" class="form-control"
+                                placeholder="🔍 Buscar artículo..." onkeyup="filterProducts()">
                         </div>
                     </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="card card-primary card-stats card-round">
-                        <div class="card-body text-center">
-                            <h5 id="label_total_general" class="card-title">Total S/</h5>
-                            <span id="id_subtotal_general" style="font-size: 1.3rem;" aria-labelledby="label_total_general">00.00 </span>
-                        </div>
+                    <div class="text-center mt-3">
+                        <button id="clearFilters" class="btn btn-warning btn-round">
+                            <i class="fas fa-broom"></i> Limpiar Filtros
+                        </button>
                     </div>
                 </div>
-                <div class="card-body text-center">
-                    <button id="btnRealizarPago" disabled="true" type="button" class="btn btn-success btn-round" style="width: 50%; height: 50px; font-size: 15px;">
-                        <i class="fas fa-shopping-basket"></i> Realizar Venta
+
+                <!-- TABLA DE PRODUCTOS -->
+                <div class="table-responsive mt-4">
+                    <table class="table table-hover align-middle" id="productosTable">
+                        <thead>
+                            <tr>
+                                <th>Artículo</th>
+                                <th>Categoría</th>
+                                <th>Tipo</th>
+                                <th>Dimensión</th>
+                                <th>Color</th>
+                                <th class="text-center">Stock</th>
+                                <th class="text-end">Precio</th>
+                                <th class="text-center">Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody id="productoContainer">
+                            <!-- Productos dinámicos -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- PAGINACIÓN -->
+                <div class="pagination">
+                    <button id="prevPage" class="btn btn-secondary btn-round" onclick="changePage(-1)">
+                        <i class="fas fa-chevron-left"></i> Anterior
+                    </button>
+                    <button id="nextPage" class="btn btn-secondary btn-round" onclick="changePage(1)">
+                        Siguiente <i class="fas fa-chevron-right"></i>
                     </button>
                 </div>
+            </div>
+        </div>
 
+        <!-- TABLA DE ARTÍCULOS SELECCIONADOS -->
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="fas fa-list"></i> Detalle de Venta</h6>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table id="tabla_articulos" class="table table-hover align-middle">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>ID</th>
+                                <th>Artículo</th>
+                                <th>Cantidad</th>
+                                <th>Precio Unit.</th>
+                                <th>Subtotal (S/)</th>
+                                <th>Acción</th>
+                                <th>ID_MOV</th>
+                                <th>NOTA</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Artículos dinámicos -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- TOTALES Y BOTÓN DE PAGO -->
+        <div class="card">
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="card card-stats">
+                            <div class="card-body text-center">
+                                <h5 class="card-title">Total Artículos</h5>
+                                <h3 class="text-primary mb-0">
+                                    S/ <span id="id_subtotal_articulos">0.00</span>
+                                </h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card card-primary card-stats">
+                            <div class="card-body text-center">
+                                <h5 class="card-title text-white">Total General</h5>
+                                <h3 class="text-white mb-0">
+                                    S/ <span id="id_subtotal_general">0.00</span>
+                                </h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="text-center mt-4">
+                    <button id="btnRealizarPago" disabled type="button"
+                        class="btn btn-success btn-lg btn-round px-5">
+                        <i class="fas fa-cash-register"></i> Procesar Venta
+                    </button>
+                </div>
             </div>
         </div>
     </div>
-
-
 </div>
 
-<!-- Modal  -->
-<div class="modal fade" id="modalGenerico" tabindex="-1" data-bs-backdrop="static" aria-labelledby="modalGenericoLabel" aria-hidden="false">
+<!-- MODAL: SOLO CORTE -->
+<div class="modal fade" id="modalSoloCorte" tabindex="-1" data-bs-backdrop="static">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
-
-            <div class="modal-body" id="modalContent">
-                <!-- Contenido dinámico se cargará aquí -->
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-cut"></i> Servicio de Corte</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center mb-3">
+                    <label class="form-label fw-bold">Minutos de Corte</label>
+                    <div class="d-flex justify-content-center align-items-center gap-2">
+                        <button id="btnRestarSoloCorte" class="btn btn-danger btn-round">-</button>
+                        <input id="cantidad_solocorte" type="number" class="form-control text-center"
+                            value="0" style="width: 100px;">
+                        <button id="btnSumarSoloCorte" class="btn btn-success btn-round">+</button>
+                    </div>
+                </div>
+                <hr>
+                <div class="text-center mb-3">
+                    <label class="form-label fw-bold">Precio (S/)</label>
+                    <input id="precioSoloCorte" type="number" class="form-control text-center"
+                        value="1.5" style="width: 150px; margin: 0 auto;">
+                    <div class="d-flex justify-content-center gap-2 mt-2">
+                        <button id="btnIncremento05SoloCorte" class="btn btn-outline-primary btn-sm">+0.5</button>
+                        <button id="btnIncremento1SoloCorte" class="btn btn-outline-primary btn-sm">+1</button>
+                        <button id="btnIncremento2SoloCorte" class="btn btn-outline-primary btn-sm">+2</button>
+                        <button id="btnIncremento5SoloCorte" class="btn btn-outline-primary btn-sm">+5</button>
+                    </div>
+                </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-danger rounded-5" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-secondary btn-round" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-success btn-round" id="btn_agregar_solocorte">
+                    <i class="fas fa-plus"></i> Agregar
+                </button>
             </div>
         </div>
     </div>
 </div>
 
+<!-- MODAL: IMPRESIÓN 3D -->
+<div class="modal fade" id="modalSoloCorteMaquina2" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-print"></i> Servicio de Impresión 3D</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center mb-3">
+                    <label class="form-label fw-bold">Tiempo de Impresión (minutos)</label>
+                    <div class="d-flex justify-content-center align-items-center gap-2">
+                        <button class="btn btn-danger btn-round btn-sm" onclick='fnAumentoOrResta("-")'>
+                            <i class="fas fa-minus"></i>
+                        </button>
+                        <input id="cantidad_solocortev2" type="number" class="form-control text-center"
+                            value="10" style="width: 100px;">
+                        <button class="btn btn-success btn-round btn-sm" onclick='fnAumentoOrResta("+")'>
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+                    <div class="d-flex justify-content-center gap-2 mt-2 flex-wrap">
+                        <button class="btn btn-outline-primary btn-sm btn-round" onclick="fnAumentarMin(15)">15 Min</button>
+                        <button class="btn btn-outline-primary btn-sm btn-round" onclick="fnAumentarMin(30)">30 Min</button>
+                        <button class="btn btn-outline-primary btn-sm btn-round" onclick="fnAumentarMin(45)">45 Min</button>
+                        <button class="btn btn-outline-primary btn-sm btn-round" onclick="fnAumentarMin(60)">1 Hora</button>
+                        <button class="btn btn-outline-primary btn-sm btn-round" onclick="fnAumentarMin(120)">2 Horas</button>
+                        <button class="btn btn-outline-primary btn-sm btn-round" onclick="fnAumentarMin(180)">3 Horas</button>
+                    </div>
+                </div>
+                <hr>
+                <div class="text-center mb-3">
+                    <label class="form-label fw-bold">Precio (S/)</label>
+                    <div class="d-flex justify-content-center align-items-center gap-2">
+                        <input id="precioSoloCortev2" type="number" class="form-control text-center"
+                            value="1.5" style="width: 120px;">
+                        <button class="btn btn-danger btn-sm" onclick="limpiar()">
+                            <i class="fas fa-broom"></i>
+                        </button>
+                    </div>
+                    <div class="d-flex justify-content-center gap-2 mt-2">
+                        <button class="btn btn-outline-primary btn-sm btn-round" onclick="fnAumentaPrecioImpresion(0.5)">+0.5</button>
+                        <button class="btn btn-outline-primary btn-sm btn-round" onclick="fnAumentaPrecioImpresion(1)">+1</button>
+                        <button class="btn btn-outline-primary btn-sm btn-round" onclick="fnAumentaPrecioImpresion(2)">+2</button>
+                        <button class="btn btn-outline-primary btn-sm btn-round" onclick="fnAumentaPrecioImpresion(5)">+5</button>
+                    </div>
+                </div>
+                <hr>
+                <div>
+                    <label class="form-label fw-bold">Nota</label>
+                    <textarea id="nota_impresion" class="form-control" rows="3"
+                        placeholder="Ej: Modelo específico, color, etc."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-round" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-success btn-round" id="btn_agregar_solocortev2">
+                    <i class="fas fa-plus"></i> Agregar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 
+<!-- MODAL: CANTIDAD Y CORTE -->
+<div class="modal fade" id="modalCantidad" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Configurar Artículo</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <h6 id="nombreArticulo" class="text-center fw-bold mb-3">Artículo</h6>
 
+                <div class="card bg-light mb-3">
+                    <div class="card-body">
+                        <label class="form-label text-center d-block">Cantidad</label>
+                        <div class="d-flex justify-content-center align-items-center gap-2">
+                            <button id="btnRestarCantidad" class="btn btn-danger btn-round">-</button>
+                            <input id="inputCantidad" type="number" class="form-control text-center"
+                                value="1" style="width: 100px;">
+                            <button id="btnSumarCantidad" class="btn btn-success btn-round">+</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="seccionCorte" class="card bg-light" style="display: none;">
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Minutos de Corte</label>
+                                <div class="d-flex align-items-center gap-2">
+                                    <button id="btnRestarCorte" class="btn btn-danger btn-sm btn-round">-</button>
+                                    <input id="cantidadCorte" type="number" class="form-control text-center" value="0">
+                                    <button id="btnSumarCorte" class="btn btn-success btn-sm btn-round">+</button>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Precio Corte (S/)</label>
+                                <input id="precioCorte" type="number" class="form-control text-center" value="1.5">
+                                <div class="d-flex gap-1 mt-2">
+                                    <button id="btnIncremento05" class="btn btn-outline-primary btn-sm flex-fill">+0.5</button>
+                                    <button id="btnIncremento1" class="btn btn-outline-primary btn-sm flex-fill">+1</button>
+                                    <button id="btnIncremento2" class="btn btn-outline-primary btn-sm flex-fill">+2</button>
+                                    <button id="btnIncremento5" class="btn btn-outline-primary btn-sm flex-fill">+5</button>
+                                </div>
+                            </div>
+                        </div>
+                        <hr>
+                        <div>
+                            <label class="form-label">Detalle</label>
+                            <textarea id="idTextAreaDetalleInsert" class="form-control" rows="2"
+                                placeholder="Medidas, restante, observaciones..."></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-round" data-bs-dismiss="modal">Cancelar</button>
+                <button id="btnConfirmarCantidad" class="btn btn-success btn-round">
+                    <i class="fas fa-check"></i> Confirmar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: REGISTRAR CLIENTE -->
+<div class="modal fade" id="modalCliente" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-user-plus"></i> Registrar Cliente</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <ul class="nav nav-pills nav-secondary mb-3" role="tablist">
+                    <li class="nav-item">
+                        <button class="nav-link active" id="pills-persona-tab" data-bs-toggle="pill"
+                            data-bs-target="#pills-persona" type="button">
+                            <i class="fas fa-user"></i> Persona
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link" id="pills-empresa-tab" data-bs-toggle="pill"
+                            data-bs-target="#pills-empresa" type="button">
+                            <i class="fas fa-building"></i> Empresa
+                        </button>
+                    </li>
+                </ul>
+
+                <div class="tab-content">
+                    <!-- TAB PERSONA -->
+                    <div class="tab-pane fade show active" id="pills-persona">
+                        <div class="mb-3">
+                            <label class="form-label">
+                                DNI <span class="text-danger">*</span>
+                                <small class="text-muted">(Autocompletado)</small>
+                            </label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="numeroDocumentoPersona"
+                                    placeholder="8 dígitos" maxlength="8">
+                                <button class="btn btn-outline-primary" type="button" id="btnBuscarDNI">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
+                            <div class="invalid-feedback" id="error-numeroDocumentoPersona"></div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Nombres <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="nombresPersona">
+                            <div class="invalid-feedback" id="error-nombresPersona"></div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Apellidos <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="apellidosPersona">
+                            <div class="invalid-feedback" id="error-apellidosPersona"></div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Teléfono</label>
+                            <input type="text" class="form-control" id="telefonoPersona" maxlength="9">
+                            <div class="invalid-feedback" id="error-telefonoPersona"></div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Email</label>
+                            <input type="email" class="form-control" id="emailPersona">
+                            <div class="invalid-feedback" id="error-emailPersona"></div>
+                        </div>
+                    </div>
+
+                    <!-- TAB EMPRESA -->
+                    <div class="tab-pane fade" id="pills-empresa">
+                        <div class="mb-3">
+                            <label class="form-label">
+                                RUC <span class="text-danger">*</span>
+                                <small class="text-muted">(Autocompletado)</small>
+                            </label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="numeroDocumentoEmpresa"
+                                    placeholder="11 dígitos" maxlength="11">
+                                <button class="btn btn-outline-primary" type="button" id="btnBuscarRUC">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
+                            <div class="invalid-feedback" id="error-numeroDocumentoEmpresa"></div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Nombre Comercial <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="nombreComercial">
+                            <div class="invalid-feedback" id="error-nombreComercial"></div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Razón Social <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="razonSocial">
+                            <div class="invalid-feedback" id="error-razonSocial"></div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Email</label>
+                            <input type="email" class="form-control" id="emailEmpresa">
+                            <div class="invalid-feedback" id="error-emailEmpresa"></div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Teléfono</label>
+                            <input type="text" class="form-control" id="telefonoEmpresa" maxlength="9">
+                            <div class="invalid-feedback" id="error-telefonoEmpresa"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="alert alert-info">
+                    <small>Los campos con <span class="text-danger">*</span> son obligatorios</small>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-round" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-success btn-round" id="btnRegistrarCliente">
+                    <i class="fas fa-save"></i> Registrar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: REALIZAR PAGO -->
+<div class="modal fade" id="modalRealizarPago" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="w-100 text-center">
+                    <h4 class="mb-1"><i class="fas fa-credit-card"></i> Procesar Pago</h4>
+                    <h2 class="text-success mb-0">S/ <span id="idMontoVentaTitulo">0.00</span></h2>
+                </div>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <small class="text-muted">
+                        ID Venta: <span id="idVenta">#</span> |
+                        ID Cliente: <span id="idPersona">#</span> |
+                        Usuario: <span id="idUsuario"><?php echo $id_usuario_s ?></span>
+                    </small>
+                </div>
+
+                <!-- ACORDEÓN DATOS CLIENTE -->
+                <div class="accordion mb-3" id="accordionCliente">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button"
+                                data-bs-toggle="collapse" data-bs-target="#collapseOne">
+                                <i class="fas fa-user me-2"></i> Datos del Cliente
+                            </button>
+                        </h2>
+                        <div id="collapseOne" class="accordion-collapse collapse">
+                            <div class="accordion-body">
+                                <div class="mb-3">
+                                    <label class="form-label">Cliente</label>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" id="nombreCliente"
+                                            placeholder="Buscar cliente por nombre o DNI">
+                                        <button type="button" class="btn btn-primary" id="btnAbrirModalCliente">
+                                            <i class="fas fa-user-plus"></i>
+                                        </button>
+                                    </div>
+                                    <div id="sugerencias" class="list-group position-absolute w-100"></div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Teléfono</label>
+                                        <input type="text" class="form-control" id="idUpdateNumTelefonoCliente">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Email</label>
+                                        <input type="email" class="form-control" id="idUpdateCorreoCliente">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MONTOS -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Monto Original</label>
+                        <div class="input-group">
+                            <span class="input-group-text">S/</span>
+                            <input type="text" class="form-control" id="montoTotal" readonly>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Monto Final (con descuento)</label>
+                        <div class="input-group">
+                            <span class="input-group-text">S/</span>
+                            <input type="number" class="form-control" id="montoTotalFinal"
+                                placeholder="Opcional" step="0.01">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TABS PAGO -->
+                <ul class="nav nav-pills nav-secondary mb-3" role="tablist">
+                    <li class="nav-item flex-fill">
+                        <a class="nav-link active text-center" id="pills-home-tab-icon"
+                            data-bs-toggle="pill" href="#pago-directo">
+                            <i class="fas fa-money-bill-wave"></i> Pago Directo
+                        </a>
+                    </li>
+                    <li class="nav-item flex-fill">
+                        <a class="nav-link text-center" id="pills-profile-tab-icon"
+                            data-bs-toggle="pill" href="#pago-credito">
+                            <i class="fas fa-credit-card"></i> Pago a Crédito
+                        </a>
+                    </li>
+                </ul>
+
+                <div class="tab-content">
+                    <!-- PAGO DIRECTO -->
+                    <div class="tab-pane fade show active" id="pago-directo">
+                        <form id="form-pago-directo">
+                            <div class="text-center mb-3">
+                                <label class="form-label fw-bold">Tipo de Comprobante</label>
+                                <div class="btn-group d-flex" role="group">
+                                    <input type="radio" class="btn-check" name="icon-input"
+                                        id="boleta" value="boleta" checked>
+                                    <label class="btn btn-outline-primary flex-fill" for="boleta">Boleta</label>
+
+                                    <input type="radio" class="btn-check" name="icon-input"
+                                        id="factura" value="factura">
+                                    <label class="btn btn-outline-primary flex-fill" for="factura">Factura</label>
+                                </div>
+                            </div>
+
+                            <div class="text-center mb-3">
+                                <button id="btnAgregarPago" class="btn btn-secondary btn-sm btn-round" type="button">
+                                    <i class="fas fa-plus"></i> Agregar Forma de Pago
+                                </button>
+                            </div>
+
+                            <div class="card bg-light mb-2">
+                                <div class="card-body">
+                                    <div class="row g-2">
+                                        <div class="col-md-6">
+                                            <select class="form-select form-select-sm" name="formaPago" id="formaPagoSelect">
+                                                <?php foreach (listarFormaPago() as $datosFormaPago): ?>
+                                                    <option value="<?php echo $datosFormaPago["id"] ?>">
+                                                        <?php echo $datosFormaPago["nombre"] ?>
+                                                    </option>
+                                                <?php endforeach; ?>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <input type="number" class="form-control form-control-sm"
+                                                placeholder="Monto S/" min="0" name="monto" id="montoSelect_0" step="0.01">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div id="contenedorPagos"></div>
+
+                            <!-- SECCIÓN DE VUELTO -->
+                            <div id="seccionVuelto" class="card border-success mt-3" style="display: none;">
+                                <div class="card-header bg-success text-white">
+                                    <h6 class="mb-0"><i class="fas fa-calculator"></i> Cálculo de Vuelto</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row g-3">
+                                        <div class="col-md-4">
+                                            <label class="form-label fw-bold">Total a Pagar</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text">S/</span>
+                                                <input type="text" class="form-control" id="totalAPagar" readonly>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label fw-bold">Paga con</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text">S/</span>
+                                                <input type="number" class="form-control" id="pagaCon"
+                                                    placeholder="0.00" step="0.01" min="0">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label fw-bold">Vuelto</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text">S/</span>
+                                                <input type="text" class="form-control fw-bold text-success"
+                                                    id="vuelto" readonly value="0.00">
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Botones rápidos -->
+                                    <div class="text-center mt-3">
+                                        <small class="text-muted d-block mb-2">Pago rápido:</small>
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <button type="button" class="btn btn-outline-success" onclick="setPagaCon(10)">S/ 10</button>
+                                            <button type="button" class="btn btn-outline-success" onclick="setPagaCon(20)">S/ 20</button>
+                                            <button type="button" class="btn btn-outline-success" onclick="setPagaCon(50)">S/ 50</button>
+                                            <button type="button" class="btn btn-outline-success" onclick="setPagaCon(100)">S/ 100</button>
+                                            <button type="button" class="btn btn-outline-success" onclick="setPagaCon(200)">S/ 200</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+
+                        <div class="text-center mt-4">
+                            <button class="btn btn-success btn-lg btn-round px-5" onclick="fn_pagar_directo()">
+                                <i class="fas fa-check-circle"></i> Confirmar Pago
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- PAGO CRÉDITO -->
+                    <div class="tab-pane fade" id="pago-credito">
+                        <div class="alert alert-info">
+                            <small>
+                                <i class="fas fa-info-circle"></i>
+                                Si el cliente realiza un pago inicial, regístralo.
+                                Si no, deja en blanco y procede con el crédito.
+                            </small>
+                        </div>
+
+                        <form id="form-pago-credito">
+                            <div class="text-center mb-3">
+                                <button id="btnAgregarPagoCredito" class="btn btn-secondary btn-sm btn-round" type="button">
+                                    <i class="fas fa-plus"></i> Agregar Pago Inicial
+                                </button>
+                            </div>
+
+                            <div class="card bg-light mb-2">
+                                <div class="card-body">
+                                    <div class="row g-2">
+                                        <div class="col-md-6">
+                                            <select class="form-select form-select-sm" name="formaPagoCredito[]"
+                                                id="formaPagoCreditoSelect_0">
+                                                <?php foreach (listarFormaPago() as $datosFormaPago): ?>
+                                                    <option value="<?php echo $datosFormaPago["id"] ?>">
+                                                        <?php echo $datosFormaPago["nombre"] ?>
+                                                    </option>
+                                                <?php endforeach; ?>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <input type="number" class="form-control form-control-sm"
+                                                placeholder="Monto inicial S/" min="0"
+                                                name="montoCredito[]" id="montoSelectCredito_0" step="0.01">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div id="contenedorPagosCredito"></div>
+                        </form>
+
+                        <div class="text-center mt-4">
+                            <button class="btn btn-warning btn-lg btn-round px-5" onclick="fn_pagar_credito()">
+                                <i class="fas fa-handshake"></i> Registrar Crédito
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-round" data-bs-dismiss="modal">
+                    <i class="fas fa-times"></i> Cerrar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL GENÉRICO -->
+<div class="modal fade" id="modalGenerico" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-body" id="modalContent">
+                <!-- Contenido dinámico -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-round" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SCRIPTS -->
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-
-
-<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
-<script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.11.6/umd/popper.min.js"></script>
 <script src="assets/js/scriptNotify.js"></script>
+
 <script>
-// Si usas los botones integrados, agrega estos eventos:
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Evento para el botón de buscar DNI
-    const btnBuscarDNI = document.getElementById('btnBuscarDNI');
-    if (btnBuscarDNI) {
-        btnBuscarDNI.addEventListener('click', async function() {
-            const inputDNI = document.getElementById('numeroDocumentoPersona');
-            const dni = inputDNI.value.trim();
-            
-            // Validar que sea un DNI válido
-            if (dni.length !== 8 || !/^\d{8}$/.test(dni)) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'DNI inválido',
-                    text: 'Por favor, ingrese un DNI de 8 dígitos',
-                    timer: 2000,
-                    showConfirmButton: false,
-                    toast: true,
-                    position: 'top-end'
-                });
-                return;
-            }
-            
-            // Mostrar spinner en el botón
-            const iconoOriginal = this.innerHTML;
-            this.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Buscando...';
-            this.disabled = true;
-            
-            // Disparar el evento blur para activar la búsqueda
-            inputDNI.dispatchEvent(new Event('blur'));
-            
-            // Restaurar el botón después de 2 segundos
-            setTimeout(() => {
-                this.innerHTML = iconoOriginal;
-                this.disabled = false;
-            }, 2000);
+    // ===== CONFIGURACIÓN INICIAL =====
+    const products = <?php echo json_encode(listarProductosVenta1($sucursal_id)); ?>;
+    let currentPage = 1;
+    const itemsPerPage = 6;
+    let filteredProducts = products;
+
+    const allCategories = [...new Set(products.map(p => p.categoria))];
+    const allTypes = [...new Set(products.map(p => p.tipo))];
+    const allDimensions = [...new Set(products.map(p => p.dimension))];
+    const allColores = [...new Set(products.map(p => p.color))];
+
+    // ===== INICIALIZACIÓN =====
+    document.addEventListener('DOMContentLoaded', function() {
+        populateFilters();
+        renderPage();
+        initEventListeners();
+        initVueltoListeners();
+    });
+
+    // ===== POBLAR FILTROS =====
+    function populateFilters() {
+        const categorySelect = document.getElementById('filterCategoria');
+        const typeSelect = document.getElementById('filterTipo');
+        const dimensionSelect = document.getElementById('filterDimension');
+        const colorSelect = document.getElementById('filterColor');
+
+        allCategories.forEach(cat => {
+            categorySelect.innerHTML += `<option value="${cat}">${cat}</option>`;
+        });
+        allTypes.forEach(type => {
+            typeSelect.innerHTML += `<option value="${type}">${type}</option>`;
+        });
+        allDimensions.forEach(dim => {
+            dimensionSelect.innerHTML += `<option value="${dim}">${dim}</option>`;
+        });
+        allColores.forEach(color => {
+            colorSelect.innerHTML += `<option value="${color}">${color}</option>`;
         });
     }
 
-    // Evento para el botón de buscar RUC
-    const btnBuscarRUC = document.getElementById('btnBuscarRUC');
-    if (btnBuscarRUC) {
-        btnBuscarRUC.addEventListener('click', async function() {
-            const inputRUC = document.getElementById('numeroDocumentoEmpresa');
-            const ruc = inputRUC.value.trim();
-            
-            // Validar que sea un RUC válido
-            if (ruc.length !== 11 || !/^\d{11}$/.test(ruc)) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'RUC inválido',
-                    text: 'Por favor, ingrese un RUC de 11 dígitos',
-                    timer: 2000,
-                    showConfirmButton: false,
-                    toast: true,
-                    position: 'top-end'
-                });
-                return;
+    // ===== RENDERIZAR PRODUCTOS =====
+    function renderProducts(productsToDisplay) {
+        const container = document.getElementById('productoContainer');
+        container.innerHTML = '';
+
+        productsToDisplay.forEach(product => {
+            const stock = parseFloat(product.stock);
+            const sinStock = stock === 0.00;
+
+            const row = document.createElement('tr');
+            row.className = sinStock ? 'table-danger' : '';
+
+            row.innerHTML = `
+            <td class="${sinStock ? 'text-danger fw-bold' : ''}">
+                <strong>${product.articulo}</strong> 
+                ${sinStock ? '<span class="badge bg-danger ms-2">SIN STOCK</span>' : ''}
+            </td>
+            <td><span class="badge bg-info">${product.categoria}</span></td>
+            <td>${product.tipo}</td>
+            <td>${product.dimension}</td>
+            <td>${product.color}</td>
+            <td class="text-center ${sinStock ? 'text-danger fw-bold' : ''}">
+                <strong>${product.stock}</strong>
+            </td>
+            <td class="text-end">
+                <strong class="text-success">S/ ${product.precio_venta}</strong>
+            </td>
+            <td class="text-center">
+                <button class="btn btn-success btn-sm btn-round" 
+                        onclick='fn_agregar_venta(${JSON.stringify(product).replace(/'/g, "&#39;")})'
+                        ${sinStock ? 'disabled' : ''}>
+                    <i class="fas fa-plus"></i> Agregar
+                </button>
+            </td>
+        `;
+            container.appendChild(row);
+        });
+
+        if (productsToDisplay.length === 0) {
+            container.innerHTML = `
+            <tr>
+                <td colspan="8" class="text-center text-muted py-4">
+                    <i class="fas fa-inbox fa-3x mb-3"></i>
+                    <p class="mb-0">No se encontraron productos</p>
+                </td>
+            </tr>
+        `;
+        }
+    }
+
+    // ===== PAGINACIÓN =====
+    function changePage(direction) {
+        currentPage += direction;
+        const totalPgs = totalPages();
+        if (currentPage < 1) currentPage = 1;
+        if (currentPage > totalPgs) currentPage = totalPgs;
+        renderPage();
+    }
+
+    function totalPages() {
+        return Math.ceil(filteredProducts.length / itemsPerPage);
+    }
+
+    function renderPage() {
+        const start = (currentPage - 1) * itemsPerPage;
+        const end = start + itemsPerPage;
+        const productsToDisplay = filteredProducts.slice(start, end);
+
+        renderProducts(productsToDisplay);
+
+        document.getElementById('prevPage').disabled = currentPage === 1;
+        document.getElementById('nextPage').disabled = currentPage === totalPages();
+    }
+
+    // ===== FILTRAR PRODUCTOS =====
+    function filterProducts() {
+        const searchText = document.getElementById('searchInput').value.toLowerCase();
+        const category = document.getElementById('filterCategoria').value;
+        const type = document.getElementById('filterTipo').value;
+        const dimension = document.getElementById('filterDimension').value;
+        const color = document.getElementById('filterColor').value;
+
+        filteredProducts = products.filter(product => {
+            return (
+                (category === '' || product.categoria === category) &&
+                (type === '' || product.tipo === type) &&
+                (dimension === '' || product.dimension === dimension) &&
+                (color === '' || product.color === color) &&
+                (product.articulo.toLowerCase().includes(searchText) ||
+                    product.categoria.toLowerCase().includes(searchText) ||
+                    product.tipo.toLowerCase().includes(searchText))
+            );
+        });
+
+        currentPage = 1;
+        renderPage();
+    }
+
+    function clearFilters() {
+        document.getElementById('filterCategoria').value = '';
+        document.getElementById('filterTipo').value = '';
+        document.getElementById('filterDimension').value = '';
+        document.getElementById('filterColor').value = '';
+        document.getElementById('searchInput').value = '';
+
+        filteredProducts = products;
+        currentPage = 1;
+        renderPage();
+    }
+
+    // ===== EVENT LISTENERS =====
+    function initEventListeners() {
+        document.getElementById('filterCategoria').addEventListener('change', filterProducts);
+        document.getElementById('filterTipo').addEventListener('change', filterProducts);
+        document.getElementById('filterDimension').addEventListener('change', filterProducts);
+        document.getElementById('filterColor').addEventListener('change', filterProducts);
+        document.getElementById('clearFilters').addEventListener('click', clearFilters);
+
+        initSoloCorteModal();
+        initImpresion3DModal();
+        initPagoModal();
+        initClienteModal();
+    }
+
+    // ===== CÁLCULO DE VUELTO =====
+    function initVueltoListeners() {
+        // Cuando cambie el select principal de forma de pago
+        document.getElementById('formaPagoSelect').addEventListener('change', detectarEfectivo);
+
+        // Cuando cambie el monto principal (NUEVO)
+        document.getElementById('montoSelect_0').addEventListener('input', detectarEfectivo);
+
+        // Cuando se ingrese el monto con el que paga
+        document.getElementById('pagaCon').addEventListener('input', calcularVuelto);
+
+        // Cuando cambie el monto total final (con descuento)
+        document.getElementById('montoTotalFinal').addEventListener('input', function() {
+            if (document.getElementById('seccionVuelto').style.display === 'block') {
+                actualizarTotalAPagar();
             }
-            
-            // Mostrar spinner en el botón
-            const iconoOriginal = this.innerHTML;
-            this.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Buscando...';
-            this.disabled = true;
-            
-            // Disparar el evento blur para activar la búsqueda
-            inputRUC.dispatchEvent(new Event('blur'));
-            
-            // Restaurar el botón después de 2 segundos
-            setTimeout(() => {
-                this.innerHTML = iconoOriginal;
-                this.disabled = false;
-            }, 2000);
         });
     }
-});
-</script>
 
-document.getElementById('btnBuscarRUC')?.addEventListener('click', function() {
-    document.getElementById('numeroDocumentoEmpresa').dispatchEvent(new Event('blur'));
-});
-</script>
+    function detectarEfectivo() {
+        let hayEfectivo = false;
+        let montoEfectivo = 0;
 
-<script>
-    document.addEventListener("DOMContentLoaded", function() {
-        // Obtener elementos de los tabs
-        const pagoDirectoTab = document.getElementById("pills-home-tab-icon");
-        const pagoCreditoTab = document.getElementById("pills-profile-tab-icon");
+        // Verificar el select principal y su monto
+        const selectPrincipal = document.getElementById('formaPagoSelect');
+        const montoPrincipal = parseFloat(document.getElementById('montoSelect_0').value) || 0;
 
-
-        // Obtener elementos del acordeón
-        const collapseOne = document.getElementById("collapseOne");
-        const accordionButton = document.querySelector(".accordion-button"); // Botón del acordeón
-        const nombreCliente = document.getElementById("nombreCliente");
-        const telefonoCliente = document.getElementById("idUpdateNumTelefonoCliente");
-        const correoCliente = document.getElementById("idUpdateCorreoCliente");
-        const idPersona = document.getElementById("idPersona");
-        // Función para resetear los valores del formulario
-        function resetearValores() {
-            nombreCliente.value = "";
-            telefonoCliente.value = "";
-            correoCliente.value = "";
-            idPersona.textContent = "#";
-        }
-
-        // Evento cuando se selecciona "Pago Directo"
-        pagoDirectoTab.addEventListener("click", function() {
-            resetearValores(); // Reiniciar valores
-            collapseOne.classList.remove("show"); // Ocultar acordeón
-            accordionButton.classList.add("collapsed"); // Agregar clase "collapsed"
-            accordionButton.setAttribute("aria-expanded", "false"); // Cambiar atributo
-        });
-
-        // Evento cuando se selecciona "Pago Crédito"
-        pagoCreditoTab.addEventListener("click", function() {
-            resetearValores(); // Reiniciar valores
-            collapseOne.classList.add("show"); // Mostrar acordeón
-            accordionButton.classList.remove("collapsed"); // Quitar clase "collapsed"
-            accordionButton.setAttribute("aria-expanded", "true"); // Cambiar atributo
-        });
-        ////////
-
-
-    });
-</script>
-
-
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-
-        // Registrar eventos para los botones de incremento y decremento (fuera del modal)
-        document.getElementById("btnSumarSoloCorte").addEventListener("click", function() {
-            let cantidad = parseInt(document.getElementById("cantidad_solocorte").value);
-            if (cantidad == 0) {
-                document.getElementById("cantidad_solocorte").value = 10;
-            } else {
-                document.getElementById("cantidad_solocorte").value = cantidad + 1;
+        if (montoPrincipal > 0) {
+            const textoPrincipal = selectPrincipal.options[selectPrincipal.selectedIndex].text.toUpperCase();
+            if (textoPrincipal.includes('EFECTIVO')) {
+                hayEfectivo = true;
+                montoEfectivo += montoPrincipal;
             }
-        });
-
-        document.getElementById("btnRestarSoloCorte").addEventListener("click", function() {
-            let cantidad = parseInt(document.getElementById("cantidad_solocorte").value);
-            if (cantidad > 0) {
-                document.getElementById("cantidad_solocorte").value = cantidad - 1;
-            }
-        });
-
-        // Para los incrementos en el precio
-        document.getElementById("btnIncremento05SoloCorte").addEventListener("click", function() {
-            let precio = parseFloat(document.getElementById("precioSoloCorte").value);
-            document.getElementById("precioSoloCorte").value = (precio + 0.5).toFixed(2);
-        });
-
-        document.getElementById("btnIncremento1SoloCorte").addEventListener("click", function() {
-            let precio = parseFloat(document.getElementById("precioSoloCorte").value);
-            document.getElementById("precioSoloCorte").value = (precio + 1).toFixed(2);
-        });
-
-        document.getElementById("btnIncremento2SoloCorte").addEventListener("click", function() {
-            let precio = parseFloat(document.getElementById("precioSoloCorte").value);
-            document.getElementById("precioSoloCorte").value = (precio + 2).toFixed(2);
-        });
-
-        document.getElementById("btnIncremento5SoloCorte").addEventListener("click", function() {
-            let precio = parseFloat(document.getElementById("precioSoloCorte").value);
-            document.getElementById("precioSoloCorte").value = (precio + 5).toFixed(2);
-        });
-
-        // Abrir el modal y manejar el evento de agregar corte
-        document.getElementById('btnAbrirModalSolo').addEventListener('click', function(event) {
-            event.preventDefault(); // Prevenir el comportamiento por defecto del botón
-            let navLinks = document.querySelectorAll(".nav-link");
-
-            // Remover la clase 'active' de todas las pestañas
-            navLinks.forEach(function(link) {
-                link.classList.remove("active");
-            });
-
-            // Desactivar todos los panes (contenido de las pestañas)
-            let tabPanes = document.querySelectorAll(".tab-pane");
-            tabPanes.forEach(function(pane) {
-                pane.classList.remove("show", "active");
-            });
-            // Mostrar el modal de Solo Corte
-            const modalElement = document.getElementById('modalSoloCorte');
-            const modal = new bootstrap.Modal(modalElement, {
-                backdrop: 'static', // Evita que se cierre al hacer clic fuera
-                keyboard: false // Evita que se cierre con la tecla 'Esc'
-            });
-
-            // Seleccionar el botón "Agregar"
-            const btn_agregar = document.getElementById('btn_agregar_solocorte');
-            btn_agregar.textContent = 'Agregar';
-
-            btn_agregar.replaceWith(btn_agregar.cloneNode(true));
-
-            // Seleccionar nuevamente el botón clonado
-            const nuevoBtnAgregar = document.getElementById('btn_agregar_solocorte');
-
-            // Volver a agregar el evento para agregar datos
-            nuevoBtnAgregar.addEventListener("click", agregarDatosCorte);
-
-
-            // Limpiar los campos del formulario
-            document.getElementById("cantidad_solocorte").value = 0;
-            document.getElementById("precioSoloCorte").value = 1.5;
-            modal.show(); // Muestra el modal
-        });
-
-        document.getElementById('btnAbrirModalSolov2').addEventListener('click', function(event) {
-            event.preventDefault(); // Prevenir el comportamiento por defecto del botón
-            let navLinks = document.querySelectorAll(".nav-link");
-
-            // Remover la clase 'active' de todas las pestañas
-            navLinks.forEach(function(link) {
-                link.classList.remove("active");
-            });
-
-            // Desactivar todos los panes (contenido de las pestañas)
-            let tabPanes = document.querySelectorAll(".tab-pane");
-            tabPanes.forEach(function(pane) {
-                pane.classList.remove("show", "active");
-            });
-            // Mostrar el modal de Solo Corte
-            const modalElement = document.getElementById('modalSoloCorteMaquina2');
-            const modal = new bootstrap.Modal(modalElement, {
-                backdrop: 'static', // Evita que se cierre al hacer clic fuera
-                keyboard: false // Evita que se cierre con la tecla 'Esc'
-            });
-
-
-
-            const btn_agregar = document.getElementById('btn_agregar_solocortev2');
-            btn_agregar.textContent = 'Agregar';
-
-            btn_agregar.replaceWith(btn_agregar.cloneNode(true));
-
-
-            const nuevoBtnAgregar = document.getElementById('btn_agregar_solocortev2');
-
-
-            nuevoBtnAgregar.addEventListener("click", fn_agregar_impresion_a_tabla);
-
-
-            modal.show(); // Muestra el modal
-        });
-
-        function fn_agregar_impresion_a_tabla() {
-            console.log("Holass")
-            const cantidadMinutos = parseInt(document.getElementById('cantidad_solocortev2').value) || 0;
-            const tarifa = parseFloat(document.getElementById('precioSoloCortev2').value) || 0;
-
-            const inputMonto = document.getElementById('cantidad_solocortev2');
-            const divContainer = inputMonto.closest('.d-flex');
-            const mensajeErrorExistente = document.querySelector('.error-message');
-            if (mensajeErrorExistente) mensajeErrorExistente.remove();
-            inputMonto.classList.remove('error-input');
-
-            if (isNaN(cantidadMinutos) || cantidadMinutos <= 0) {
-                inputMonto.classList.add('error-input');
-
-                const mensajeError =
-                    `
-                    <div class="error-message text-center">
-                        Por favor, ingresa un monto válido mayor a 0.
-                    </div>
-                `;
-
-                divContainer.insertAdjacentHTML('afterend', mensajeError);
-
-                return;
-            }
-            const datosImpresion3D = [{
-                id: '0',
-                minutos: cantidadMinutos,
-                tarifa: tarifa,
-                costo: cantidadMinutos * tarifa,
-                articulo: 'MAQUINA DE IMPRESION  3D',
-                idmovimiento: 15,
-            }];
-
-            console.log(datosImpresion3D);
-            fn_solo_impresion_tabla(datosImpresion3D);
-            document.getElementById('cantidad_solocortev2').value = '10';
-            document.getElementById('precioSoloCortev2').value = '1.5'; // Valor inicial
-
-            const modalElement = document.getElementById('modalSoloCorteMaquina2');
-            const modal = bootstrap.Modal.getInstance(modalElement);
-            modal.hide();
-            showNotification("success");
-
-        }
-        // Función que maneja el evento de agregar datos
-        function agregarDatosCorte() {
-            const cantidadMinutos = parseInt(document.getElementById('cantidad_solocorte').value) || 0;
-            const tarifa = parseFloat(document.getElementById('precioSoloCorte').value) || 0;
-
-            const inputMonto = document.getElementById('cantidad_solocorte');
-            const divContainer = inputMonto.closest('.d-flex');
-            const mensajeErrorExistente = document.querySelector('.error-message');
-            if (mensajeErrorExistente) mensajeErrorExistente.remove();
-            inputMonto.classList.remove('error-input');
-
-
-            if (isNaN(cantidadMinutos) || cantidadMinutos <= 0) {
-                // Añadir clase para resaltar el error
-                inputMonto.classList.add('error-input');
-
-                // Crear mensaje de error dinámicamente
-                const mensajeError = `
-                    <div class="error-message text-center">
-                        Por favor, ingresa un monto válido mayor a 0.
-                    </div>
-                `;
-
-                // Insertar el mensaje de error debajo del contenedor principal
-                divContainer.insertAdjacentHTML('afterend', mensajeError);
-
-                return; // Detener ejecución si el monto no es válido
-            }
-
-
-            // Crear el objeto datosCorte
-            const datosCorte = [{
-                id: '0', // Id del corte
-                minutos: cantidadMinutos, // Minutos registrados
-                tarifa: tarifa, // Costo por minuto
-                costo: cantidadMinutos * tarifa,
-                articulo: 'SOLO CORTE',
-                idmovimiento: 6,
-            }];
-
-            console.log(datosCorte);
-
-            // Llamar a la función fn_solo_corte_tabla para agregar a la tabla
-            fn_solo_corte_tabla(datosCorte);
-
-            // Reiniciar los minutos a 0 en la interfaz
-            document.getElementById('cantidad_solocorte').value = '0';
-            document.getElementById('precioSoloCorte').value = '1.5'; // Valor inicial
-
-            // Ocultar el modal
-            const modalElement = document.getElementById('modalSoloCorte');
-            const modal = bootstrap.Modal.getInstance(modalElement);
-            modal.hide();
-            showNotification("success");
         }
 
-        function fn_solo_impresion_tabla(datosCorte) {
-            var tabla = document.getElementById("tabla_articulos").getElementsByTagName("tbody")[0];
+        // Verificar los selects adicionales
+        const contenedor = document.getElementById('contenedorPagos');
+        const selectsAdicionales = contenedor.querySelectorAll('select[name^="formaPago_"]');
 
-            datosCorte.forEach(corte => {
-                let nuevaFila = tabla.insertRow();
+        selectsAdicionales.forEach((select, index) => {
+            const inputMonto = select.closest('.card').querySelector('input[type="number"]');
+            const monto = parseFloat(inputMonto?.value) || 0;
 
-                nuevaFila.insertCell(0).textContent = corte.id; // ID
-                nuevaFila.insertCell(1).textContent = corte.minutos; // Minutos
-                nuevaFila.insertCell(2).textContent = corte.tarifa; // Costo x Minuto
-                nuevaFila.insertCell(3).textContent = corte.costo; // Costo x Minuto
-                nuevaFila.insertCell(4).textContent = corte.articulo; // Artículo
-                nuevaFila.insertCell(5).textContent = '-'; // Cantidad fija por corte
-                nuevaFila.insertCell(6).textContent = '-'; // Precio unitario
-                nuevaFila.insertCell(7).textContent = (corte.costo).toFixed(2); // Subtotal
-
-                let accionCell = nuevaFila.insertCell(8);
-                nuevaFila.insertCell(9).textContent = corte.idmovimiento; // Subtotal
-
-                // 1. Botón de Editar
-                let botonEditar = document.createElement("button");
-                botonEditar.classList.add("btn", "btn-warning", "btn-round", "ms-2", "text-white", "px-3", "py-2");
-                botonEditar.innerHTML = '<i class="fas fa-edit"></i>'; // Ícono de editar con texto
-
-                // Agregar el botón de editar a la celda de acciones
-                accionCell.appendChild(botonEditar);
-
-                // 2. Botón de Eliminar
-                let botonEliminar = document.createElement("button");
-                botonEliminar.classList.add("btn", "btn-danger", "btn-round", "ms-2", "px-3", "py-2");
-                botonEliminar.innerHTML = '<i class="fas fa-trash"></i>'; // Ícono de eliminar con texto
-
-                accionCell.appendChild(botonEliminar);
-
-                botonEditar.addEventListener("click", () => {
-                    // Llenamos el modal con los datos del corte
-
-                    document.getElementById("cantidad_solocortev2").value = corte.minutos || 0; // Minutos corte
-                    document.getElementById("precioSoloCortev2").value = corte.tarifa || 1.5; // Precio corte
-
-                    // Mostrar el modal
-                    const modalElement = document.getElementById('modalSoloCorteMaquina2');
-                    const modal = new bootstrap.Modal(modalElement, {
-                        backdrop: 'static',
-                        keyboard: false
-                    });
-
-                    modal.show();
-
-                    // El botón de agregar se convierte en "Actualizar" para modificar los valores
-                    const btn_agregar = document.getElementById('btn_agregar_solocortev2');
-                    btn_agregar.textContent = 'Actualizar'; // Cambiar texto del botón
-                    btn_agregar.removeEventListener("click", fn_agregar_impresion_a_tabla);
-
-                    // Actualizar el corte en la tabla cuando se presiona "Actualizar"
-                    btn_agregar.addEventListener("click", function() {
-                        corte.minutos = parseInt(document.getElementById("cantidad_solocortev2").value) || 0;
-                        corte.tarifa = parseFloat(document.getElementById("precioSoloCortev2").value) || 1.5;
-                        corte.costo = corte.minutos * corte.tarifa; // Recalcular el costo
-
-                        // Actualizar las celdas de la fila con los nuevos valores
-                        nuevaFila.cells[1].textContent = corte.minutos; // Minutos
-                        nuevaFila.cells[2].textContent = corte.tarifa; // Costo x Minuto
-                        nuevaFila.cells[3].textContent = corte.costo.toFixed(2); // Costo total
-
-                        // Recalcular el subtotal
-                        nuevaFila.cells[7].textContent = corte.costo.toFixed(2); // Subtotal
-
-                        // Cerrar el modal
-                        modal.hide();
-                        showNotification("success");
-                        fn_obtener_total(); // Recalcular los totales después de editar
-                    });
-                });
-
-                // Función para manejar el botón de eliminar
-                botonEliminar.addEventListener("click", () => {
-                    Swal.fire({
-                        title: '¿Estás seguro?',
-                        text: "Esta acción no se puede deshacer.",
-                        icon: 'warning',
-                        showCancelButton: true,
-                        confirmButtonColor: '#3085d6',
-                        cancelButtonColor: '#d33',
-                        confirmButtonText: 'Sí, eliminar',
-                        cancelButtonText: 'Cancelar'
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            // Si el usuario confirma, eliminamos la fila
-                            const fila = botonEliminar.closest("tr");
-                            fila.remove(); // Eliminar la fila
-
-                            // Recalcular los totales
-                            fn_obtener_total();
-
-                            // Mostrar mensaje de éxito
-                            showNotification("success");
-                        }
-                    });
-                });
-            });
-
-            fn_obtener_total();
-        }
-
-        function fn_solo_corte_tabla(datosCorte) {
-            var tabla = document.getElementById("tabla_articulos").getElementsByTagName("tbody")[0];
-
-            datosCorte.forEach(corte => {
-                let nuevaFila = tabla.insertRow();
-
-                nuevaFila.insertCell(0).textContent = corte.id; // ID
-                nuevaFila.insertCell(1).textContent = corte.minutos; // Minutos
-                nuevaFila.insertCell(2).textContent = corte.tarifa; // Costo x Minuto
-                nuevaFila.insertCell(3).textContent = corte.costo; // Costo x Minuto
-                nuevaFila.insertCell(4).textContent = corte.articulo; // Artículo
-                nuevaFila.insertCell(5).textContent = '-'; // Cantidad fija por corte
-                nuevaFila.insertCell(6).textContent = '-'; // Precio unitario
-                nuevaFila.insertCell(7).textContent = (corte.costo).toFixed(2); // Subtotal
-
-                let accionCell = nuevaFila.insertCell(8);
-                nuevaFila.insertCell(9).textContent = corte.idmovimiento; // Subtotal
-
-                // 1. Botón de Editar
-                let botonEditar = document.createElement("button");
-                botonEditar.classList.add("btn", "btn-warning", "btn-round", "ms-2", "text-white", "px-3", "py-2");
-                botonEditar.innerHTML = '<i class="fas fa-edit"></i>'; // Ícono de editar con texto
-
-                // Agregar el botón de editar a la celda de acciones
-                accionCell.appendChild(botonEditar);
-
-                // 2. Botón de Eliminar
-                let botonEliminar = document.createElement("button");
-                botonEliminar.classList.add("btn", "btn-danger", "btn-round", "ms-2", "px-3", "py-2");
-                botonEliminar.innerHTML = '<i class="fas fa-trash"></i>'; // Ícono de eliminar con texto
-
-                accionCell.appendChild(botonEliminar);
-
-                botonEditar.addEventListener("click", () => {
-                    // Llenamos el modal con los datos del corte
-
-                    document.getElementById("cantidad_solocorte").value = corte.minutos || 0; // Minutos corte
-                    document.getElementById("precioSoloCorte").value = corte.tarifa || 1.5; // Precio corte
-
-                    // Mostrar el modal
-                    const modalElement = document.getElementById('modalSoloCorte');
-                    const modal = new bootstrap.Modal(modalElement, {
-                        backdrop: 'static',
-                        keyboard: false
-                    });
-
-                    modal.show();
-
-                    // El botón de agregar se convierte en "Actualizar" para modificar los valores
-                    const btn_agregar = document.getElementById('btn_agregar_solocorte');
-                    btn_agregar.textContent = 'Actualizar'; // Cambiar texto del botón
-                    btn_agregar.removeEventListener("click", agregarDatosCorte);
-
-                    // Actualizar el corte en la tabla cuando se presiona "Actualizar"
-                    btn_agregar.addEventListener("click", function() {
-                        corte.minutos = parseInt(document.getElementById("cantidad_solocorte").value) || 0;
-                        corte.tarifa = parseFloat(document.getElementById("precioSoloCorte").value) || 1.5;
-                        corte.costo = corte.minutos * corte.tarifa; // Recalcular el costo
-
-                        // Actualizar las celdas de la fila con los nuevos valores
-                        nuevaFila.cells[1].textContent = corte.minutos; // Minutos
-                        nuevaFila.cells[2].textContent = corte.tarifa; // Costo x Minuto
-                        nuevaFila.cells[3].textContent = corte.costo.toFixed(2); // Costo total
-
-                        // Recalcular el subtotal
-                        nuevaFila.cells[7].textContent = corte.costo.toFixed(2); // Subtotal
-
-                        // Cerrar el modal
-                        modal.hide();
-                        showNotification("success");
-                        fn_obtener_total(); // Recalcular los totales después de editar
-                    });
-                });
-
-                // Función para manejar el botón de eliminar
-                botonEliminar.addEventListener("click", () => {
-                    Swal.fire({
-                        title: '¿Estás seguro?',
-                        text: "Esta acción no se puede deshacer.",
-                        icon: 'warning',
-                        showCancelButton: true,
-                        confirmButtonColor: '#3085d6',
-                        cancelButtonColor: '#d33',
-                        confirmButtonText: 'Sí, eliminar',
-                        cancelButtonText: 'Cancelar'
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            // Si el usuario confirma, eliminamos la fila
-                            const fila = botonEliminar.closest("tr");
-                            fila.remove(); // Eliminar la fila
-
-                            // Recalcular los totales
-                            fn_obtener_total();
-
-                            // Mostrar mensaje de éxito
-                            showNotification("success");
-                        }
-                    });
-                });
-            });
-
-            fn_obtener_total();
-        }
-
-    });
-</script>
-
-
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const botonesSumar = document.querySelectorAll('[id^="add_"]');
-        const botonesRestar = document.querySelectorAll('[id^="rest_"]');
-
-        botonesSumar.forEach(boton => {
-            boton.addEventListener('click', function() {
-                const id = boton.id.split('_')[1];
-                const spanCantidad = document.getElementById(`cantidad_${id}`);
-                let cantidad = parseInt(spanCantidad.textContent);
-                cantidad++;
-                spanCantidad.textContent = cantidad;
-            });
-        });
-
-
-        botonesRestar.forEach(boton => {
-            boton.addEventListener('click', function() {
-                const id = boton.id.split('_')[1];
-                const spanCantidad = document.getElementById(`cantidad_${id}`);
-                let cantidad = parseInt(spanCantidad.textContent);
-                if (cantidad > 1) {
-                    cantidad--;
-                    spanCantidad.textContent = cantidad;
+            if (monto > 0) {
+                const texto = select.options[select.selectedIndex].text.toUpperCase();
+                if (texto.includes('EFECTIVO')) {
+                    hayEfectivo = true;
+                    montoEfectivo += monto;
                 }
-            });
+            }
         });
-    });
 
-    function fn_agregar_venta(datosArticulo) {
-        console.log("ARTICULO DE MRD");
-        console.log(datosArticulo)
-        //if (verificarSiArticuloExiste(datosArticulo['id'])) {
-        // Swal.fire({
-        //    icon: 'info',
-        //  title: '¡Artículo ya registrado!',
-        //text: 'Este artículo ya está en la tabla.',
-        //confirmButtonText: 'Aceptar'
-        //});
-        //} else {
-        const modalCantidad = new bootstrap.Modal(document.getElementById('modalCantidad'));
+        const seccionVuelto = document.getElementById('seccionVuelto');
 
-        // Configurar el nombre del artículo
-        const nombreArticulo = document.getElementById('nombreArticulo');
-        nombreArticulo.textContent = `Artículo: ${datosArticulo.articulo || "Sin nombre"}`;
-        // Resetear valores del modal
-        const inputCantidad = document.getElementById('inputCantidad');
-        const seccionCorte = document.getElementById('seccionCorte');
-        const cantidadCorte = document.getElementById('cantidadCorte');
-        const precioCorte = document.getElementById('precioCorte');
-        const textAreatInsert = document.getElementById("idTextAreaDetalleInsert").value;
-        datosArticulo.nota = textAreatInsert;
-        const mensajeErrorExistente = document.querySelector('.error-message');
-        if (mensajeErrorExistente) mensajeErrorExistente.remove();
-        cantidadCorte.classList.remove('error-input');
-
-        inputCantidad.value = 1; // Cantidad por defecto
-        cantidadCorte.value = 0; // Resetear minutos corte
-        precioCorte.value = 0; // Precio por defecto
-
-        // Mostrar u ocultar la sección de corte según datosArticulo.corte
-        if (datosArticulo.corte) {
-            precioCorte.value = 1.5;
-            seccionCorte.style.display = 'block';
+        if (hayEfectivo) {
+            seccionVuelto.style.display = 'block';
+            actualizarTotalAPagar();
+            console.log(`✅ Se detectó EFECTIVO: S/ ${montoEfectivo.toFixed(2)}`);
         } else {
-            seccionCorte.style.display = 'none';
+            seccionVuelto.style.display = 'none';
+            document.getElementById('pagaCon').value = '';
+            document.getElementById('vuelto').value = '0.00';
+            console.log('❌ No hay EFECTIVO seleccionado con monto');
+        }
+    }
+
+    function actualizarTotalAPagar() {
+        const montoFinal = parseFloat(document.getElementById('montoTotalFinal').value) ||
+            parseFloat(document.getElementById('montoTotal').value);
+        document.getElementById('totalAPagar').value = montoFinal.toFixed(2);
+        calcularVuelto();
+    }
+
+    function calcularVuelto() {
+        const totalAPagar = parseFloat(document.getElementById('totalAPagar').value) || 0;
+        const pagaCon = parseFloat(document.getElementById('pagaCon').value) || 0;
+        const vuelto = pagaCon - totalAPagar;
+
+        const inputVuelto = document.getElementById('vuelto');
+
+        if (vuelto < 0) {
+            inputVuelto.value = '0.00';
+            inputVuelto.classList.remove('text-success');
+            inputVuelto.classList.add('text-danger');
+        } else {
+            inputVuelto.value = vuelto.toFixed(2);
+            inputVuelto.classList.remove('text-danger');
+            inputVuelto.classList.add('text-success');
+        }
+    }
+
+    function setPagaCon(monto) {
+        const totalAPagar = parseFloat(document.getElementById('totalAPagar').value) || 0;
+
+        if (monto < totalAPagar) {
+            document.getElementById('pagaCon').value = totalAPagar.toFixed(2);
+        } else {
+            document.getElementById('pagaCon').value = monto.toFixed(2);
         }
 
-        // Configurar botones de cantidad
+        calcularVuelto();
+    }
+
+    // ===== SOLO CORTE =====
+    function initSoloCorteModal() {
+        document.getElementById('btnAbrirModalSolo').addEventListener('click', function(e) {
+            e.preventDefault();
+            const modal = new bootstrap.Modal(document.getElementById('modalSoloCorte'));
+            document.getElementById('cantidad_solocorte').value = 0;
+            document.getElementById('precioSoloCorte').value = 1.5;
+            modal.show();
+        });
+
+        document.getElementById('btnSumarSoloCorte').addEventListener('click', function() {
+            let val = parseInt(document.getElementById('cantidad_solocorte').value);
+            document.getElementById('cantidad_solocorte').value = val === 0 ? 10 : val + 1;
+        });
+
+        document.getElementById('btnRestarSoloCorte').addEventListener('click', function() {
+            let val = parseInt(document.getElementById('cantidad_solocorte').value);
+            if (val > 0) document.getElementById('cantidad_solocorte').value = val - 1;
+        });
+
+        ['05', '1', '2', '5'].forEach(inc => {
+            document.getElementById(`btnIncremento${inc}SoloCorte`).addEventListener('click', function() {
+                let precio = parseFloat(document.getElementById('precioSoloCorte').value);
+                document.getElementById('precioSoloCorte').value = (precio + parseFloat(inc.replace('0', '.'))).toFixed(2);
+            });
+        });
+
+        document.getElementById('btn_agregar_solocorte').addEventListener('click', agregarSoloCorte);
+    }
+
+    function agregarSoloCorte() {
+        const minutos = parseInt(document.getElementById('cantidad_solocorte').value) || 0;
+        const tarifa = parseFloat(document.getElementById('precioSoloCorte').value) || 0;
+
+        if (minutos <= 0) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Error',
+                text: 'Ingresa minutos válidos',
+                timer: 2000,
+                showConfirmButton: false
+            });
+            return;
+        }
+
+        const datos = [{
+            id: '0',
+            articulo: 'SOLO CORTE',
+            cantidad: '-',
+            precio_unitario: '-',
+            subtotal: minutos * tarifa,
+            idmovimiento: 6,
+            minutos: minutos,
+            tarifa: tarifa
+        }];
+
+        agregarATabla(datos);
+        bootstrap.Modal.getInstance(document.getElementById('modalSoloCorte')).hide();
+        showNotification("success");
+    }
+
+    // ===== IMPRESIÓN 3D =====
+    function initImpresion3DModal() {
+        document.getElementById('btnAbrirModalSolov2').addEventListener('click', function(e) {
+            e.preventDefault();
+            const modal = new bootstrap.Modal(document.getElementById('modalSoloCorteMaquina2'));
+            document.getElementById('cantidad_solocortev2').value = 10;
+            document.getElementById('precioSoloCortev2').value = 1.5;
+            document.getElementById('nota_impresion').value = '';
+            modal.show();
+        });
+
+        document.getElementById('btn_agregar_solocortev2').addEventListener('click', agregarImpresion3D);
+    }
+
+    function fnAumentoOrResta(accion) {
+        let val = parseInt(document.getElementById('cantidad_solocortev2').value);
+        document.getElementById('cantidad_solocortev2').value = accion === '+' ? val + 1 : (val > 1 ? val - 1 : val);
+    }
+
+    function fnAumentarMin(minutos) {
+        document.getElementById('cantidad_solocortev2').value = minutos;
+    }
+
+    function fnAumentaPrecioImpresion(monto) {
+        let precio = parseFloat(document.getElementById('precioSoloCortev2').value);
+        document.getElementById('precioSoloCortev2').value = (precio + monto).toFixed(2);
+    }
+
+    function limpiar() {
+        document.getElementById('precioSoloCortev2').value = 0;
+    }
+
+    function agregarImpresion3D() {
+        const minutos = parseInt(document.getElementById('cantidad_solocortev2').value) || 0;
+        const tarifa = parseFloat(document.getElementById('precioSoloCortev2').value) || 0;
+        const nota = document.getElementById('nota_impresion').value || '';
+
+        if (minutos <= 0) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Error',
+                text: 'Ingresa minutos válidos',
+                timer: 2000,
+                showConfirmButton: false
+            });
+            return;
+        }
+
+        const datos = [{
+            id: '0',
+            articulo: 'IMPRESIÓN 3D' + (nota ? ` - ${nota}` : ''),
+            cantidad: '-',
+            precio_unitario: '-',
+            subtotal: minutos * tarifa,
+            idmovimiento: 15,
+            minutos: minutos,
+            tarifa: tarifa
+        }];
+
+        agregarATabla(datos);
+        bootstrap.Modal.getInstance(document.getElementById('modalSoloCorteMaquina2')).hide();
+        showNotification("success");
+    }
+
+    // ===== AGREGAR ARTÍCULO =====
+    function fn_agregar_venta(articulo) {
+        const modal = new bootstrap.Modal(document.getElementById('modalCantidad'));
+
+        document.getElementById('nombreArticulo').textContent = `Artículo: ${articulo.articulo}`;
+        document.getElementById('inputCantidad').value = 1;
+        document.getElementById('cantidadCorte').value = 0;
+        document.getElementById('precioCorte').value = articulo.corte ? 1.5 : 0;
+        document.getElementById('idTextAreaDetalleInsert').value = '';
+
+        const seccionCorte = document.getElementById('seccionCorte');
+        seccionCorte.style.display = articulo.corte ? 'block' : 'none';
+
         document.getElementById('btnRestarCantidad').onclick = () => {
-            let cantidad = parseInt(inputCantidad.value, 10);
-
-            // Restar si la cantidad es mayor a 1
-            if (cantidad > 1) {
-                inputCantidad.value = cantidad - 1; // Restar cantidad
-            }
-
-            // Verificar si la cantidad es 1 y el artículo tiene corte
-            if (inputCantidad.value == 1 && datosArticulo.corte) {
-                precioCorte.value = 1.5;
-                seccionCorte.style.display = 'block'; // Mostrar sección de corte
-
-            } else if (inputCantidad.value > 1) {
-                // Ocultar sección de corte si la cantidad es mayor a 1
-                precioCorte.value = 0;
-                cantidadCorte.value = 0;
-                seccionCorte.style.display = 'none';
-            }
-        };
-
-        document.getElementById('btnSumarCantidad').onclick = () => {
-            let cantidad = parseInt(inputCantidad.value, 10) + 1; // Aumentar primero
-            let cantidadStock = datosArticulo.stock; // Stock disponible
-
-            if (cantidad > cantidadStock) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Stock insuficiente',
-                    text: `No puedes agregar más de ${cantidadStock} unidades.`,
-                    confirmButtonText: 'Entendido'
-                });
-            } else {
-                inputCantidad.value = cantidad; // Solo actualiza si es válido
-
-                if (cantidad === 1 && datosArticulo.corte) {
-                    precioCorte.value = 1.5;
+            let cant = parseInt(document.getElementById('inputCantidad').value);
+            if (cant > 1) {
+                document.getElementById('inputCantidad').value = cant - 1;
+                if (cant - 1 === 1 && articulo.corte) {
                     seccionCorte.style.display = 'block';
-                } else {
-                    precioCorte.value = 0;
-                    cantidadCorte.value = 0;
+                    document.getElementById('precioCorte').value = 1.5;
+                } else if (cant - 1 > 1) {
                     seccionCorte.style.display = 'none';
                 }
             }
         };
 
-        // Configurar botones de corte
-        document.getElementById('btnRestarCorte').onclick = () => {
-            let corte = parseInt(cantidadCorte.value, 10); // Cambié textContent por value
-            if (corte > 0) cantidadCorte.value = corte - 1; // Cambié textContent por value
-        };
-
-        document.getElementById('btnSumarCorte').onclick = () => {
-            let corte = parseInt(cantidadCorte.value, 10); // Cambié textContent por value
-            if (corte == 0) {
-                cantidadCorte.value = 10; // Cambié textContent por value
-            } else {
-                cantidadCorte.value = corte + 1; // Cambié textContent por value
-            }
-        };
-
-        // Botones para modificar precio
-        document.getElementById('btnIncremento05').onclick = () => {
-            precioCorte.value = (parseFloat(precioCorte.value) + 0.5).toFixed(2);
-        };
-        document.getElementById('btnIncremento1').onclick = () => {
-            precioCorte.value = (parseFloat(precioCorte.value) + 1).toFixed(2);
-        };
-        document.getElementById('btnIncremento2').onclick = () => {
-            precioCorte.value = (parseFloat(precioCorte.value) + 2).toFixed(2);
-        };
-        document.getElementById('btnIncremento5').onclick = () => {
-            precioCorte.value = (parseFloat(precioCorte.value) + 5).toFixed(2);
-        };
-        
-
-        // Confirmar cantidad y agregar a la tabla
-        document.getElementById('btnConfirmarCantidad').onclick = () => {
-            let cantidadSeleccionada = parseInt(inputCantidad.value, 10);
-            let cantidadStock = datosArticulo.stock;
-
-            // Validar que la cantidad no supere el stock
-            if (cantidadSeleccionada > cantidadStock) {
+        document.getElementById('btnSumarCantidad').onclick = () => {
+            let cant = parseInt(document.getElementById('inputCantidad').value);
+            if (cant + 1 > articulo.stock) {
                 Swal.fire({
                     icon: 'warning',
                     title: 'Stock insuficiente',
-                    text: `Solo hay ${cantidadStock} unidades disponibles.`,
-                    confirmButtonText: 'Entendido'
+                    text: `Solo hay ${articulo.stock} unidades disponibles`,
+                    timer: 2000,
+                    showConfirmButton: false
                 });
-                return; // Detener ejecución
+            } else {
+                document.getElementById('inputCantidad').value = cant + 1;
+                if (cant + 1 > 1) {
+                    seccionCorte.style.display = 'none';
+                    document.getElementById('cantidadCorte').value = 0;
+                    document.getElementById('precioCorte').value = 0;
+                }
+            }
+        };
+
+        document.getElementById('btnRestarCorte').onclick = () => {
+            let val = parseInt(document.getElementById('cantidadCorte').value);
+            if (val > 0) document.getElementById('cantidadCorte').value = val - 1;
+        };
+
+        document.getElementById('btnSumarCorte').onclick = () => {
+            let val = parseInt(document.getElementById('cantidadCorte').value);
+            document.getElementById('cantidadCorte').value = val === 0 ? 10 : val + 1;
+        };
+
+        ['05', '1', '2', '5'].forEach(inc => {
+            document.getElementById(`btnIncremento${inc}`).onclick = () => {
+                let precio = parseFloat(document.getElementById('precioCorte').value);
+                document.getElementById('precioCorte').value = (precio + parseFloat(inc.replace('0', '.'))).toFixed(2);
+            };
+        });
+
+        document.getElementById('btnConfirmarCantidad').onclick = () => {
+            const cantidad = parseInt(document.getElementById('inputCantidad').value);
+            const minutos = parseInt(document.getElementById('cantidadCorte').value) || 0;
+            const precioCorte = parseFloat(document.getElementById('precioCorte').value) || 0;
+            const nota = document.getElementById('idTextAreaDetalleInsert').value;
+
+            if (cantidad > articulo.stock) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Stock insuficiente',
+                    text: `Solo hay ${articulo.stock} unidades disponibles`,
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+                return;
             }
 
-            
-            datosArticulo.cantidad = parseInt(inputCantidad.value, 10);
-            datosArticulo.minutos = parseInt(cantidadCorte.value, 10) || '-';
-            datosArticulo.costo_por_minuto = isNaN(datosArticulo.minutos) === true ? '-' : parseFloat(precioCorte.value, 10);
-            datosArticulo.id_movimiento = 1;
+            const costoCorte = minutos * precioCorte;
+            const subtotal = (cantidad * articulo.precio_venta) + costoCorte;
 
-            if (datosArticulo.corte && datosArticulo.cantidad == 1) {
-                const inputMonto = document.getElementById('cantidadCorte');
-                const divContainer = inputMonto.closest('.d-flex');
+            const datos = [{
+                id: articulo.id,
+                articulo: articulo.articulo + (nota ? ` - ${nota}` : ''),
+                cantidad: cantidad,
+                precio_unitario: articulo.precio_venta,
+                subtotal: subtotal,
+                idmovimiento: 1,
+                minutos: minutos || '-',
+                tarifa: precioCorte || '-',
+                nota: nota
+            }];
 
-            }
-
-            let textAreatInsertv2 = document.getElementById("idTextAreaDetalleInsert").value;
-            datosArticulo.nota = textAreatInsertv2;
-            modalCantidad.hide();
-            fn_agregar_articulo_tabla(datosArticulo);
+            agregarATabla(datos);
+            modal.hide();
             showNotification("success");
         };
 
-        // Mostrar el modal
-        modalCantidad.show();
-        document.getElementById("idTextAreaDetalleInsert").value = "";
-
-    }
-    //}
-
-
-
-
-
-    function fn_agregar_articulo_tabla(datosArticulo) {
-        var tabla = document.getElementById("tabla_articulos").getElementsByTagName("tbody")[0];
-
-        // Insertamos una nueva fila en la tabla
-        let nuevaFila = tabla.insertRow();
-        console.log(datosArticulo);
-        // Colocamos los valores de las celdas
-        nuevaFila.insertCell(0).textContent = datosArticulo["id"]; // ID
-        nuevaFila.insertCell(1).textContent = datosArticulo["minutos"] || '-'; // Minutos
-        nuevaFila.insertCell(2).textContent = datosArticulo["costo_por_minuto"] || '-'; // Costo x Minuto
-        nuevaFila.insertCell(3).textContent = datosArticulo["costo_por_minuto"] * datosArticulo["minutos"] || '-'; // Costo x Minuto
-        nuevaFila.insertCell(4).textContent = datosArticulo["articulo"]; // Artículo
-        nuevaFila.insertCell(5).textContent = datosArticulo["cantidad"]; // Cantidad
-        nuevaFila.insertCell(6).textContent = datosArticulo["precio_venta"]; // Precio unitario
-
-        let totalCorte = (datosArticulo["costo_por_minuto"] * datosArticulo["minutos"]) || 0;
-        // Cálculo base del subtotal: cantidad * precio de venta
-        let subtotal = datosArticulo["cantidad"] * datosArticulo["precio_venta"];
-
-        // Sumar el "total corte" al subtotal si existe
-        subtotal += totalCorte;
-
-        // Asignamos el subtotal a la celda 7
-        nuevaFila.insertCell(7).textContent = subtotal.toFixed(2); // Subtotal con 2 decimales
-        // Celda para acciones
-        let accionCell = nuevaFila.insertCell(8);
-        // 3. Botón de Corte (si aplica)
-
-        // 1. Botón de Editar
-        let botonEditar = document.createElement("button");
-        botonEditar.classList.add("btn", "btn-warning", "btn-round", "ms-2", "text-white", "px-3", "py-2");
-        botonEditar.innerHTML = '<i class="fas fa-edit"></i>'; // Ícono de editar con texto
-
-        // Agregar el botón de editar a la celda de acciones
-        accionCell.appendChild(botonEditar);
-        nuevaFila.insertCell(9).textContent = datosArticulo["id_movimiento"]; // Precio unitario
-        nuevaFila.insertCell(10).textContent = datosArticulo["nota"]; 
-        // Función para manejar el botón de editar
-        botonEditar.addEventListener("click", () => {
-            //document.getElementById("modalCantidadCorteLabel").innerText= "Hola BB";
-            // Abrir el modal con la cantidad actual, nombre del artículo, y datos adicionales de corte
-
-            document.getElementById("nombreArticulo").textContent = datosArticulo["articulo"];
-            document.getElementById("inputCantidad").value = datosArticulo["cantidad"];
-
-            // Mostrar los valores actuales de corte si es que existen
-
-
-            // Mostrar u ocultar la sección de corte según datosArticulo.corte (solo se muestra si corte es true)
-            const seccionCorte = document.getElementById("seccionCorte");
-            if (datosArticulo["corte"] && datosArticulo["cantidad"] == 1) {
-                document.getElementById("cantidadCorte").value =
-                    datosArticulo["minutos"] === '-' ? 0 : (datosArticulo["minutos"] || 0);
-
-                document.getElementById("precioCorte").value =
-                    datosArticulo["costo_por_minuto"] === '-' ? 1.5 : (datosArticulo["costo_por_minuto"] || 1.5);
-                seccionCorte.style.display = "block";
-            } else {
-                document.getElementById("cantidadCorte").value =
-                    datosArticulo["minutos"] === '-' ? 0 : (datosArticulo["minutos"] || 0);
-                datosArticulo["costo_por_minuto"] === '-' ? 0 : (datosArticulo["minutos"] || 0);
-                seccionCorte.style.display = "none";
-            }
-
-            // Guardar el artículo actual para hacer la modificación posteriormente
-            document.getElementById("btnConfirmarCantidad").onclick = function() {
-                // Actualizamos la cantidad, minutos de corte y precio de corte en el objeto datosArticulo
-                const cantidad = parseInt(document.getElementById("inputCantidad").value);
-                const minutos = parseInt(document.getElementById("cantidadCorte").value) || '-';
-                const precio = parseFloat(document.getElementById("precioCorte").value) || '-';
-
-                if (datosArticulo["corte"] && cantidad == 1) {
-                    const inputMonto = document.getElementById('cantidadCorte');
-                    const divContainer = inputMonto.closest('.d-flex');
-
-
-                    // Validar que el monto haya sido ingresado y sea mayor a 0
-                    if (isNaN(minutos) || minutos <= 0) {
-                        // Añadir clase para resaltar el error
-                        inputMonto.classList.add('error-input');
-
-                        // Crear mensaje de error dinámicamente
-                        const mensajeError = `
-                            <div class="error-message text-center">
-                                Por favor, ingresa un monto válido mayor a 0.
-                            </div>
-                        `;
-
-                        // Insertar el mensaje de error debajo del contenedor principal
-                        divContainer.insertAdjacentHTML('afterend', mensajeError);
-
-                        return; // Detener ejecución si el monto no es válido
-                    }
-                }
-
-                datosArticulo["cantidad"] = parseInt(document.getElementById("inputCantidad").value);
-                datosArticulo["minutos"] = parseInt(document.getElementById("cantidadCorte").value) || '-';
-                datosArticulo["costo_por_minuto"] = parseFloat(document.getElementById("precioCorte").value) || '-';
-
-                // Actualizamos la celda de cantidad y subtotal en la tabla
-                nuevaFila.cells[5].textContent = datosArticulo["cantidad"];
-                nuevaFila.cells[1].textContent = datosArticulo["minutos"] || '-';
-                nuevaFila.cells[2].textContent = datosArticulo["costo_por_minuto"] || '-';
-                nuevaFila.cells[3].textContent = datosArticulo["minutos"] * datosArticulo["costo_por_minuto"] || '-';
-
-
-                // Recalcular el subtotal considerando el precio de corte y minutos de corte
-                let subtotal = datosArticulo["cantidad"] * datosArticulo["precio_venta"];
-                subtotal += (datosArticulo["costo_por_minuto"] * datosArticulo["minutos"]) || 0;
-                subtotal += (datosArticulo["minutosCorte"] * datosArticulo["precioCorte"]) || 0; // Considerar precio de corte
-
-                nuevaFila.cells[7].textContent = subtotal.toFixed(2);
-
-                // Cerramos el modal
-                $('#modalCantidad').modal('hide');
-                fn_obtener_total(); // Recalcular los totales después de editar
-            };
-
-            // Mostrar el modal
-            $('#modalCantidad').modal('show');
-        });
-        // 2. Botón de Eliminar
-        let botonEliminar = document.createElement("button");
-        botonEliminar.classList.add("btn", "btn-danger", "btn-round", "ms-2", "px-3", "py-2");
-        botonEliminar.innerHTML = '<i class="fas fa-trash"></i>'; // Ícono de eliminar con texto
-
-        accionCell.appendChild(botonEliminar);
-
-        // Función para manejar el botón de eliminar
-        botonEliminar.addEventListener("click", () => {
-            Swal.fire({
-                title: '¿Estás seguro?',
-                text: "Esta acción no se puede deshacer.",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#3085d6',
-                cancelButtonColor: '#d33',
-                confirmButtonText: 'Sí, eliminar',
-                cancelButtonText: 'Cancelar'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    // Si el usuario confirma, eliminamos la fila
-                    const fila = botonEliminar.closest("tr");
-                    fila.remove(); // Eliminar la fila
-
-                    // Recalcular los totales
-                    fn_obtener_total();
-
-                    // Mostrar mensaje de éxito
-                    showNotification("success");
-                }
-            });
-        });
-
-        // Llamamos la función para recalcular los totales si es necesario
-        fn_obtener_total();
-    }
-
-
-
-    function fn_limpiar_modal() {
-        const acordeonContainer = document.getElementById('acordeonContainer');
-        const globalContainer = document.getElementById('globalContainer');
-
-        // Limpiar los contenedores donde se muestran los cortes y cantidades
-        acordeonContainer.innerHTML = "";
-        globalContainer.innerHTML = "";
-
-
-    }
-
-    function fn_obtener_total() {
-        var tabla = document.getElementById("tabla_articulos").getElementsByTagName("tbody")[0];
-        var filas = tabla.getElementsByTagName("tr");
-        var totalCorte = 0;
-        var totalArticulos = 0;
-        var total = 0;
-
-        for (var i = 0; i < filas.length; i++) {
-            var celdas = filas[i].getElementsByTagName("td");
-            totalCorte += parseFloat(celdas[3].innerText) || 0;
-            totalArticulos += (parseFloat(celdas[5].innerText) * parseFloat(celdas[6].innerText)) || 0;
-            total += parseFloat(celdas[7].innerText) || 0;
-        }
-
-        var lbl_subtotal_cortes = document.getElementById("id_subtotal_cortes");
-        var lbl_subtotal_articulos = document.getElementById("id_subtotal_articulos");
-        var lbl_subtotal_general = document.getElementById("id_subtotal_general");
-
-        lbl_subtotal_cortes.innerText = totalCorte.toFixed(2);
-        lbl_subtotal_articulos.innerText = totalArticulos.toFixed(2);
-        lbl_subtotal_general.innerText = total.toFixed(2);
-
-        const btnReserva = document.getElementById("btnRealizarPago");
-        btnReserva.disabled = (total === 0);
-
-
-
-    }
-
-    function fn_obtener_totav2() {
-        var tabla = document.getElementById("tabla_articulos").getElementsByTagName("tbody")[0];
-        var filas = tabla.getElementsByTagName("tr");
-        var totalCorte = 0;
-        var totalArticulos = 0;
-        var total = 0;
-
-        for (var i = 0; i < filas.length; i++) {
-            var celdas = filas[i].getElementsByTagName("td");
-            for (var i = 0; i < filas.length; i++) {
-                var celdas = filas[i].getElementsByTagName("td");
-                console.log("Fila " + (i + 1));
-                for (var j = 0; j < celdas.length; j++) {
-                    console.log("Celda " + (j) + ": " + celdas[j].innerText);
-                }
-            }
-            console.log("i: " + i);
-            console.log("Celdas: ", celdas);
-
-
-            var subtotal_corte = (celdas[3].innerText) === '-' ? 0 : parseFloat(celdas[3].innerText);
-            console.log("Subtotal en la celda[3]: " + subtotal);
-            totalCorte += subtotal_corte;
-
-            var pu_articulo = (celdas[5].innerText) === '-' ? 0 : parseFloat(celdas[5].innerText);
-            var pu_articulo = (celdas[5].innerText) === '-' ? 0 : parseFloat(celdas[5].innerText);
-
-
-
-
-
-            var cantidad = parseFloat(celdas[5].innerText) || 0;
-            var monto = parseFloat(celdas[6].innerText) || 0;
-            console.log("Cantidad: " + cantidad + ", Monto: " + monto);
-            totalArticulos += cantidad * monto;
-
-            // Verificar el valor de la celda 7 (Subtotal final)
-            var totalFila = parseFloat(celdas[7].innerText) || 0;
-            console.log("Total en la celda[7]: " + totalFila);
-            total += totalFila;
-        }
-
-        var lbl_subtotal_cortes = document.getElementById("id_subtotal_cortes");
-        var lbl_subtotal_articulos = document.getElementById("id_subtotal_articulos");
-        var lbl_subtotal_general = document.getElementById("id_subtotal_general");
-
-        console.log("Total Corte: " + totalCorte);
-        console.log("Total Artículos: " + totalArticulos);
-        console.log("Total General: " + total);
-
-        lbl_subtotal_cortes.innerText = totalCorte.toFixed(2);
-        lbl_subtotal_articulos.innerText = totalArticulos.toFixed(2);
-        lbl_subtotal_general.innerText = total.toFixed(2);
-
-        const btnReserva = document.getElementById("btnRealizarPago");
-        btnReserva.disabled = (total === 0);
-    }
-
-
-    function verificarSiArticuloExiste(idArticulo) {
-        var tabla = document.getElementById("tabla_articulos").getElementsByTagName("tbody")[0];
-        var filas = tabla.getElementsByTagName("tr");
-
-        for (var i = 0; i < filas.length; i++) {
-            var celdas = filas[i].getElementsByTagName("td");
-            var idFila = celdas[0].textContent; // Suponiendo que el ID está en la primera celda
-
-            if (idFila == idArticulo) {
-                return true; // Si se encuentra una coincidencia, retorna true
-            }
-        }
-        return false; // Si no se encuentra ninguna coincidencia, retorna false
-    }
-</script>
-
-<!--Tabla-->
-<script>
-    document.addEventListener("DOMContentLoaded", function() {
-    const nombreCliente = document.getElementById("nombreCliente");
-    const sugerencias = document.getElementById("sugerencias");
-    const numero_telefono = document.getElementById("idUpdateNumTelefonoCliente");
-    const correo = document.getElementById("idUpdateCorreoCliente");
-    const persona_id = document.getElementById("idPersona");
-    
-    nombreCliente.addEventListener("input", function() {
-        const query = nombreCliente.value.trim();
-        
-        if (query.length > 0) {
-            $.ajax({
-                method: "POST",
-                url: "logica/clssFiltro.php",
-                data: {
-                    "accion": "FILTROPERSONA",
-                    "data": query
-                }
-            }).done(function(response) {
-                try {
-                    const resultados = JSON.parse(response);
-                    sugerencias.innerHTML = "";
-
-                    if (resultados.length > 0) {
-                        resultados.forEach(persona => {
-                            const item = document.createElement("div");
-                            item.classList.add("list-group-item", "list-group-item-action");
-                            item.style.cursor = "pointer";
-                            item.textContent = persona.persona_concatenada;
-
-                            // Mejorar el evento click
-                            item.addEventListener("click", function(e) {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                
-                                // Establecer valores
-                                nombreCliente.value = persona.persona_concatenada;
-                                persona_id.textContent = persona.id;
-                                numero_telefono.value = persona.telefonomovil || '';
-                                correo.value = persona.email || '';
-
-                                // Limpiar sugerencias
-                                sugerencias.innerHTML = "";
-                                
-                                console.log("Cliente seleccionado:", persona);
-                            });
-
-                            sugerencias.appendChild(item);
-                        });
-                    } else {
-                        const noResults = document.createElement("div");
-                        noResults.classList.add("list-group-item", "text-muted");
-                        noResults.textContent = "Sin resultados";
-                        sugerencias.appendChild(noResults);
-                    }
-                } catch (e) {
-                    console.error("Error al procesar los resultados:", e);
-                    sugerencias.innerHTML = "";
-                }
-            }).fail(function(jqXHR, textStatus, errorThrown) {
-                console.error("Error en la solicitud AJAX:", textStatus, errorThrown);
-                sugerencias.innerHTML = "";
-            });
-        } else {
-            sugerencias.innerHTML = "";
-        }
-    });
-
-    // Cerrar sugerencias al hacer clic fuera
-    document.addEventListener("click", function(e) {
-        if (!nombreCliente.contains(e.target) && !sugerencias.contains(e.target)) {
-            sugerencias.innerHTML = "";
-        }
-    });
-});
-</script>
-
-
-
-<script>
-    var selectComprobante = "";
-    document.getElementById("btnRealizarPago").addEventListener("click", function() {
-        // Mostrar el modal manualmente
-
-        const modal = new bootstrap.Modal(document.getElementById("modalRealizarPago"));
-        const radiosFormaPago = document.querySelectorAll('input[name="icon-input"]');
-
-
-        radiosFormaPago.forEach(radio => {
-            radio.addEventListener('change', function() {
-                if (radio.checked) {
-                    selectComprobante = radio.value;
-                    if (radio.value === "factura") {
-                        const collapseOne = document.getElementById("collapseOne");
-
-                        console.log("factura")
-                        collapseOne.classList.add("show"); // Mostrar acordeón
-                    } else {
-                        collapseOne.classList.remove("show"); // Ocultar acordeón
-                    }
-
-                }
-            });
-        });
-
-
-        modal.show();
-
-
-
-        const subtotalGeneral = document.getElementById("id_subtotal_general").textContent;
-        document.getElementById("montoTotal").value = subtotalGeneral; // Asignar el monto total
-        document.getElementById("idMontoVentaTitulo").textContent = subtotalGeneral;
-
-    });
-</script>
-
-<!-- FRANCO -->
-<script>
-    function fn_servicios(jsDatos) {
-        let ploteoEditando = null; // Variable para guardar el ploteo que se está editando
-        console.log(jsDatos);
-
-        // Obtener el array de medidas, eliminando los corchetes y separando por coma
-        const medidasArray = jsDatos["medidas"]
-            .slice(1, -1) // Elimina las llaves '{' y '}'
-            .split(','); // Divide por coma (',') para obtener los elementos como array
-
-        console.log(medidasArray);
-
-        let modalContent = `
-        <div class="text-center">
-            <div class="card">
-                <div class="card-body">
-                    <h4 class="card-title">Servicio de ${jsDatos["descripcion"]}</h4>
-                    <div>ID: <span id="id_mov_${jsDatos["descripcion"]}">${jsDatos["id"]}</span></div>
-                    <div class="card-sub">Aquí ingresa lo que mandaron a ${jsDatos["descripcion"]} de manera general</div>
-                </div>
-                <div class="card-body">
-                    <p class="card-text">Cantidad de ${jsDatos["descripcion"]}</p>
-                    <div class="d-flex align-items-center justify-content-center">
-                        <button id="btn_menos_${jsDatos["descripcion"]}" class="btn btn-danger btn-round me-2">-</button>
-                        <input id="input_cantidad_${jsDatos["descripcion"]}" class="text-center" type="text" value="1" style="width: 50px;height: 40px;" oninput="validarNumero(event)">
-                        <button id="btn_mas_${jsDatos["descripcion"]}" class="btn btn-success btn-round ms-2">+</button>
-                    </div>
-                </div>
-
-                <div class="card-body">
-                    <p class="card-text">Dimensión</p>
-                    <div  id = "contenedor-medidas" class="selectgroup selectgroup-pills">`;
-
-        medidasArray.forEach((elemento) => {
-            modalContent += `
-            <label class="selectgroup-item">
-                <input
-                    type="checkbox"
-                    name="value"
-                    value="${elemento}"
-                    class="selectgroup-input"    
-                />
-                <span class="selectgroup-button">${elemento}</span>
-            </label>
-        `;
-        });
-
-        modalContent += `
-                    </div>
-                </div>
-                
-                <div class="card-body">
-                    <p class="card-text">Monto (S/)</p>
-                    <input type="number" id="monto_${jsDatos["descripcion"]}" class="form-control" placeholder="Monto (S/)">
-                </div>
-
-                
-
-                <div class="card-body">
-                    <p class="card-text">Detalle</p>
-                    <textarea rows="3" cols="30" id="datelle_material_${jsDatos["descripcion"]}" class="form-control" placeholder="Agrega como: Corte por Material Restante"></textarea>
-                </div>
-
-                <div class="text-center">
-                    <button class="btn btn-secondary rounded-5" id="btnAgregar${jsDatos["descripcion"]}" role="button">Añadir a la Venta</button>
-                </div>
-
-                <br>
-            </div>
-        </div>
-    `;
-
-
-        document.getElementById('modalContent').innerHTML = modalContent;
-
-
-        setTimeout(() => {
-
-            document.getElementById("btn_mas_" + jsDatos["descripcion"]).addEventListener("click", function() {
-                let cantidad = parseInt(document.getElementById("input_cantidad_" + jsDatos["descripcion"]).value);
-                document.getElementById("input_cantidad_" + jsDatos["descripcion"]).value = cantidad + 1;
-            });
-
-            document.getElementById("btn_menos_" + jsDatos["descripcion"]).addEventListener("click", function() {
-                let cantidad = parseInt(document.getElementById("input_cantidad_" + jsDatos["descripcion"]).value);
-                if (cantidad > 1) {
-                    document.getElementById("input_cantidad_" + jsDatos["descripcion"]).value = cantidad - 1;
-                }
-            });
-
-
-            document.getElementById('btnAgregar' + jsDatos["descripcion"]).addEventListener('click', function() {
-                const cantidad = parseInt(document.getElementById('input_cantidad_' + jsDatos["descripcion"]).value) || 1;
-                const monto = parseFloat(document.getElementById('monto_' + jsDatos["descripcion"]).value) || 0;
-                const detalle_nota = document.getElementById('datelle_material_' + jsDatos["descripcion"]).value;
-                const inputMonto = document.getElementById('monto_' + jsDatos["descripcion"]);
-                const mensajeErrorExistente = document.querySelector('.error-message');
-                if (mensajeErrorExistente) mensajeErrorExistente.remove();
-                inputMonto.classList.remove('error-input');
-                let textoDimensiones = obtenerValoresSeleccionados();
-                let detalle_notaFormato = detalle_nota ? " / " + detalle_nota : "";
-                // Validar que el monto haya sido ingresado y sea mayor a 0
-                if (isNaN(monto) || monto <= 0) {
-                    // Añadir clase para resaltar el error
-                    inputMonto.classList.add('error-input');
-
-                    // Crear mensaje de error
-                    const mensajeError = document.createElement('div');
-                    mensajeError.textContent = 'Por favor, ingresa un monto válido mayor a 0.';
-                    mensajeError.classList.add('error-message');
-
-                    // Insertar mensaje debajo del input
-                    inputMonto.parentNode.appendChild(mensajeError);
-                    return; // Detener ejecución si el monto no es válido
-                }
-
-                console.log("Datos de mrd")
-                console.log(jsDatos)
-
-                console.log("Medidas: " + textoDimensiones);
-
-                // Si no estamos editando, agregar un nuevo ploteo
-                const datos = [{
-                    id: '0', // ID del ploteo
-                    descripcion: jsDatos["descripcion"],
-                    medidas: medidasArray,
-                    cantidad: cantidad,
-                    monto: '-', // Monto
-                    subtotal: monto, // Subtotal
-                    articulo: textoDimensiones ? jsDatos["descripcion"] + ' (' + textoDimensiones + ') / ' + detalle_nota : jsDatos["descripcion"] + detalle_notaFormato,
-                    idmovimiento: jsDatos["id"],
-                    dimension: textoDimensiones
-                }];
-
-                fn_datos_a_tabla(datos);
-                document.getElementById('input_cantidad_' + jsDatos["descripcion"]).value = 0; // Reset cantidad
-                document.getElementById('monto_' + jsDatos["descripcion"]).value = ''; // Reset monto
-                // Cerrar modal
-                const modal = bootstrap.Modal.getInstance(document.getElementById('modalGenerico'));
-                if (modal) modal.hide();
-                showNotification("success");
-            });
-
-        }, 0); // Usar setTimeout para asegurar que el DOM esté listo
-
-        // Mostrar el modal
-        const modal = new bootstrap.Modal(document.getElementById('modalGenerico'));
         modal.show();
     }
-</script>
 
+    // ===== AGREGAR A TABLA =====
+    function agregarATabla(datos) {
+        const tbody = document.getElementById('tabla_articulos').getElementsByTagName('tbody')[0];
 
-<!-- FRANCO -->
-<script>
-    function obtenerValoresSeleccionados() {
-        let seleccionados = [];
-        document.querySelectorAll('#contenedor-medidas .selectgroup-input:checked').forEach((checkbox) => {
-            seleccionados.push(checkbox.value);
-        });
-        return seleccionados.join(", ");
-    }
+        datos.forEach(item => {
+            const fila = tbody.insertRow();
 
-    function fn_datos_a_tabla(datos) {
-        var tabla = document.getElementById("tabla_articulos").getElementsByTagName("tbody")[0];
+            fila.insertCell(0).textContent = item.id;
+            fila.insertCell(1).textContent = item.articulo;
+            fila.insertCell(2).textContent = item.cantidad;
+            fila.insertCell(3).textContent = item.precio_unitario;
+            fila.insertCell(4).textContent = item.subtotal.toFixed(2);
 
-        datos.forEach(elemento => {
-            console.log("Elemento de mrd");
-            console.log(elemento);
-            let nuevaFila = tabla.insertRow();
+            const accionCell = fila.insertCell(5);
 
-            // Agregar celdas para los datos de ploteo
-            nuevaFila.insertCell(0).textContent = elemento.id; // ID
-            nuevaFila.insertCell(1).textContent = '-'; // Cantidad de Ploteos
-            nuevaFila.insertCell(2).textContent = '-'; // Monto unitario
-            nuevaFila.insertCell(3).textContent = '-'; // Subtotal
-            nuevaFila.insertCell(4).textContent = elemento.articulo; // Artículo (Ploteo)
-            nuevaFila.insertCell(5).textContent = elemento.cantidad; // Se puede agregar más detalles si se requiere
-            nuevaFila.insertCell(6).textContent = elemento.monto; // Otro dato
-            nuevaFila.insertCell(7).textContent = elemento.subtotal.toFixed(2); // Subtotal (multiplied)
-
-            let accionCell = nuevaFila.insertCell(8);
-            nuevaFila.insertCell(9).textContent = elemento.idmovimiento; // Movimiento ID
-            nuevaFila.insertCell(10).textContent = elemento.dimension; // Dimensión
-
-            // 1. Botón de Editar
-            let botonEditar = document.createElement("button");
-            botonEditar.classList.add("btn", "btn-warning", "btn-round", "ms-2", "text-white", "px-3", "py-2");
-            botonEditar.innerHTML = '<i class="fas fa-edit"></i>';
-            accionCell.appendChild(botonEditar);
-
-            // 2. Botón de Eliminar
-            let botonEliminar = document.createElement("button");
-            botonEliminar.classList.add("btn", "btn-danger", "btn-round", "ms-2", "px-3", "py-2");
-            botonEliminar.innerHTML = '<i class="fas fa-trash"></i>';
-            accionCell.appendChild(botonEliminar);
-
-            botonEditar.addEventListener("click", () => {
-                let modalContent = `<!-- Aquí comienza el contenido del modal -->
-               <div class="text-center">
-                    <div class="card">
-                        <div class="card-body">
-                            <h4 class="card-title">Servicio de ${elemento.descripcion}</h4>
-                            <div>ID: <span id="id_mov_${elemento.descripcion}">${elemento.idmovimiento}</span></div>
-                        </div>
-                        <div class="card-body">
-                            <p class="card-text">Cantidad de <b> ${elemento.descripcion}</b></p>
-                            <div class="d-flex align-items-center justify-content-center">
-                                <button id="btn_menos_${elemento.descripcion}" class="btn btn-danger btn-round me-2">-</button>
-                                <input id="input_cantidad_${elemento.descripcion}" class="text-center" type="text" value="${elemento.cantidad}" style="width: 40px;" oninput="validarNumero(event)">
-                                <button id="btn_mas_${elemento.descripcion}" class="btn btn-success btn-round ms-2">+</button>
-                            </div>
-                        </div>
-
-                        <div class="card-body">
-                            <p class="card-text">Dimensión</p>
-                            <div class="selectgroup selectgroup-pills">`;
-
-                // Aquí agregamos dinámicamente los checkboxes para cada medida
-                elemento.medidas.forEach((x) => {
-                    modalContent += `
-                <label id="contenedor-medidas-update" class="selectgroup-item">
-                    <input type="checkbox" name="value" value="${x}" class="selectgroup-input" />
-                    <span class="selectgroup-button">${x}</span>
-                </label>`;
-                });
-
-                let cadena_despues_slash = elemento["articulo"].match(/\/\s*(.*)/);
-                let resultado_cadena_sn_slash = cadena_despues_slash ? cadena_despues_slash[1] : "";
-                let parteAntesDelSlash = elemento["articulo"].split("/")[0].trim();
-
-                modalContent += `</div></div> <!-- Fin del contenido de dimensiones -->
-                        <div class="card-body">
-                            <p class="card-text">Monto (S/)</p>
-                            <input type="number" id="monto_editar${elemento["descripcion"]}" class="form-control" value="${elemento.subtotal}">
-                        </div>
-
-                        <div class="card-body">
-                            <p class="card-text">Detalle</p>
-                            <textarea rows="3" cols="30" id="datelle_material_editar${elemento["articulo"]}" class="form-control"> ${resultado_cadena_sn_slash}</textarea>
-                        </div>
-
-
-                        <div class="text-center mb-3">
-                            <button class="btn btn-secondary rounded-5" id="btnEditar${elemento["descripcion"]}" role="button">Actualizar</button>
-                        </div>
-                    </div>
-                </div>`;
-
-                document.getElementById('modalContent').innerHTML = modalContent;
-
-                // Manejo de incremento y decremento de cantidad
-                document.getElementById(`btn_menos_${elemento.descripcion}`).addEventListener('click', () => {
-                    let cantidad = parseInt(document.getElementById(`input_cantidad_${elemento.descripcion}`).value);
-                    if (cantidad > 1) document.getElementById(`input_cantidad_${elemento.descripcion}`).value = cantidad - 1;
-                });
-
-                document.getElementById(`btn_mas_${elemento.descripcion}`).addEventListener('click', () => {
-                    let cantidad = parseInt(document.getElementById(`input_cantidad_${elemento.descripcion}`).value);
-                    document.getElementById(`input_cantidad_${elemento.descripcion}`).value = cantidad + 1;
-                });
-                if (elemento.dimension) {
-                    let dimensionesSeleccionadas = elemento.dimension.split(", "); // Convertir string a array si es necesario
-                    document.querySelectorAll('.selectgroup-input').forEach((checkbox) => {
-                        if (dimensionesSeleccionadas.includes(checkbox.value)) {
-                            checkbox.checked = true; // Marcar el checkbox si su valor está en la lista
-                        }
-                    });
-                }
-
-                // Mostrar el modal
-                const modal = new bootstrap.Modal(document.getElementById('modalGenerico'));
-                modal.show();
-
-                // Evento para actualizar el ploteo
-                document.getElementById('btnEditar' + elemento["descripcion"]).addEventListener('click', function() {
-                    const cantidad = parseInt(document.getElementById(`input_cantidad_${elemento.descripcion}`).value) || 1;
-                    const monto = parseFloat(document.getElementById('monto_editar' + elemento["descripcion"]).value) || 0;
-                    const articulo_titulo = document.getElementById("datelle_material_editar" + elemento["articulo"]).value;
-                    let dimensionesSeleccionadas = [];
-                    const detalle_ = document.getElementById("datelle_material_editar" + elemento["articulo"]).value;
-                    const detalle_formato_update = detalle_ ? " / " + detalle_ : "";
-                    document.querySelectorAll('#contenedor-medidas-update .selectgroup-input:checked').forEach((checkbox) => {
-                        dimensionesSeleccionadas.push(checkbox.value);
-                    });
-
-                    let textoDimensiones = dimensionesSeleccionadas.join(", ");
-
-                    // Validación del monto
-                    if (isNaN(monto) || monto <= 0) {
-                        alert("Por favor, ingresa un monto válido mayor a 0.");
-                        return;
-                    }
-
-                    // Actualizamos los valores de la fila
-                    elemento.cantidad = cantidad;
-                    elemento.subtotal = monto;
-                    elemento.dimension = textoDimensiones;
-                    elemento.articulo = textoDimensiones ? elemento.descripcion + `(${textoDimensiones})` + detalle_formato_update : elemento["descripcion"] + detalle_formato_update;
-
-
-                    // Actualizamos la fila de la tabla
-                    nuevaFila.cells[4].textContent = elemento.articulo;
-                    nuevaFila.cells[5].textContent = elemento.cantidad;
-                    nuevaFila.cells[7].textContent = elemento.subtotal.toFixed(2);
-                    nuevaFila.cells[10].textContent = elemento.dimension;
-
-                    // Limpiar los campos
-                    document.getElementById(`input_cantidad_${elemento.descripcion}`).value = '';
-                    document.getElementById('monto_editar' + elemento.descripcion).value = '';
-                    fn_obtener_total(); // Recalcular totales
-                    // Cerrar el modal
-                    const modal = bootstrap.Modal.getInstance(document.getElementById('modalGenerico'));
-                    if (modal) modal.hide();
-                });
-            });
-
-            // Función de eliminar
-            botonEliminar.addEventListener("click", () => {
+            const btnEliminar = document.createElement('button');
+            btnEliminar.className = 'btn btn-danger btn-sm btn-round';
+            btnEliminar.innerHTML = '<i class="fas fa-trash"></i>';
+            btnEliminar.onclick = () => {
                 Swal.fire({
-                    title: '¿Estás seguro?',
-                    text: "Esta acción no se puede deshacer.",
+                    title: '¿Eliminar artículo?',
+                    text: 'Esta acción no se puede deshacer',
                     icon: 'warning',
                     showCancelButton: true,
-                    confirmButtonColor: '#3085d6',
-                    cancelButtonColor: '#d33',
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6',
                     confirmButtonText: 'Sí, eliminar',
                     cancelButtonText: 'Cancelar'
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        // Si el usuario confirma, eliminamos la fila
-                        const fila = botonEliminar.closest("tr");
-                        fila.remove(); // Eliminar la fila
-
-                        // Recalcular los totales
-                        fn_obtener_total();
-
-                        // Mostrar mensaje de éxito
+                        fila.remove();
+                        calcularTotales();
                         showNotification("success");
                     }
                 });
-            });
-        });
-
-        fn_obtener_total(); // Recalcular totales
-    }
-</script>
-
-
-
-
-
-<!--FRANCO -->
-<script>
-    function validarNumero(event) {
-        // Eliminar cualquier cosa que no sea un número
-        event.target.value = event.target.value.replace(/[^0-9]/g, '');
-    }
-
-    const btnMas = document.getElementById('btn_mas');
-    const btnContador = document.getElementById('id_contador');
-    const inputNumero = document.getElementById('input_numero');
-
-    const btnMasImpresion = document.getElementById('btn_mas_impresion');
-    const btnContadorImpresion = document.getElementById('id_contador_impresion');
-    const inputNumeroImpresion = document.getElementById('input_numero_impresion');
-
-    btnMas.addEventListener('click', () => {
-        let currentValue = parseInt(inputNumero.value);
-        if (!isNaN(currentValue) && currentValue > 1) {
-            inputNumero.value = currentValue - 1;
-        }
-    });
-
-    btnMasImpresion.addEventListener('click', () => {
-        let currentValue = parseInt(inputNumeroImpresion.value);
-        if (!isNaN(currentValue) && currentValue > 1) {
-            inputNumeroImpresion.value = currentValue - 1;
-        }
-    });
-
-
-    btnContador.addEventListener('click', () => {
-        let currentValue = parseInt(inputNumero.value);
-        if (!isNaN(currentValue)) {
-            inputNumero.value = currentValue + 1;
-        }
-    });
-
-    btnContadorImpresion.addEventListener('click', () => {
-        let currentValue = parseInt(inputNumeroImpresion.value);
-        if (!isNaN(currentValue)) {
-            inputNumeroImpresion.value = currentValue + 1;
-        }
-    });
-</script>
-<!--FRANCO -->
-<script>
-    // Variables para manejar los selects y montos adicionales
-    const btnAgregarPago = document.getElementById('btnAgregarPago');
-    const contenedorPagos = document.getElementById('contenedorPagos');
-    let contador = 1; // Para numerar los campos adicionales
-
-    // Evento para agregar más selects con montos
-    btnAgregarPago.addEventListener('click', function() {
-        // Crear un contenedor para el nuevo select y su campo de monto
-        const nuevoContenedor = document.createElement('div');
-        nuevoContenedor.classList.add('d-flex', 'align-items-center', 'mb-2');
-
-        // Crear un nuevo select
-        const nuevoSelect = document.createElement('select');
-        nuevoSelect.classList.add('form-select', 'form-select-md', 'me-2');
-        nuevoSelect.name = 'formaPago_' + contador; // Agregar nombre dinámico
-        nuevoSelect.innerHTML = `<?php
-                                    foreach (listarFormaPago() as $datosFormaPago) {
-                                        echo '<option value="' . $datosFormaPago["id"] . '">' . $datosFormaPago["nombre"] . '</option>';
-                                    }
-                                    ?>`;
-
-        // Crear una nueva caja de texto para el monto
-        const nuevoInputMonto = document.createElement('input');
-        nuevoInputMonto.type = 'number';
-        nuevoInputMonto.classList.add('form-control', 'form-control-md', 'ms-2');
-        nuevoInputMonto.placeholder = 'Monto';
-        nuevoInputMonto.min = '0';
-        nuevoInputMonto.name = 'monto_' + contador; // Agregar nombre dinámico
-        nuevoInputMonto.id = 'montoSelect_' + contador;
-
-        // Crear un botón de eliminación pequeño
-        const btnEliminar = document.createElement('button');
-        btnEliminar.type = 'button';
-        btnEliminar.classList.add('btn', 'btn-danger', 'btn-sm', 'ms-2'); // Clase btn-sm para hacerlo más pequeño
-        btnEliminar.textContent = '-'; // Texto del botón
-        btnEliminar.addEventListener('click', function() {
-            contenedorPagos.removeChild(nuevoContenedor); // Eliminar el contenedor
-        });
-
-        // Agregar el select, el input y el botón de eliminación al contenedor
-        nuevoContenedor.appendChild(nuevoSelect);
-        nuevoContenedor.appendChild(nuevoInputMonto);
-        nuevoContenedor.appendChild(btnEliminar);
-
-        // Agregar el contenedor al contenedor principal
-        contenedorPagos.appendChild(nuevoContenedor);
-
-        // Incrementar el contador para los nuevos inputs
-        contador++;
-    });
-
-    // Variables para manejar los selects y montos adicionales de pago a crédito
-    const btnAgregarPagoCredito = document.getElementById('btnAgregarPagoCredito');
-    const contenedorPagosCredito = document.getElementById('contenedorPagosCredito');
-    let contadorCredito = 1; // Para numerar los campos adicionales de pago a crédito
-
-    // Evento para agregar más selects con montos de pago a crédito
-    btnAgregarPagoCredito.addEventListener('click', function() {
-        // Crear un contenedor para el nuevo select y su campo de monto
-        const nuevoContenedorCredito = document.createElement('div');
-        nuevoContenedorCredito.classList.add('d-flex', 'align-items-center', 'mb-2');
-        nuevoContenedorCredito.id = 'pagoCredito_' + contadorCredito; // ID único para cada contenedor
-
-        // Crear un nuevo select para el pago a crédito
-        const nuevoSelectCredito = document.createElement('select');
-        nuevoSelectCredito.classList.add('form-select', 'form-select-md', 'me-2');
-        nuevoSelectCredito.name = 'formaPagoCredito[]'; // Nombre único para el array
-        nuevoSelectCredito.id = 'formaPagoCreditoSelect_' + contadorCredito; // ID único para el select
-        nuevoSelectCredito.innerHTML = `<?php
-                                        foreach (listarFormaPago() as $datosFormaPago) {
-                                            echo '<option value="' . $datosFormaPago["id"] . '">' . $datosFormaPago["nombre"] . '</option>';
-                                        }
-                                        ?>`;
-
-        // Crear una nueva caja de texto para el monto de pago a crédito
-        const nuevoInputMontoCredito = document.createElement('input');
-        nuevoInputMontoCredito.type = 'number';
-        nuevoInputMontoCredito.classList.add('form-control', 'form-control-md', 'ms-2');
-        nuevoInputMontoCredito.placeholder = 'Monto';
-        nuevoInputMontoCredito.min = '0';
-        nuevoInputMontoCredito.name = 'montoCredito[]'; // Nombre único para el array
-        nuevoInputMontoCredito.id = 'montoSelectCredito_' + contadorCredito; // ID único para el campo de monto
-
-        // Crear un botón de eliminación pequeño
-        const btnEliminarCredito = document.createElement('button');
-        btnEliminarCredito.type = 'button';
-        btnEliminarCredito.classList.add('btn', 'btn-danger', 'btn-sm', 'ms-2'); // Clase btn-sm para hacerlo más pequeño
-        btnEliminarCredito.textContent = '-'; // Texto del botón
-        btnEliminarCredito.addEventListener('click', function() {
-            contenedorPagosCredito.removeChild(nuevoContenedorCredito); // Eliminar el contenedor
-        });
-
-        // Agregar el select, el input y el botón de eliminación al contenedor
-        nuevoContenedorCredito.appendChild(nuevoSelectCredito);
-        nuevoContenedorCredito.appendChild(nuevoInputMontoCredito);
-        nuevoContenedorCredito.appendChild(btnEliminarCredito);
-
-        // Agregar el contenedor al contenedor principal
-        contenedorPagosCredito.appendChild(nuevoContenedorCredito);
-
-        // Incrementar el contador para los nuevos inputs
-        contadorCredito++;
-    });
-</script>
-
-<!-- FRANCO -->
-<script>
-    function fn_pagar_directo() {
-        try {
-            const radiosFormaPago = document.querySelectorAll('input[name="icon-input"]');
-            //
-
-            let radioSeleccionado;
-            radiosFormaPago.forEach(radio => {
-                if (radio.checked) {
-                    radioSeleccionado = radio.value;
-                }
-            });
-            const collapseOne = document.getElementById("collapseOne");
-
-
-
-
-            var datosSerializados = $('#form-pago-directo').serializeArray();
-
-            console.log(datosSerializados); // Ver los datos serializados como un array de objetos
-
-            //////////////////////////////////////////////////////
-            var numTelefonoUpdate = document.getElementById('idUpdateNumTelefonoCliente').value;
-            //////////////////////////////////////////////////////////////////////////
-            var idVenta = 0
-
-            var idPersona = document.getElementById('idPersona').textContent.trim() === "#" ? "9897" : document.getElementById('idPersona').textContent.trim();
-            var idUsuario = document.getElementById('idUsuario').textContent;
-            var idAtencionFinal = document.getElementById('idAtencionFinal').textContent;
-            var numUpdateTelefonoPersona = document.getElementById('idUpdateNumTelefonoCliente').value;
-            ////
-
-            var montoOriginal = parseFloat(document.getElementById('montoTotal').value);
-            var montoFinal = parseFloat(document.getElementById('montoTotalFinal').value);
-
-            if (isNaN(montoFinal)) {
-                montoFinal = montoOriginal;
             };
+            accionCell.appendChild(btnEliminar);
 
+            fila.insertCell(6).textContent = item.idmovimiento;
+            fila.insertCell(7).textContent = item.nota || '';
+        });
 
+        calcularTotales();
+    }
 
-            ///////////////////////////////////////////////////////
+    // ===== CALCULAR TOTALES =====
+    function calcularTotales() {
+        const filas = document.querySelectorAll('#tabla_articulos tbody tr');
+        let totalArticulos = 0;
+        let totalGeneral = 0;
 
-            var js_detalle_pago = [];
-            var js_articulos = []
-            var formaPago = null;
-            var monto = null;
-            var acumMontos = 0;
-            for (var i = 0; i < datosSerializados.length; i++) {
-                var dato = datosSerializados[i];
+        filas.forEach(fila => {
+            const cantidad = parseFloat(fila.cells[2].textContent) || 0;
+            const precioUnit = parseFloat(fila.cells[3].textContent) || 0;
+            const subtotal = parseFloat(fila.cells[4].textContent) || 0;
 
-                if (dato.name.startsWith('formaPago')) {
-                    formaPago = dato.value;
-                }
+            totalArticulos += cantidad * precioUnit;
+            totalGeneral += subtotal;
+        });
 
-                if (dato.name.startsWith('monto')) {
-                    monto = parseFloat(dato.value);
-                    acumMontos = acumMontos + monto;
-                }
-                if (formaPago && monto) {
-                    js_detalle_pago.push({
-                        "id_forma_pago": formaPago,
-                        "monto_forma_pago": monto
+        document.getElementById('id_subtotal_articulos').textContent = totalArticulos.toFixed(2);
+        document.getElementById('id_subtotal_general').textContent = totalGeneral.toFixed(2);
+
+        document.getElementById('btnRealizarPago').disabled = totalGeneral === 0;
+    }
+
+    // ===== SERVICIOS GENÉRICOS =====
+    function fn_servicios(servicio) {
+        const medidas = servicio.medidas.slice(1, -1).split(',');
+
+        let html = `
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">${servicio.descripcion}</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Cantidad</label>
+                    <div class="d-flex justify-content-center gap-2">
+                        <button class="btn btn-danger btn-round" onclick="ajustarCantidad('${servicio.descripcion}', -1)">-</button>
+                        <input type="number" id="cant_${servicio.descripcion}" class="form-control text-center" 
+                               value="1" style="width: 100px;">
+                        <button class="btn btn-success btn-round" onclick="ajustarCantidad('${servicio.descripcion}', 1)">+</button>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Dimensiones</label>
+                    <div class="d-flex flex-wrap gap-2 justify-content-center" id="dims_${servicio.descripcion}">
+    `;
+
+        medidas.forEach(m => {
+            html += `
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" value="${m}" id="dim_${m}">
+                <label class="form-check-label" for="dim_${m}">${m}</label>
+            </div>
+        `;
+        });
+
+        html += `
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Monto (S/)</label>
+                    <input type="number" id="monto_${servicio.descripcion}" class="form-control" 
+                           placeholder="0.00" step="0.01">
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Detalle</label>
+                    <textarea id="detalle_${servicio.descripcion}" class="form-control" rows="2"></textarea>
+                </div>
+                
+                <div class="text-center">
+                    <button class="btn btn-success btn-round" onclick="agregarServicio('${servicio.descripcion}', ${servicio.id})">
+                        <i class="fas fa-plus"></i> Agregar
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+
+        document.getElementById('modalContent').innerHTML = html;
+        new bootstrap.Modal(document.getElementById('modalGenerico')).show();
+    }
+
+    function ajustarCantidad(servicio, incremento) {
+        const input = document.getElementById(`cant_${servicio}`);
+        let val = parseInt(input.value);
+        val = Math.max(1, val + incremento);
+        input.value = val;
+    }
+
+    function agregarServicio(nombre, idMov) {
+        const cantidad = parseInt(document.getElementById(`cant_${nombre}`).value);
+        const monto = parseFloat(document.getElementById(`monto_${nombre}`).value) || 0;
+        const detalle = document.getElementById(`detalle_${nombre}`).value;
+
+        const dimensiones = Array.from(document.querySelectorAll(`#dims_${nombre} input:checked`))
+            .map(cb => cb.value)
+            .join(', ');
+
+        if (monto <= 0) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Error',
+                text: 'Ingresa un monto válido',
+                timer: 2000,
+                showConfirmButton: false
+            });
+            return;
+        }
+
+        const articulo = dimensiones ?
+            `${nombre} (${dimensiones})${detalle ? ' - ' + detalle : ''}` :
+            nombre + (detalle ? ' - ' + detalle : '');
+
+        const datos = [{
+            id: '0',
+            articulo: articulo,
+            cantidad: cantidad,
+            precio_unitario: '-',
+            subtotal: monto,
+            idmovimiento: idMov
+        }];
+
+        agregarATabla(datos);
+        bootstrap.Modal.getInstance(document.getElementById('modalGenerico')).hide();
+        showNotification("success");
+    }
+
+    // ===== MODAL PAGO =====
+    function initPagoModal() {
+        document.getElementById('btnRealizarPago').addEventListener('click', function() {
+            const modal = new bootstrap.Modal(document.getElementById('modalRealizarPago'));
+            const total = document.getElementById('id_subtotal_general').textContent;
+
+            document.getElementById('montoTotal').value = total;
+            document.getElementById('idMontoVentaTitulo').textContent = total;
+            document.getElementById('montoTotalFinal').value = '';
+
+            modal.show();
+        });
+
+        let contadorPagos = 1;
+        document.getElementById('btnAgregarPago').addEventListener('click', function() {
+            const container = document.getElementById('contenedorPagos');
+            const div = document.createElement('div');
+            div.className = 'card bg-light mb-2';
+            div.innerHTML = `
+            <div class="card-body">
+                <div class="row g-2">
+                    <div class="col-md-5">
+                        <select class="form-select form-select-sm" name="formaPago_${contadorPagos}" 
+                                onchange="detectarEfectivo()">
+                            <?php foreach (listarFormaPago() as $fp): ?>
+                                <option value="<?php echo $fp['id'] ?>"><?php echo $fp['nombre'] ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="col-md-5">
+                        <input type="number" class="form-control form-control-sm" name="monto_${contadorPagos}" 
+                               placeholder="Monto S/" min="0" step="0.01">
+                    </div>
+                    <div class="col-md-2">
+                        <button type="button" class="btn btn-danger btn-sm w-100" 
+                                onclick="this.closest('.card').remove(); detectarEfectivo();">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+            container.appendChild(div);
+            contadorPagos++;
+            detectarEfectivo();
+        });
+
+        let contadorCredito = 1;
+        document.getElementById('btnAgregarPagoCredito').addEventListener('click', function() {
+            const container = document.getElementById('contenedorPagosCredito');
+            const div = document.createElement('div');
+            div.className = 'card bg-light mb-2';
+            div.innerHTML = `
+            <div class="card-body">
+                <div class="row g-2">
+                    <div class="col-md-5">
+                        <select class="form-select form-select-sm" name="formaPagoCredito[]">
+                            <?php foreach (listarFormaPago() as $fp): ?>
+                                <option value="<?php echo $fp['id'] ?>"><?php echo $fp['nombre'] ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="col-md-5">
+                        <input type="number" class="form-control form-control-sm" name="montoCredito[]" 
+                               placeholder="Monto S/" min="0" step="0.01">
+                    </div>
+                    <div class="col-md-2">
+                        <button type="button" class="btn btn-danger btn-sm w-100" 
+                                onclick="this.closest('.card').remove()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+            container.appendChild(div);
+            contadorCredito++;
+        });
+    }
+
+    // ===== PROCESAR PAGO DIRECTO =====
+    async function fn_pagar_directo() {
+        const formData = $('#form-pago-directo').serializeArray();
+        const montoOriginal = parseFloat(document.getElementById('montoTotal').value);
+        const montoFinal = parseFloat(document.getElementById('montoTotalFinal').value) || montoOriginal;
+        const tipoComprobante = document.querySelector('input[name="icon-input"]:checked').value;
+        const idPersona = document.getElementById('idPersona').textContent.trim();
+
+        if (tipoComprobante === 'factura' && idPersona === '#') {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Para factura necesitas seleccionar un cliente',
+                timer: 2000,
+                showConfirmButton: false
+            });
+            return;
+        }
+
+        let formasPago = [];
+        let totalPagos = 0;
+        let formaPago = null;
+
+        formData.forEach(item => {
+            if (item.name.startsWith('formaPago')) {
+                formaPago = item.value;
+            } else if (item.name.startsWith('monto')) {
+                const monto = parseFloat(item.value);
+                if (formaPago && monto > 0) {
+                    formasPago.push({
+                        id_forma_pago: formaPago,
+                        monto_forma_pago: monto
                     });
+                    totalPagos += monto;
                     formaPago = null;
-                    monto = null;
                 }
-            };
+            }
+        });
 
-            js_articulos = obtener_json_articulos();
+        if (formasPago.length === 0) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Debes agregar al menos una forma de pago',
+                timer: 2000,
+                showConfirmButton: false
+            });
+            return;
+        }
 
-            var js_venta = {
-                "tipo_comprobante": radioSeleccionado,
-                "usuario_id": parseInt(idUsuario),
-                "cliente_id": parseInt(idPersona),
-                "atencion_final_usuario": idAtencionFinal,
-                "numerotelefono_cliente_venta": numUpdateTelefonoPersona,
-                "monto_original": montoOriginal,
-                "monto_venta_final": montoFinal,
+        if (totalPagos !== montoFinal) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Los montos ingresados no coinciden con el total',
+                timer: 2000,
+                showConfirmButton: false
+            });
+            return;
+        }
 
-            };
+        // VALIDAR VUELTO SI HAY EFECTIVO
+        const seccionVuelto = document.getElementById('seccionVuelto');
+        if (seccionVuelto.style.display === 'block') {
+            const pagaCon = parseFloat(document.getElementById('pagaCon').value) || 0;
+            const vuelto = parseFloat(document.getElementById('vuelto').value) || 0;
 
+            if (pagaCon === 0) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Atención',
+                    text: 'Ingresa el monto con el que paga el cliente',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+                document.getElementById('pagaCon').focus();
+                return;
+            }
 
+            if (vuelto < 0) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Monto insuficiente',
+                    text: 'El cliente debe pagar con un monto mayor o igual al total',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+                document.getElementById('pagaCon').focus();
+                return;
+            }
 
-            var js_for_pago = {
-                "monto_original": montoOriginal,
-                "monto_venta_final": montoFinal,
-                "comentario": ""
-            };
-
-            //monto_forma_pago
-
-            if (selectComprobante === "factura" && (document.getElementById('idPersona').textContent.trim() === "#")) {
-
-                swal("Ups!, Para la Factura necesitas el RUC del Cliente :)", {
-                    icon: "error",
-                    buttons: {
-                        confirm: {
-                            className: "btn btn-danger",
-                        },
-                    },
+            // Mostrar confirmación con el vuelto
+            if (vuelto > 0) {
+                const resultado = await Swal.fire({
+                    title: 'Confirmar Vuelto',
+                    html: `
+                    <div class="text-start">
+                        <p><strong>Total:</strong> S/ ${montoFinal.toFixed(2)}</p>
+                        <p><strong>Paga con:</strong> S/ ${pagaCon.toFixed(2)}</p>
+                        <p class="text-success fs-4"><strong>Vuelto:</strong> S/ ${vuelto.toFixed(2)}</p>
+                    </div>
+                `,
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Confirmar',
+                    cancelButtonText: 'Cancelar',
+                    confirmButtonColor: '#28a745'
                 });
 
+                if (!resultado.isConfirmed) {
+                    return;
+                }
+            }
+        }
 
-            } else if (js_detalle_pago.length === 0) {
-                swal("Ups!, Falta Agregar los monto de acuerdo a forma de Pago", "Agrega los montos :)", {
-                    icon: "error",
-                    buttons: {
-                        confirm: {
-                            className: "btn btn-danger",
-                        },
-                    },
-                });
-                console.log("Falta Agregar los Metodos de Pago");
-            } else if (acumMontos > montoFinal) {
-                swal("Ups!, Los montos ingresados son MAYORES al Monto final de la venta", "Agrega correctamente los montos :)", {
-                    icon: "error",
-                    buttons: {
-                        confirm: {
-                            className: "btn btn-danger",
-                        },
-                    },
-                });
+        const venta = {
+            tipo_comprobante: tipoComprobante,
+            usuario_id: <?php echo $_SESSION['id']; ?>,
+            cliente_id: idPersona === '#' ? 9897 : parseInt(idPersona),
+            monto_original: montoOriginal,
+            monto_venta_final: montoFinal
+        };
 
-            } else if (acumMontos < montoFinal) {
-                swal("Ups!, Los montos ingresados son MENORES al Monto final de la venta", "Agrega correctamente los montos :)", {
-                    icon: "error",
-                    buttons: {
-                        confirm: {
-                            className: "btn btn-danger",
-                        },
-                    },
-                });
+        const articulos = obtenerArticulos();
 
-            } else {
-                console.log("js_detalle_pago", js_detalle_pago);
-                console.log("CELULAR UPDATE", numTelefonoUpdate);
-                console.log("js_articulo", js_articulos);
-
-                console.log("js_detalle_pago final: ", js_detalle_pago);
-                console.log("js_venta final: ", js_venta);
-
-                $.ajax({
-                    url: 'logica/clssInsertPA.php',
-                    type: 'POST',
-                    data: {
-                        accion: 'FINALIZARVENTARAPIDO',
-                        jsDatosVenta: JSON.stringify(js_venta),
-                        js_articulos: JSON.stringify(js_articulos),
-                        js_detalle_pago: JSON.stringify(js_detalle_pago),
-                    },
-                    success: function(response) {
-
-                        console.log("Respuesta del servidor: ", response);
-
-                        try {
-                            var result = JSON.parse(response);
-                            if (result.estado === true) {
-                                console.log(result)
-                                console.log(result.id_venta_generado)
-
-                                Swal.fire({
-                                    title: "Pagado con Éxito!",
-                                    html: `<p style="text-align: center;"> Venta Realizada con Exitó</p>`, // Usa "html" en lugar de "text"
-                                    icon: "success",
-                                    buttons: false,
-                                    timer: 1500
-                                }).then(() => {
-                                    window.open("/libreria-bazar-rodri/ticket.php?id=" + parseInt(result.id_venta_generado), "_blank");
-                                    //window.open("ticket.php?id=" + parseInt(result.id_venta_generado), "_blank");
-                                    location.reload();
-
-                                });
-                            } else {
-                                swal("Error", result.mensaje, {
-                                    icon: "error",
-                                    buttons: {
-                                        confirm: {
-                                            className: "btn btn-danger",
-                                        },
-                                    },
-                                });
-                            }
-                        } catch (e) {
-                            console.log("Error al parsear el JSON: ", e);
-                            swal("Error", "No se pudo procesar la respuesta del servidor.", {
-                                icon: "error",
-                                buttons: {
-                                    confirm: {
-                                        className: "btn btn-danger",
-                                    },
-                                },
-                            });
-                        }
-                    },
-                    error: function(xhr, status, error) {
-                        console.log("Error: " + error);
-                        swal("Error", "Hubo un problema con la solicitud.", {
-                            icon: "error",
-                            buttons: {
-                                confirm: {
-                                    className: "btn btn-danger",
-                                },
-                            },
+        $.ajax({
+            url: 'logica/clssInsertPA.php',
+            type: 'POST',
+            data: {
+                accion: 'FINALIZARVENTARAPIDO',
+                jsDatosVenta: JSON.stringify(venta),
+                js_articulos: JSON.stringify(articulos),
+                js_detalle_pago: JSON.stringify(formasPago)
+            },
+            success: function(response) {
+                try {
+                    const result = JSON.parse(response);
+                    if (result.estado) {
+                        Swal.fire({
+                            title: 'Venta Exitosa',
+                            icon: 'success',
+                            timer: 1500,
+                            showConfirmButton: false
+                        }).then(() => {
+                            window.open(`ticket.php?id=${result.id_venta_generado}`, '_blank');
+                            location.reload();
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: result.mensaje
                         });
                     }
+                } catch (e) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Error al procesar la respuesta'
+                    });
+                }
+            },
+            error: function() {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Error en la comunicación con el servidor'
                 });
-
-
             }
-        } catch (error) {
-            console.error("Error en el proceso de pago:", error);
-        }
+        });
     }
 
+    // ===== PROCESAR PAGO CRÉDITO =====
     function fn_pagar_credito() {
+        const idPersona = document.getElementById('idPersona').textContent.trim();
 
-
-        //////////////////////////////////////////////////////
-        if (document.getElementById('idPersona').textContent.trim() === "#") return Swal.fire("Error", "Debe ingresar un cliente", "warning");
-
-        var numTelefonoUpdate = document.getElementById('idUpdateNumTelefonoCliente').value;
-        //////////////////////////////////////////////////////////////////////////
-        var idVenta = document.getElementById('idVenta').textContent;
-        var idPersona = document.getElementById('idPersona').textContent.trim();
-        var idUsuario = document.getElementById('idUsuario').textContent;
-        var idAtencionFinal = document.getElementById('idAtencionFinal').textContent;
-        var numUpdateTelefonoPersona = document.getElementById('idUpdateNumTelefonoCliente').value;
-        ////
-
-        var montoOriginal = parseFloat(document.getElementById('montoTotal').value);
-        var montoFinal = parseFloat(document.getElementById('montoTotalFinal').value);
-
-        if (isNaN(montoFinal)) {
-            montoFinal = montoOriginal;
-        };
-
-        var datosSerializadosCredito = $('#form-pago-credito').serializeArray();
-        console.log(datosSerializadosCredito);
-
-        var js_detalle_deuda = [];
-
-        var formaPagoCredito = null;
-        var montoCredito = null;
-        var acumMontos = 0;
-        for (var i = 0; i < datosSerializadosCredito.length; i++) {
-            var dato = datosSerializadosCredito[i];
-
-            if (dato.name.startsWith('formaPagoCredito[]')) {
-                formaPagoCredito = dato.value;
-            }
-
-            if (dato.name.startsWith('montoCredito[]')) {
-                montoCredito = parseFloat(dato.value);
-                acumMontos = acumMontos + montoCredito;
-            }
-            if (formaPagoCredito && montoCredito) {
-                js_detalle_deuda.push({
-                    "id_forma_pago": formaPagoCredito,
-                    "monto_forma_pago": montoCredito
-                });
-                formaPagoCredito = null;
-                montoCredito = null;
-            }
-        };
-        if (isNaN(acumMontos)) {
-            acumMontos = 0;
+        if (idPersona === '#') {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Debes seleccionar un cliente para venta a crédito',
+                timer: 2000,
+                showConfirmButton: false
+            });
+            return;
         }
-        if (js_detalle_deuda.length === 0) {
-            js_detalle_deuda = null;
-        }
-        js_articulos = obtener_json_articulos();
 
-        var js_venta = {
-            "usuario_id": parseInt(idUsuario),
-            "cliente_id": parseInt(idPersona),
-            "atencion_final_usuario": idAtencionFinal,
-            "numerotelefono_cliente_venta": numUpdateTelefonoPersona,
-            "monto_original": montoOriginal,
-            "monto_venta_final": montoFinal,
-            "monto_inicial": acumMontos
+        const formData = $('#form-pago-credito').serializeArray();
+        const montoOriginal = parseFloat(document.getElementById('montoTotal').value);
+        const montoFinal = parseFloat(document.getElementById('montoTotalFinal').value) || montoOriginal;
+
+        let detalleDeuda = [];
+        let montoInicial = 0;
+        let formaPago = null;
+
+        formData.forEach(item => {
+            if (item.name === 'formaPagoCredito[]') {
+                formaPago = item.value;
+            } else if (item.name === 'montoCredito[]') {
+                const monto = parseFloat(item.value) || 0;
+                if (formaPago && monto > 0) {
+                    detalleDeuda.push({
+                        id_forma_pago: formaPago,
+                        monto_forma_pago: monto
+                    });
+                    montoInicial += monto;
+                    formaPago = null;
+                }
+            }
+        });
+
+        const venta = {
+            usuario_id: <?php echo $_SESSION['id']; ?>,
+            cliente_id: parseInt(idPersona),
+            monto_original: montoOriginal,
+            monto_venta_final: montoFinal,
+            monto_inicial: montoInicial
         };
 
-        console.log(js_venta);
-        console.log(js_detalle_deuda);
+        const articulos = obtenerArticulos();
+
         $.ajax({
             url: 'logica/clssInsertPA.php',
             type: 'POST',
             data: {
                 accion: 'FINALIZARVENTACREDITORAPIDO',
-                jsDatosVenta: JSON.stringify(js_venta),
-                js_articulos: JSON.stringify(js_articulos),
-                js_detalle_deuda: JSON.stringify(js_detalle_deuda)
-
+                jsDatosVenta: JSON.stringify(venta),
+                js_articulos: JSON.stringify(articulos),
+                js_detalle_deuda: detalleDeuda.length > 0 ? JSON.stringify(detalleDeuda) : null
             },
             success: function(response) {
-
-                console.log("Respuesta del servidor: ", response);
-
                 try {
-                    var result = JSON.parse(response);
-                    if (result.estado === true) {
+                    const result = JSON.parse(response);
+                    if (result.estado) {
                         Swal.fire({
-                            title: "Venta Realizada el Credito con Éxito!",
-                            html: `<div style="text-align: center;">Venta Realizada</div>`, // Se usa "html" en lugar de "text"
-                            icon: "success",
-                            buttons: false,
-                            timer: 1500
+                            title: 'Venta a Crédito Registrada',
+                            icon: 'success',
+                            timer: 1500,
+                            showConfirmButton: false
                         }).then(() => {
-                            //window.open("http://localhost/caracol_soft_vysam/ticket.php?id=" + parseInt(result.id_venta_generado), "_blank");
-                            window.open("ticket.php?id=" + parseInt(result.id_venta_generado), "_blank");
-                            //laocation.reload();
+                            window.open(`ticket.php?id=${result.id_venta_generado}`, '_blank');
+                            location.reload();
                         });
                     } else {
-                        swal("Error", result.mensaje, {
-                            icon: "error",
-                            buttons: {
-                                confirm: {
-                                    className: "btn btn-danger",
-                                },
-                            },
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: result.mensaje
                         });
                     }
                 } catch (e) {
-                    console.log("Error al parsear el JSON: ", e);
-                    swal("Error", "No se pudo procesar la respuesta del servidor.", {
-                        icon: "error",
-                        buttons: {
-                            confirm: {
-                                className: "btn btn-danger",
-                            },
-                        },
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Error al procesar la respuesta'
                     });
                 }
             },
-            error: function(xhr, status, error) {
-                console.log("Error: " + error);
-                swal("Error", "Hubo un problema con la solicitud.", {
-                    icon: "error",
-                    buttons: {
-                        confirm: {
-                            className: "btn btn-danger",
-                        },
-                    },
+            error: function() {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Error en la comunicación con el servidor'
                 });
             }
         });
     }
-</script>
 
-<script>
-    function obtener_json_articulos() {
-        var idCliente = document.getElementById('idPersona').textContent.trim();
-        var total = document.getElementById("montoTotal").value;
+    // ===== OBTENER ARTÍCULOS =====
+    function obtenerArticulos() {
+        const filas = document.querySelectorAll('#tabla_articulos tbody tr');
+        const articulos = [];
 
-        const userId = <?php echo $_SESSION['id']; ?>;
-        console.log(idCliente);
-        console.log(userId);
-
-        const datos = {
-            "usuario_id": userId, // Puedes cambiar este valor dinámicamente si es necesario
-            "cliente_id": idCliente, // También este valor puede ser dinámico
-            "total": total,
-            "articulos": []
-        };
-
-        // Obtener todas las filas de la tabla (excepto el encabezado)
-        const rows = document.querySelectorAll("#tabla_articulos tbody tr");
-
-        // Recorrer todas las filas y obtener los datos de cada columna
-        rows.forEach(function(row) {
-            const articulo = {
-                "articulo_id": row.cells[0].textContent.trim() === '0' || row.cells[0].textContent.trim() === '' ? null : parseInt(row.cells[0].textContent.trim()) || null,
-                "minutos": isNaN(parseFloat(row.cells[1].textContent)) ? null : parseFloat(row.cells[1].textContent),
-                "costoxminuto": isNaN(parseFloat(row.cells[2].textContent)) ? null : parseFloat(row.cells[2].textContent),
-                "precio_unitario": isNaN(parseFloat(row.cells[6].textContent)) ? null : parseFloat(row.cells[6].textContent),
-                "cantidad": isNaN(parseInt(row.cells[5].textContent)) ? null : parseInt(row.cells[5].textContent),
-                "sub_total": isNaN(parseFloat(row.cells[7].textContent)) ? null : parseFloat(row.cells[7].textContent),
-                "movimiento_id": isNaN(parseInt(row.cells[9].textContent)) ? null : parseInt(row.cells[9].textContent),
-                "nota_archivo": row.cells[10] ? row.cells[4].textContent + " / " + row.cells[10].textContent.trim() || "Sin nota" : "Sin nota"
+        filas.forEach(fila => {
+            const art = {
+                articulo_id: fila.cells[0].textContent === '0' ? null : parseInt(fila.cells[0].textContent),
+                minutos: null,
+                costoxminuto: null,
+                precio_unitario: isNaN(parseFloat(fila.cells[3].textContent)) ? null : parseFloat(fila.cells[3].textContent),
+                cantidad: isNaN(parseInt(fila.cells[2].textContent)) ? null : parseInt(fila.cells[2].textContent),
+                sub_total: parseFloat(fila.cells[4].textContent),
+                movimiento_id: parseInt(fila.cells[6].textContent),
+                nota_archivo: fila.cells[1].textContent + (fila.cells[7].textContent ? ' / ' + fila.cells[7].textContent : '')
             };
-
-
-            // Agregar el artículo al array
-            datos.articulos.push(articulo);
+            articulos.push(art);
         });
 
-        // Mostrar los datos en la consola para verificar
-        console.log(JSON.stringify(datos));
-
-        return datos.articulos;
-
+        return articulos;
     }
-</script>
-<!-- SOLO LA PARTE DEL SCRIPT QUE NECESITAS REEMPLAZAR -->
-<!-- Busca este script en tu archivo original (línea ~1087) y reemplázalo con este: -->
 
-<script>
-document.addEventListener("DOMContentLoaded", function() {
-    
-    // Referencias a los campos del formulario PERSONA
-    const numeroDocumentoPersona = document.getElementById('numeroDocumentoPersona');
-    const nombresPersona = document.getElementById('nombresPersona');
-    const apellidosPersona = document.getElementById('apellidosPersona');
-    
-    // Referencias a los campos del formulario EMPRESA
-    const numeroDocumentoEmpresa = document.getElementById('numeroDocumentoEmpresa');
-    const nombreComercial = document.getElementById('nombreComercial');
-    const razonSocial = document.getElementById('razonSocial');
-    
-    // Agregar spinner de carga
-    function mostrarCargando(inputElement, mostrar = true) {
-        const spinner = inputElement.parentElement.querySelector('.spinner-api');
-        if (mostrar) {
-            if (!spinner) {
-                const spinnerHtml = '<span class="spinner-api spinner-border spinner-border-sm ms-2" role="status"></span>';
-                inputElement.insertAdjacentHTML('afterend', spinnerHtml);
-            }
-        } else {
-            if (spinner) spinner.remove();
-        }
+    // ===== CLIENTE MODAL =====
+    function initClienteModal() {
+        document.getElementById('btnAbrirModalCliente').addEventListener('click', function() {
+            new bootstrap.Modal(document.getElementById('modalCliente')).show();
+        });
+
+        document.getElementById('btnBuscarDNI').addEventListener('click', buscarDNI);
+        document.getElementById('btnBuscarRUC').addEventListener('click', buscarRUC);
+        document.getElementById('btnRegistrarCliente').addEventListener('click', registrarCliente);
+        document.getElementById('nombreCliente').addEventListener('input', buscarCliente);
     }
-    
-    // Función para consultar la API de GraphPeru
-    async function consultarAPI(documento) {
-        const url = `https://graphperu.daustinn.com/api/query/${documento}`;
-        
-        try {
-            const response = await fetch(url);
-            
-            if (!response.ok) {
-                throw new Error('Error en la consulta');
-            }
-            
-            const data = await response.json();
-            
-            console.log('Respuesta de la API:', data); // Para debug
-            
-            // Verificar si hay datos válidos
-            if (data && (data.names || data.fullName || data.name)) {
-                return data;
-            } else {
-                return null;
-            }
-            
-        } catch (error) {
-            console.error('Error al consultar API:', error);
-            return null;
-        }
-    }
-    
-    // Función para autocompletar DNI
-    async function autocompletarDNI() {
-        const dni = numeroDocumentoPersona.value.trim();
-        
-        // Validar que sea un DNI válido (8 dígitos)
-        if (dni.length !== 8 || !/^\d{8}$/.test(dni)) {
-            return;
-        }
-        
-        // Mostrar loading
-        mostrarCargando(numeroDocumentoPersona, true);
-        
-        const datos = await consultarAPI(dni);
-        
-        // Ocultar loading
-        mostrarCargando(numeroDocumentoPersona, false);
-        
-        if (datos && datos.names && datos.surnames) {
-            // Autocompletar nombres y apellidos
-            nombresPersona.value = datos.names;
-            apellidosPersona.value = datos.surnames;
-            
-            // Agregar animación de autocompletado
-            nombresPersona.classList.add('input-autocompleted');
-            apellidosPersona.classList.add('input-autocompleted');
-            
-            // Quitar animación después de 500ms
-            setTimeout(() => {
-                nombresPersona.classList.remove('input-autocompleted');
-                apellidosPersona.classList.remove('input-autocompleted');
-            }, 500);
-            
-            // Quitar errores si existían
-            numeroDocumentoPersona.classList.remove('is-invalid');
-            nombresPersona.classList.remove('is-invalid');
-            apellidosPersona.classList.remove('is-invalid');
-            
-            // Mostrar notificación de éxito
-            Swal.fire({
-                icon: 'success',
-                title: 'DNI encontrado',
-                text: `${datos.fullName}`,
-                timer: 2000,
-                showConfirmButton: false,
-                toast: true,
-                position: 'top-end'
-            });
-        } else {
-            // No se encontraron datos
+
+    async function buscarDNI() {
+        const dni = document.getElementById('numeroDocumentoPersona').value.trim();
+
+        if (dni.length !== 8) {
             Swal.fire({
                 icon: 'warning',
-                title: 'DNI no encontrado',
-                text: 'Por favor, ingrese los datos manualmente',
-                timer: 2500,
-                showConfirmButton: false,
-                toast: true,
-                position: 'top-end'
+                title: 'DNI inválido',
+                text: 'Ingresa un DNI de 8 dígitos',
+                timer: 2000,
+                showConfirmButton: false
+            });
+            return;
+        }
+
+        try {
+            const response = await fetch(`https://graphperu.daustinn.com/api/query/${dni}`);
+            const data = await response.json();
+
+            if (data && data.names) {
+                document.getElementById('nombresPersona').value = data.names;
+                document.getElementById('apellidosPersona').value = data.surnames;
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'DNI encontrado',
+                    text: data.fullName,
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+            }
+        } catch (e) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'No encontrado',
+                text: 'Ingresa los datos manualmente',
+                timer: 2000,
+                showConfirmButton: false
             });
         }
     }
-    
-    // Función para autocompletar RUC - CORREGIDA
-    async function autocompletarRUC() {
-        const ruc = numeroDocumentoEmpresa.value.trim();
-        
-        // Validar que sea un RUC válido (11 dígitos)
-        if (ruc.length !== 11 || !/^\d{11}$/.test(ruc)) {
+
+    async function buscarRUC() {
+        const ruc = document.getElementById('numeroDocumentoEmpresa').value.trim();
+
+        if (ruc.length !== 11) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'RUC inválido',
+                text: 'Ingresa un RUC de 11 dígitos',
+                timer: 2000,
+                showConfirmButton: false
+            });
             return;
         }
-        
-        // Mostrar loading
-        mostrarCargando(numeroDocumentoEmpresa, true);
-        
-        const datos = await consultarAPI(ruc);
-        
-        // Ocultar loading
-        mostrarCargando(numeroDocumentoEmpresa, false);
-        
-        console.log('Datos recibidos para RUC:', datos); // Para debug
-        
-        if (datos) {
-            // La API devuelve diferentes estructuras según el tipo de documento
-            // Para RUC (11 dígitos), los datos vienen en formato:
-            // { name: "...", address: "...", state: "...", condition: "..." }
-            
-            let razonSocialData = null;
-            let nombreComercialData = null;
-            
-            // Intentar obtener el nombre de diferentes campos posibles
-            if (datos.name) {
-                // Formato de RUC: usa 'name' directamente
-                razonSocialData = datos.name;
-                nombreComercialData = datos.name;
-            } else if (datos.fullName) {
-                // Formato alternativo
-                razonSocialData = datos.fullName;
-                nombreComercialData = datos.fullName;
-            } else if (datos.names) {
-                // Otro formato posible
-                razonSocialData = datos.names;
-                nombreComercialData = datos.names;
-            }
-            
-            if (razonSocialData) {
-                // Autocompletar razón social y nombre comercial
-                razonSocial.value = razonSocialData;
-                nombreComercial.value = nombreComercialData;
-                
-                // Agregar animación de autocompletado
-                razonSocial.classList.add('input-autocompleted');
-                nombreComercial.classList.add('input-autocompleted');
-                
-                // Quitar animación después de 500ms
-                setTimeout(() => {
-                    razonSocial.classList.remove('input-autocompleted');
-                    nombreComercial.classList.remove('input-autocompleted');
-                }, 500);
-                
-                // Quitar errores si existían
-                numeroDocumentoEmpresa.classList.remove('is-invalid');
-                nombreComercial.classList.remove('is-invalid');
-                razonSocial.classList.remove('is-invalid');
-                
-                // Mostrar notificación de éxito con información adicional
-                let mensajeDetalle = razonSocialData;
-                if (datos.state) {
-                    mensajeDetalle += ` - ${datos.state}`;
-                }
-                if (datos.condition) {
-                    mensajeDetalle += ` (${datos.condition})`;
-                }
-                
+
+        try {
+            const response = await fetch(`https://graphperu.daustinn.com/api/query/${ruc}`);
+            const data = await response.json();
+
+            if (data && data.name) {
+                document.getElementById('razonSocial').value = data.name;
+                document.getElementById('nombreComercial').value = data.name;
+
                 Swal.fire({
                     icon: 'success',
                     title: 'RUC encontrado',
-                    text: mensajeDetalle,
-                    timer: 3000,
-                    showConfirmButton: false,
-                    toast: true,
-                    position: 'top-end'
-                });
-            } else {
-                // No se encontraron datos válidos
-                console.warn('No se encontró el campo "name" en la respuesta:', datos);
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'RUC no encontrado',
-                    html: 'Por favor, ingrese los datos manualmente<br><small>El RUC puede no estar registrado en SUNAT</small>',
-                    timer: 3000,
-                    showConfirmButton: false,
-                    toast: true,
-                    position: 'top-end'
+                    text: data.name,
+                    timer: 2000,
+                    showConfirmButton: false
                 });
             }
-        } else {
-            // Error en la consulta
+        } catch (e) {
             Swal.fire({
-                icon: 'error',
-                title: 'Error en la búsqueda',
-                html: 'No se pudo consultar el RUC<br><small>Por favor, intente nuevamente</small>',
-                timer: 3000,
-                showConfirmButton: false,
-                toast: true,
-                position: 'top-end'
+                icon: 'warning',
+                title: 'No encontrado',
+                text: 'Ingresa los datos manualmente',
+                timer: 2000,
+                showConfirmButton: false
             });
         }
     }
-    
-    // Evento blur para DNI (se dispara al perder el foco)
-    if (numeroDocumentoPersona) {
-        numeroDocumentoPersona.addEventListener('blur', autocompletarDNI);
-    }
-    
-    // Evento blur para RUC (se dispara al perder el foco)
-    if (numeroDocumentoEmpresa) {
-        numeroDocumentoEmpresa.addEventListener('blur', autocompletarRUC);
-    }
-    
-    // Eventos para los botones de búsqueda
-    const btnBuscarDNI = document.getElementById('btnBuscarDNI');
-    if (btnBuscarDNI) {
-        btnBuscarDNI.addEventListener('click', function() {
-            const dni = numeroDocumentoPersona.value.trim();
-            
-            if (dni.length !== 8 || !/^\d{8}$/.test(dni)) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'DNI inválido',
-                    text: 'Por favor, ingrese un DNI de 8 dígitos',
-                    timer: 2000,
-                    showConfirmButton: false,
-                    toast: true,
-                    position: 'top-end'
-                });
-                return;
-            }
-            
-            // Mostrar spinner en el botón
-            const iconoOriginal = this.innerHTML;
-            this.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Buscando...';
-            this.disabled = true;
-            
-            // Ejecutar búsqueda
-            autocompletarDNI().finally(() => {
-                setTimeout(() => {
-                    this.innerHTML = iconoOriginal;
-                    this.disabled = false;
-                }, 1000);
-            });
-        });
-    }
-    
-    const btnBuscarRUC = document.getElementById('btnBuscarRUC');
-    if (btnBuscarRUC) {
-        btnBuscarRUC.addEventListener('click', function() {
-            const ruc = numeroDocumentoEmpresa.value.trim();
-            
-            if (ruc.length !== 11 || !/^\d{11}$/.test(ruc)) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'RUC inválido',
-                    text: 'Por favor, ingrese un RUC de 11 dígitos',
-                    timer: 2000,
-                    showConfirmButton: false,
-                    toast: true,
-                    position: 'top-end'
-                });
-                return;
-            }
-            
-            // Mostrar spinner en el botón
-            const iconoOriginal = this.innerHTML;
-            this.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Buscando...';
-            this.disabled = true;
-            
-            // Ejecutar búsqueda
-            autocompletarRUC().finally(() => {
-                setTimeout(() => {
-                    this.innerHTML = iconoOriginal;
-                    this.disabled = false;
-                }, 1000);
-            });
-        });
-    }
-});
-</script>
-<script>
-    document.addEventListener("DOMContentLoaded", function() {
 
-        // Lógica para borrar los datos cuando se cambia entre los Pills
-        const personaTab = document.getElementById("pills-persona-tab");
-        const empresaTab = document.getElementById("pills-empresa-tab");
+    function buscarCliente() {
+        const query = document.getElementById('nombreCliente').value.trim();
+        const sugerencias = document.getElementById('sugerencias');
 
-        const btnAbrirModalCliente = document.getElementById("btnAbrirModalCliente");
-        const modalClienteEl = document.getElementById("modalCliente");
-        const modalCliente = modalClienteEl ? new bootstrap.Modal(modalClienteEl) : null;
-
-        // Agrega un evento click para abrir el modal manualmente (si existe el botón)
-        if (btnAbrirModalCliente && modalCliente) {
-            btnAbrirModalCliente.addEventListener("click", function() {
-                console.log("click")
-                modalCliente.show(); // Muestra el modal manualmente
-            });
+        if (query.length === 0) {
+            sugerencias.innerHTML = '';
+            return;
         }
 
-        if (personaTab) {
-            personaTab.addEventListener('click', () => {
-                // Limpiar datos de la pestaña Empresa
-                document.getElementById('numeroDocumentoEmpresa').value = '';
-                document.getElementById('nombreComercial').value = '';
-                document.getElementById('razonSocial').value = '';
-                document.getElementById('telefonoEmpresa').value = '';
-                document.getElementById('emailEmpresa').value = '';
-                resetErrors();
-            });
-        }
+        $.ajax({
+            method: 'POST',
+            url: 'logica/clssFiltro.php',
+            data: {
+                accion: 'FILTROPERSONA',
+                data: query
+            },
+            success: function(response) {
+                try {
+                    const resultados = JSON.parse(response);
+                    sugerencias.innerHTML = '';
 
-        if (empresaTab) {
-            empresaTab.addEventListener('click', () => {
-                // Limpiar datos de la pestaña Persona
-                document.getElementById('numeroDocumentoPersona').value = '';
-                document.getElementById('nombresPersona').value = '';
-                document.getElementById('apellidosPersona').value = '';
-                document.getElementById('telefonoPersona').value = '';
-                document.getElementById('emailPersona').value = '';
-                resetErrors();
-            });
-        }
+                    resultados.forEach(persona => {
+                        const item = document.createElement('div');
+                        item.className = 'list-group-item list-group-item-action';
+                        item.textContent = persona.persona_concatenada;
+                        item.style.cursor = 'pointer';
 
-        function resetErrors() {
-            const inputs = document.querySelectorAll('.form-control');
-            const errorMessages = document.querySelectorAll('.invalid-feedback');
+                        item.onclick = () => {
+                            document.getElementById('nombreCliente').value = persona.persona_concatenada;
+                            document.getElementById('idPersona').textContent = persona.id;
+                            document.getElementById('idUpdateNumTelefonoCliente').value = persona.telefonomovil || '';
+                            document.getElementById('idUpdateCorreoCliente').value = persona.email || '';
+                            sugerencias.innerHTML = '';
+                        };
 
-            inputs.forEach(input => {
-                input.classList.remove('is-invalid');
-            });
-
-            errorMessages.forEach(message => {
-                message.textContent = '';
-            });
-        }
-        function limpiarcampos() {
-            document.getElementById('numeroDocumentoEmpresa').value = '';
-            document.getElementById('nombreComercial').value = '';
-            document.getElementById('razonSocial').value = '';
-            document.getElementById('telefonoEmpresa').value = '';
-            document.getElementById('emailEmpresa').value = '';
-            document.getElementById('numeroDocumentoPersona').value = '';
-            document.getElementById('nombresPersona').value = '';
-            document.getElementById('apellidosPersona').value = '';
-            document.getElementById('telefonoPersona').value = '';
-            document.getElementById('emailPersona').value = '';
-        }
-
-        // Seleccionando los elementos de los formularios
-        const formPersona = document.getElementById('pills-persona');
-        const formEmpresa = document.getElementById('pills-empresa');
-
-        const btnRegistrarCliente = document.getElementById('btnRegistrarCliente');
-
-        // Función para validar los campos
-        function validarCamposPersona() {
-            let valid = true;
-
-            // Validar el número de documento (solo si tiene datos)
-            const numeroDocumentoPersona = document.getElementById('numeroDocumentoPersona');
-            const errorNumeroDocumentoPersona = document.getElementById('error-numeroDocumentoPersona');
-            if (numeroDocumentoPersona.value.trim() === '') {
-                valid = false;
-                numeroDocumentoPersona.classList.add('is-invalid');
-                errorNumeroDocumentoPersona.textContent = 'El DNI es obligatorio.';
-            } else if (!/^\d{8}$/.test(numeroDocumentoPersona.value)) {
-                valid = false;
-                numeroDocumentoPersona.classList.add('is-invalid');
-                errorNumeroDocumentoPersona.textContent = 'Debe ser un DNI válido (8 dígitos).';
-            } else {
-                numeroDocumentoPersona.classList.remove('is-invalid');
-                errorNumeroDocumentoPersona.textContent = '';
-            }
-
-            // Validar los nombres (solo si tiene datos y sin números)
-            const nombresPersona = document.getElementById('nombresPersona');
-            const errorNombresPersona = document.getElementById('error-nombresPersona');
-            if (nombresPersona.value.trim() == '') {
-                valid = false;
-                nombresPersona.classList.add('is-invalid');
-                errorNombresPersona.textContent = 'Los nombres es obligatorio.';
-            } else if (/[^a-zA-Z\s]/.test(nombresPersona.value)) {
-                valid = false;
-                nombresPersona.classList.add('is-invalid');
-                errorNombresPersona.textContent = 'Los nombres no pueden contener números.';
-            } else {
-                nombresPersona.classList.remove('is-invalid');
-                errorNombresPersona.textContent = '';
-            }
-
-            // Validar los apellidos (solo si tiene datos y sin números)
-            const apellidosPersona = document.getElementById('apellidosPersona');
-            const errorApellidosPersona = document.getElementById('error-apellidosPersona');
-            if (apellidosPersona.value.trim() == '') {
-                valid = false;
-                apellidosPersona.classList.add('is-invalid');
-                errorApellidosPersona.textContent = 'Los apellidos es obligatorio.';
-            } else if (/[^a-zA-Z\s]/.test(apellidosPersona.value)) {
-                valid = false;
-                apellidosPersona.classList.add('is-invalid');
-                errorApellidosPersona.textContent = 'Los apellidos no pueden contener números.';
-            } else {
-                apellidosPersona.classList.remove('is-invalid');
-                errorApellidosPersona.textContent = '';
-            }
-
-            // Validar el teléfono (solo si tiene datos y es un número válido)
-            const telefonoPersona = document.getElementById('telefonoPersona');
-            const errorTelefonoPersona = document.getElementById('error-telefonoPersona');
-            if (telefonoPersona.value.trim() !== '' && !/^\d{9}$/.test(telefonoPersona.value)) {
-                valid = false;
-                telefonoPersona.classList.add('is-invalid');
-                errorTelefonoPersona.textContent = 'El teléfono debe tener 9 dígitos.';
-            } else {
-                telefonoPersona.classList.remove('is-invalid');
-                errorTelefonoPersona.textContent = '';
-            }
-
-            // Validar el email (solo si tiene datos y es un correo válido)
-            const emailPersona = document.getElementById('emailPersona');
-            const errorEmailPersona = document.getElementById('error-emailPersona');
-            if (emailPersona.value.trim() !== '' && !/\S+@\S+\.\S+/.test(emailPersona.value)) {
-                valid = false;
-                emailPersona.classList.add('is-invalid');
-                errorEmailPersona.textContent = 'Debe ser un correo electrónico válido.';
-            } else {
-                emailPersona.classList.remove('is-invalid');
-                errorEmailPersona.textContent = '';
-            }
-
-            return valid;
-        }
-
-
-        function validarCamposEmpresa() {
-            let valid = true;
-
-            // Validar RUC (solo si tiene datos)
-            const numeroDocumentoEmpresa = document.getElementById('numeroDocumentoEmpresa');
-            const errorNumeroDocumentoEmpresa = document.getElementById('error-numeroDocumentoEmpresa');
-            if (numeroDocumentoEmpresa.value.trim() === '') {
-                valid = false;
-                numeroDocumentoEmpresa.classList.add('is-invalid');
-                errorNumeroDocumentoEmpresa.textContent = 'El RUC es obligatorio.';
-            } else if (!/^\d{11}$/.test(numeroDocumentoEmpresa.value)) {
-                valid = false;
-                numeroDocumentoEmpresa.classList.add('is-invalid');
-                errorNumeroDocumentoEmpresa.textContent = 'Debe ser un RUC válido (11 dígitos).';
-            } else {
-                numeroDocumentoEmpresa.classList.remove('is-invalid');
-                errorNumeroDocumentoEmpresa.textContent = '';
-            }
-
-            // Validar nombre comercial (solo si tiene datos)
-            const nombreComercial = document.getElementById('nombreComercial');
-            const errorNombreComercial = document.getElementById('error-nombreComercial');
-            if (nombreComercial.value.trim() == '') {
-                valid = false;
-                nombreComercial.classList.add('is-invalid');
-                errorNombreComercial.textContent = 'Este campo es obligatorio.';
-            } else {
-                nombreComercial.classList.remove('is-invalid');
-                errorNombreComercial.textContent = '';
-            }
-
-            // Validar razón social (solo si tiene datos)
-            const razonSocial = document.getElementById('razonSocial');
-            const errorRazonSocial = document.getElementById('error-razonSocial');
-            if (razonSocial.value.trim() == '') {
-                valid = false;
-                razonSocial.classList.add('is-invalid');
-                errorRazonSocial.textContent = 'Este campo es obligatorio.';
-            } else {
-                razonSocial.classList.remove('is-invalid');
-                errorRazonSocial.textContent = '';
-            }
-
-            // Validar teléfono (solo si tiene datos)
-            const telefonoEmpresa = document.getElementById('telefonoEmpresa');
-            const errorTelefonoEmpresa = document.getElementById('error-telefonoEmpresa');
-            if (telefonoEmpresa.value.trim() !== '' && !/^\d{9}$/.test(telefonoEmpresa.value)) {
-                valid = false;
-                telefonoEmpresa.classList.add('is-invalid');
-                errorTelefonoEmpresa.textContent = 'El teléfono debe tener 9 dígitos.';
-            } else {
-                telefonoEmpresa.classList.remove('is-invalid');
-                errorTelefonoEmpresa.textContent = '';
-            }
-
-            // Validar email (solo si tiene datos)
-            const emailEmpresa = document.getElementById('emailEmpresa');
-            const errorEmailEmpresa = document.getElementById('error-emailEmpresa');
-            if (emailEmpresa.value.trim() !== '' && !/\S+@\S+\.\S+/.test(emailEmpresa.value)) {
-                valid = false;
-                emailEmpresa.classList.add('is-invalid');
-                errorEmailEmpresa.textContent = 'Debe ser un correo electrónico válido.';
-            } else {
-                emailEmpresa.classList.remove('is-invalid');
-                errorEmailEmpresa.textContent = '';
-            }
-
-            return valid;
-        }
-
-
-
-        // Registrar cliente
-        btnRegistrarCliente.addEventListener('click', async function() {
-            let datos = {};
-
-            if (document.getElementById('pills-persona-tab').classList.contains('active')) {
-                // Recolectar los datos del formulario Persona
-                if (validarCamposPersona()) {
-                    datos = {
-                        "numero_documento": document.getElementById('numeroDocumentoPersona').value,
-                        "nombres": document.getElementById('nombresPersona').value,
-                        "apellidos": document.getElementById('apellidosPersona').value,
-                        "telefono_movil": document.getElementById('telefonoPersona').value || null,
-                        "email": document.getElementById('emailPersona').value
-                    };
-
-                    // Llamar a la función AJAX para registrar la persona
-                    try {
-                        console.log(datos);
-                        const response = await fnRegistrarPersona(datos);
-                        console.log("Persona insertado con éxito:", response);
-                        const nombreencadenado = `${document.getElementById('numeroDocumentoPersona').value} - ${document.getElementById('nombresPersona').value} ${document.getElementById('apellidosPersona').value}`;
-                        console.log(nombreencadenado);
-                        console.log(response.persona_id);
-
-
-
-                        enviardatos(response.persona_id, nombreencadenado, document.getElementById('telefonoPersona').value || 'Sin numero', document.getElementById('emailPersona').value || 'Sin Correo');
-                        limpiarcampos();
-                        showNotification("success");
-
-
-                        modalCliente.hide();
-                    } catch (error) {
-                        console.error("Error en el registro:", error.message);
-                        swal("Error", error.message || "Ocurrió un error inesperado", {
-                            icon: "error",
-                            buttons: {
-                                confirm: {
-                                    className: "btn btn-danger",
-                                },
-                            },
-                        });
-                    }
-
-
-                }
-            } else if (document.getElementById('pills-empresa-tab').classList.contains('active')) {
-                // Recolectar los datos del formulario Empresa
-                if (validarCamposEmpresa()) {
-                    datos = {
-                        "numero_documento": document.getElementById('numeroDocumentoEmpresa').value,
-                        "nombre_comercial": document.getElementById('nombreComercial').value,
-                        "razon_social": document.getElementById('razonSocial').value,
-                        "telefono_movil": document.getElementById('telefonoEmpresa').value,
-                        "email": document.getElementById('emailEmpresa').value
-                    };
-
-                    try {
-                        console.log(datos);
-                        // Llamar a la función AJAX para registrar la empresa
-                        const response = await fnRegistrarEmpresa(datos);
-                        console.log("Empresa insertado con éxito:", response);
-                        const nombreencadenado = `${document.getElementById('numeroDocumentoEmpresa').value} - ${document.getElementById('razonSocial').value}`;
-                        console.log(nombreencadenado);
-                        console.log(response.empresa_id);
-
-                        enviardatos(response.empresa_id, nombreencadenado);
-                        limpiarcampos();
-                        showNotification("success");
-
-                        modalCliente.hide();
-
-                    } catch (error) {
-                        console.error("Error en el registro:", error.message);
-
-                        swal("Error", error.message || "Ocurrió un error inesperado", {
-                            icon: "error",
-                            buttons: {
-                                confirm: {
-                                    className: "btn btn-danger",
-                                },
-                            },
-                        });
-                    }
-
+                        sugerencias.appendChild(item);
+                    });
+                } catch (e) {
+                    console.error('Error:', e);
                 }
             }
         });
+    }
 
-        function enviardatos(id_persona, nombre, numero_celular, correo) {
-            document.getElementById('idPersona').textContent = id_persona;
-            document.getElementById('nombreCliente').value = nombre;
-            document.getElementById('idUpdateNumTelefonoCliente').value = numero_celular || '';
-            document.getElementById('idUpdateCorreoCliente').value = correo || '';
-        }
+    function registrarCliente() {
+        const esPersona = document.getElementById('pills-persona-tab').classList.contains('active');
 
-        function fnRegistrarPersona(datos) {
-            return new Promise((resolve, reject) => {
-                $.ajax({
-                    method: "POST",
-                    url: "logica/clssPersona.php", // El archivo PHP donde se maneja el registro de persona
-                    data: {
-                        "accion": "REGISTRARPERSONARAPIDO", // Acción que se realiza en el backend
-                        "data": JSON.stringify(datos) // Los datos de la persona como JSON
-                    }
-                }).done(function(response) {
-                    console.log(response);
-                    const jsonResponse = JSON.parse(response); // Convertir la respuesta a JSON
-                    if (jsonResponse.success) {
-                        resolve(jsonResponse); // Resolvemos la promesa en caso de éxito
-                    } else {
-                        reject(new Error(jsonResponse.message || "Error desconocido")); // Si hay error en la respuesta del servidor
-                    }
-                }).fail(function(error) {
-                    console.error("Error:", error.responseText);
-                    reject(error); // Rechazamos la promesa si ocurre un error en la solicitud AJAX
+        if (esPersona) {
+            const dni = document.getElementById('numeroDocumentoPersona').value.trim();
+            const nombres = document.getElementById('nombresPersona').value.trim();
+            const apellidos = document.getElementById('apellidosPersona').value.trim();
+
+            if (!dni || !nombres || !apellidos) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Campos requeridos',
+                    text: 'Completa los campos obligatorios',
+                    timer: 2000,
+                    showConfirmButton: false
                 });
-            });
-        }
+                return;
+            }
 
-        function fnRegistrarEmpresa(datos) {
-            return new Promise((resolve, reject) => {
-                $.ajax({
-                    method: "POST",
-                    url: "logica/clssPersona.php", // El archivo PHP donde se maneja el registro de empresa
-                    data: {
-                        "accion": "REGISTRARPERSONARAPIDO", // Acción que se realiza en el backend
-                        "data": JSON.stringify(datos) // Los datos de la empresa como JSON
-                    }
-                }).done(function(response) {
-                    console.log(response);
-                    const jsonResponse = JSON.parse(response); // Convertir la respuesta a JSON
-                    if (jsonResponse.success) {
-                        resolve(jsonResponse); // Resolvemos la promesa en caso de éxito
-                    } else {
-                        reject(new Error(jsonResponse.message || "Error desconocido")); // Si hay error en la respuesta del servidor
-                    }
-                }).fail(function(error) {
-                    console.error("Error:", error.responseText);
-                    reject(error); // Rechazamos la promesa si ocurre un error en la solicitud AJAX
+            const datos = {
+                numero_documento: dni,
+                nombres: nombres,
+                apellidos: apellidos,
+                telefono_movil: document.getElementById('telefonoPersona').value || null,
+                email: document.getElementById('emailPersona').value || null
+            };
+
+            registrarPersona(datos);
+        } else {
+            const ruc = document.getElementById('numeroDocumentoEmpresa').value.trim();
+            const razon = document.getElementById('razonSocial').value.trim();
+            const comercial = document.getElementById('nombreComercial').value.trim();
+
+            if (!ruc || !razon || !comercial) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Campos requeridos',
+                    text: 'Completa los campos obligatorios',
+                    timer: 2000,
+                    showConfirmButton: false
                 });
-            });
+                return;
+            }
+
+            const datos = {
+                numero_documento: ruc,
+                razon_social: razon,
+                nombre_comercial: comercial,
+                telefono_movil: document.getElementById('telefonoEmpresa').value || null,
+                email: document.getElementById('emailEmpresa').value || null
+            };
+
+            registrarPersona(datos);
         }
+    }
 
+    function registrarPersona(datos) {
+        $.ajax({
+            method: 'POST',
+            url: 'logica/clssPersona.php',
+            data: {
+                accion: 'REGISTRARPERSONARAPIDO',
+                data: JSON.stringify(datos)
+            },
+            success: function(response) {
+                try {
+                    const result = JSON.parse(response);
+                    if (result.success) {
+                        const id = result.persona_id || result.empresa_id;
+                        const nombre = datos.nombres ?
+                            `${datos.numero_documento} - ${datos.nombres} ${datos.apellidos}` :
+                            `${datos.numero_documento} - ${datos.razon_social}`;
 
+                        document.getElementById('idPersona').textContent = id;
+                        document.getElementById('nombreCliente').value = nombre;
 
-    });
+                        bootstrap.Modal.getInstance(document.getElementById('modalCliente')).hide();
+
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Cliente registrado',
+                            timer: 1500,
+                            showConfirmButton: false
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: result.message
+                        });
+                    }
+                } catch (e) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Error al procesar la respuesta'
+                    });
+                }
+            }
+        });
+    }
 </script>
 
-
-
-
-<?php
-include("pie.php");
-?>
+<?php include("pie.php"); ?>
