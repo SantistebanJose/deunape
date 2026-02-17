@@ -9,7 +9,14 @@ $length = isset($_POST['length']) ? intval($_POST['length']) : 10;
 $searchValue = isset($_POST['search']['value']) ? $_POST['search']['value'] : '';
 
 // OBTENER SUCURSAL_ID del POST o de la sesión
-$sucursal_id = isset($_POST['sucursal_id']) ? intval($_POST['sucursal_id']) : (isset($_SESSION['sucursal_id']) ? intval($_SESSION['sucursal_id']) : null);
+// Ahora sucursal_id es un bigint (el ID de la sucursal del usuario logueado)
+// y en la BD, la columna sucursal_id es un array bigint[],
+// por lo que filtramos con: ? = ANY(sucursal_id)
+$sucursal_id = isset($_POST['sucursal_id']) && $_POST['sucursal_id'] !== ''
+    ? intval($_POST['sucursal_id'])
+    : (isset($_SESSION['sucursal_id']) && $_SESSION['sucursal_id'] !== ''
+        ? intval($_SESSION['sucursal_id'])
+        : null);
 
 // Manejo del ordenamiento
 $columnIndex = isset($_POST['order'][0]['column']) ? intval($_POST['order'][0]['column']) : 0;
@@ -38,14 +45,12 @@ $sqlBase = "SELECT id, numero_documento,
 $sqlFiltro = " WHERE 1=1";
 $params = [];
 
-// FILTRO POR SUCURSAL_ID (AGREGADO)
+// FILTRO POR SUCURSAL_ID usando = ANY(sucursal_id)
+// porque sucursal_id ahora es un array de bigint en la BD
 if ($sucursal_id !== null) {
-    $sqlFiltro .= " AND sucursal_id = ?";
+    $sqlFiltro .= " AND ? = ANY(sucursal_id)";
     $params[] = $sucursal_id;
 }
-
-// Filtro para no mostrar eliminados (opcional, descomenta si lo necesitas)
-// $sqlFiltro .= " AND deleted_at IS NULL";
 
 // Aplicar búsqueda si hay un valor de búsqueda
 if (!empty($searchValue)) {
@@ -64,7 +69,7 @@ if (!empty($searchValue)) {
 $sqlTotal = "SELECT COUNT(*) FROM persona WHERE 1=1";
 $paramsTotal = [];
 if ($sucursal_id !== null) {
-    $sqlTotal .= " AND sucursal_id = ?";
+    $sqlTotal .= " AND ? = ANY(sucursal_id)";
     $paramsTotal[] = $sucursal_id;
 }
 $stmtTotal = $conectar->prepare($sqlTotal);
