@@ -373,10 +373,11 @@ include("cabecera.php");
                                             <li><a class="dropdown-item" href="#" data-icon="fas fa-credit-card"><i class="fas fa-credit-card"></i> Generico</a></li>
                                             <li><a class="dropdown-item" href="#" data-icon="fab fa-cc-visa"><i class="fab fa-cc-visa"></i> Visa</a></li>
                                             <li><a class="dropdown-item" href="#" data-icon="fab fa-cc-mastercard"><i class="fab fa-cc-mastercard"></i> Mastercard</a></li>
-                                            <li><a class="dropdown-item" href="#" data-icon="fab fa-cc-diners-club"><i class="fab fa-cc-diners-club"></i> Diners Club</a></li>
                                             <li><a class="dropdown-item" href="#" data-icon="fab fa-cc-paypal"><i class="fab fa-cc-paypal"></i> Paypal</a></li>
+                                            <li><a class="dropdown-item" href="#" data-icon="fas fa-mobile-alt"><i class="fas fa-mobile-alt"></i> Yape</a></li>
+                                            <li><a class="dropdown-item" href="#" data-icon="fas fa-exchange-alt"><i class="fas fa-exchange-alt"></i> Plin</a></li>
+                                            <li><a class="dropdown-item" href="#" data-icon="fas fa-wallet"><i class="fas fa-wallet"></i> Mi BIM</a></li>
 
-                                            <li><a class="dropdown-item" href="#" data-icon="fab fa-bitcoin"><i class="fab fa-bitcoin"></i> Bitcoin</a></li>
                                         </ul>
                                     </div>
                                 </div>
@@ -936,8 +937,10 @@ include("pie.php");
                 medio_pago: document.getElementById("idNuevoMedioPago").value,
                 color: document.getElementById("idColorNuevoMedioPago").value,
                 icono: document.getElementById("selectedIcon").value === "" ? 'fas fa-credit-card' : document.getElementById("selectedIcon").value,
-                monto: isNaN(parseFloat(document.getElementById("idMontoMedioPago"))) ? 0 : parseFloat(document.getElementById("idMontoMedioPago"))
+                monto: isNaN(parseFloat(document.getElementById("idMontoMedioPago").value)) ? 0 : parseFloat(document.getElementById("idMontoMedioPago").value),
+                sucursal_id: <?php echo isset($_SESSION['sucursal_id']) ? $_SESSION['sucursal_id'] : 'null'; ?>
             }
+            console.log("Datos a enviar:", js_datos_medio_pago);
             $.ajax({
                 url: 'logica/clssInsertPA.php',
                 type: 'POST',

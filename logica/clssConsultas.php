@@ -40,7 +40,9 @@ function controladorConsultasPTMRE($accion)
         case 'BUSQUEDAD_PROVEEDOR':
             if (isset($_POST["cadenaBusqueda"])) {
                 $cadena = $_POST["cadenaBusqueda"];
-                $result = fnListadoProveedores($cadena);
+                $sucursal_id = isset($_POST['sucursal_id']) ? $_POST['sucursal_id'] : null; // ✅ Obtener sucursal_id
+                
+                $result = fnListadoProveedores($cadena, $sucursal_id); // ✅ Pasar sucursal_id
 
                 // Si no hay resultados, devuelves un array vacío
                 echo json_encode($result ? $result : []);
@@ -1481,9 +1483,9 @@ function fnListForAllPagos($sucursal_id = null): array
     return executeQuery($query, ['sucursal_id' => $sucursal_id]);  // ← AGREGADO EL PARÁMETRO
 }
 
-function fnListadoProveedores($cadena): array
+function fnListadoProveedores($cadena, $sucursal_id = null): array
 {
-    // La consulta SQL para buscar proveedores
+    // La consulta SQL base para buscar proveedores
     $query = "   
     SELECT id, numero_documento, tipo_persona, condicion, nombre_comercial, razon_social 
     FROM persona 
@@ -1492,13 +1494,25 @@ function fnListadoProveedores($cadena): array
         upper(nombre_comercial) LIKE upper(:busqueda) OR 
         upper(razon_social) LIKE upper(:busqueda) OR
         numero_documento LIKE :busqueda
-    )
-     
-    AND deleted_at IS NULL LIMIT 10;
-    ";
+    )";
+    
+    // ✅ Agregar filtro de sucursal si se proporciona
+    if ($sucursal_id !== null) {
+        $query .= " AND sucursal_id = :sucursal_id";
+    }
+    
+    $query .= " AND deleted_at IS NULL LIMIT 10";
+    
+    // Preparar parámetros
+    $params = ['busqueda' => '%' . $cadena . '%'];
+    
+    // ✅ Agregar sucursal_id a los parámetros si existe
+    if ($sucursal_id !== null) {
+        $params['sucursal_id'] = $sucursal_id;
+    }
 
-    // Ejecuta la consulta con el parámetro de búsqueda
-    return executeQuery($query, ['busqueda' => '%' . $cadena . '%']);
+    // Ejecuta la consulta con los parámetros
+    return executeQuery($query, $params);
 }
 
 function fnListadoProductos($cadena, $sucursal_id): array
@@ -1863,8 +1877,19 @@ function fnGenerarTicket($idVenta): void
 {
     $datosprueba = fnUltimaVentaPorIdVenta($idVenta)[0];
 
-    // Datos de la venta obtenidos de la consulta
-    $datoEmisor = fnListadoDeEmisor()[0];
+    // ✅ OBTENER SUCURSAL_ID DE LA VENTA
+    $sucursal_id = $datosprueba["sucursal_id"] ?? null;
+
+    // ✅ Datos de la venta obtenidos de la consulta
+    // ✅ USAR fnListadoDeEmisor CON sucursal_id ESPECÍFICO
+    $datoEmisor = fnListadoDeEmisor($sucursal_id)[0] ?? null;
+
+    // ✅ VALIDAR QUE EXISTAN DATOS DEL EMISOR
+    if (!$datoEmisor) {
+        error_log("❌ No se encontraron datos del emisor para sucursal_id: " . $sucursal_id);
+        die("Error: No se encontraron datos del emisor para esta sucursal");
+    }
+
     $datosVenta = [
         "codigo_tiket" => $datosprueba["codigo_tiket"],
         "tipo_comprobante" => $datosprueba["tipo_comprobante"],
@@ -1894,51 +1919,61 @@ function fnGenerarTicket($idVenta): void
     $pdf = new FPDF('P', 'mm', array(80, 200));
     $pdf->AddPage();
 
-    $logoPath = 'logica/logo.jpeg';
-
-    // Verificar si la imagen existe
-    if (file_exists($logoPath)) {
-        $logoWidth = 20; // Ancho del logo
-        $centerX = (80 - $logoWidth) / 2; // Centrado en una página de 80mm de ancho
-
-        $pdf->Image($logoPath, $centerX, 5, $logoWidth); // Ajustar la posición y tamaño del logo
-        $pdf->Ln(20);
-    } else {
-        $pdf->Cell(60, 4, 'Logo no disponible', 0, 1, 'C');
+    // ✅ USAR LOGO DINÁMICO DE LA SUCURSAL
+    $logoPath = null;
+    
+    // Verificar si existe ruta de logo en la BD
+    if (!empty($datoEmisor["ruta_logo"])) {
+        $logoPath = $datoEmisor["ruta_logo"];
+        
+        // Verificar si el archivo existe
+        if (!file_exists($logoPath)) {
+            error_log("⚠️ Logo no encontrado en: " . $logoPath);
+            $logoPath = null;
+        }
+    }
+    
+    // Si no hay logo de la sucursal, usar logo por defecto
+    if ($logoPath === null) {
+        $logoPath = 'logica/logo.jpeg';
+        if (!file_exists($logoPath)) {
+            error_log("⚠️ Logo por defecto no encontrado");
+            $logoPath = null;
+        }
     }
 
+    // Mostrar logo si existe
+    if ($logoPath) {
+        $logoWidth = 20; // Ancho del logo
+        $centerX = (80 - $logoWidth) / 2; // Centrado en una página de 80mm de ancho
+        $pdf->Image($logoPath, $centerX, 5, $logoWidth);
+        $pdf->Ln(20);
+    } else {
+        $pdf->SetFont('Arial', 'B', 8);
+        $pdf->Cell(60, 4, 'Logo no disponible', 0, 1, 'C');
+        $pdf->Ln(5);
+    }
 
-    //$pdf->Image('logo.jpg', 10, 5, 20); // Ruta a tu logo, ajuste de posición (x=10, y=5) y tamaño (ancho=20)
-    //$pdf->Ln(20); // Deja un espacio de 20mm después del logo
-    // TÍTULO: TICKET DE VENTA
-
-    $pdf->SetFont('Arial', 'B', size: 7);
-    $pdf->Cell(60, 4, $datoEmisor["razon_social"], 0, 1, 'C');
+    // INFORMACIÓN DEL EMISOR
+    $pdf->SetFont('Arial', 'B', 7);
+    $pdf->Cell(60, 4, utf8_decode($datoEmisor["razon_social"]), 0, 1, 'C');
     $pdf->Cell(60, 4, "RUC: " . $datoEmisor["ruc"], 0, 1, 'C');
 
-    $pdf->SetFont('Arial', size: 7);
-
     $pdf->SetFont('Arial', '', 6);
-    $pdf->MultiCell(60, 4, $datoEmisor["direccion"], 0, 'C');
-    $pdf->SetFont('Arial', 'B', 8); // Restaurar estilo después
-
-    //$pdf->Cell(60, 4, $datoEmisor["direccion"], 0, 1, 'C');
-    //$pdf->SetFont('Arial', 'B', 8);
-
-
-
-    $pdf->SetFont('Arial', 'B', 10);
-    $pdf->Cell(60, 4, $datosprueba["tipo_comprobante"] . ' DE VENTA ELECTRONICA', 0, 1, 'C');
+    $pdf->MultiCell(60, 4, utf8_decode($datoEmisor["direccion"]), 0, 'C');
     $pdf->SetFont('Arial', 'B', 8);
 
+    // TIPO DE COMPROBANTE
+    $pdf->SetFont('Arial', 'B', 10);
+    $pdf->Cell(60, 4, utf8_decode($datosprueba["tipo_comprobante"]) . ' DE VENTA ELECTRONICA', 0, 1, 'C');
+    $pdf->SetFont('Arial', 'B', 8);
 
     $pdf->Cell(60, 4, $datosVenta["codigo_tiket"], 0, 1, 'C');
-
     $pdf->Ln(1);
 
     // DATOS DEL CLIENTE
     $pdf->SetFont('Arial', 'B', 7);
-    $pdf->Cell(60, 4, 'Cliente: ' . $datosVenta["cliente"], 0, 1, 'L');
+    $pdf->Cell(60, 4, 'Cliente: ' . utf8_decode($datosVenta["cliente"]), 0, 1, 'L');
     $pdf->Cell(60, 4, 'DNI/RUC: ' . $datosVenta["numero_doc_cliente"], 0, 1, 'L');
     $pdf->Cell(60, 4, 'Fecha: ' . $datosVenta["fecha"] . ' ' . $datosVenta["hora"], 0, 1, 'L');
     $pdf->Ln(1);
@@ -1961,7 +1996,7 @@ function fnGenerarTicket($idVenta): void
         $yInicial = $pdf->GetY();
 
         // Nombre del producto en varias líneas
-        $pdf->MultiCell(30, 3, $producto["descripcion_2"], 0, 'L');
+        $pdf->MultiCell(30, 3, utf8_decode($producto["descripcion_2"]), 0, 'L');
 
         $yFinal = $pdf->GetY();
         $alturaFila = $yFinal - $yInicial;
@@ -1980,21 +2015,19 @@ function fnGenerarTicket($idVenta): void
     $pdf->Cell(60, 3, str_repeat('_', 25), 0, 1, 'C');
     $pdf->Ln(1);
 
-    // ESTADO DE PAGO Y ESTADO FINAL
+    // ESTADO DE PAGO
     $pdf->SetFont('Arial', 'B', 7);
     $pdf->Cell(20, 3, 'Estado:', 0, 0, 'L');
     $pdf->SetFont('Arial', '', 7);
-    $pdf->Cell(15, 3, $datosVenta["estado_pago"], 0, 1, 'L');
+    $pdf->Cell(15, 3, utf8_decode($datosVenta["estado_pago"]), 0, 1, 'L');
     $pdf->Ln(1);
 
-    // ESTADO DE PAGO Y ESTADO FINAL
+    // DESCUENTO
     $pdf->SetFont('Arial', 'B', 7);
     $pdf->Cell(20, 3, 'Descuento:', 0, 0, 'L');
     $pdf->SetFont('Arial', '', 7);
-    $pdf->Cell(15, 3, "S/ " . $datosVenta["descuento"], 0, 1, 'L');
+    $pdf->Cell(15, 3, "S/ " . number_format($datosVenta["descuento"], 2), 0, 1, 'L');
     $pdf->Ln(1);
-
-
 
     // ENCABEZADO DE PAGOS
     $pdf->SetFont('Arial', 'B', 7);
@@ -2005,7 +2038,7 @@ function fnGenerarTicket($idVenta): void
 
     // LISTADO DE PAGOS
     foreach ($pagos as $x) {
-        $pdf->Cell(30, 3, $x["forma_pago"], 0, 0, 'L');
+        $pdf->Cell(30, 3, utf8_decode($x["forma_pago"]), 0, 0, 'L');
         $pdf->Cell(20, 3, 'S/ ' . number_format($x["monto"], 2), 0, 1, 'R');
     }
 
@@ -2018,12 +2051,11 @@ function fnGenerarTicket($idVenta): void
     $pdf->SetFont('Arial', 'B', 5);
     $pdf->Cell(60, 4, 'TOTAL DE VENTA: S/ ' . number_format($datosVenta["total"], 2), 0, 1, 'C');
     $pdf->Ln(1);
+    
     // TOTAL DE VENTA REAL
     $pdf->SetFont('Arial', 'B', 7);
     $pdf->Cell(60, 4, 'TOTAL DE VENTA REAL: S/ ' . number_format($datosVenta["monto_venta_final"], 2), 0, 1, 'C');
     $pdf->Ln(1);
-
-
 
     // TOTAL EN LETRAS
     $total_letras = strtoupper(number_format($datosVenta["total"], 2) . " /100 PEN");
@@ -2033,24 +2065,20 @@ function fnGenerarTicket($idVenta): void
 
     // VENDEDOR
     $pdf->SetFont('Arial', 'B', 6);
-    $pdf->Cell(60, 3, 'ATENDIDO POR: ' . $datosVenta["usuario_final"], 0, 1, 'C');
+    $pdf->Cell(60, 3, 'ATENDIDO POR: ' . utf8_decode($datosVenta["usuario_final"]), 0, 1, 'C');
     $pdf->Ln(1);
 
     // MENSAJE DE AGRADECIMIENTO
     $pdf->SetFont('Arial', '', 7);
-    $pdf->MultiCell(60, 3, 'Representacion Impresa de la ' . $datosprueba["tipo_comprobante"] . ' DE VENTA ELECTRONICA', 0, 'C');
+    $pdf->MultiCell(60, 3, utf8_decode('Representacion Impresa de la ' . $datosprueba["tipo_comprobante"] . ' DE VENTA ELECTRONICA'), 0, 'C');
     $pdf->MultiCell(60, 3, 'Gracias por su preferencia', 0, 'C');
 
     // FIRMA DE LA EMPRESA
     $pdf->SetFont('Arial', 'B', 7);
     $pdf->Cell(60, 3, ' ', 0, 1, 'C');
-    $pdf->Cell(60, 3, 'LIBRERIA BAZAR RODRI', 0, 1, 'C');
+    $pdf->Cell(60, 3, utf8_decode($datoEmisor["nombre_comercial"]), 0, 1, 'C');
     $pdf->Cell(60, 3, 'DESARROLLADO POR CARACOL SOFT', 0, 1, 'C');
     $pdf->Ln(4);
-
-
-
-
 
     // GENERAR PDF
     ob_clean();

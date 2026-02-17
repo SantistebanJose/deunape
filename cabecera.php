@@ -2,6 +2,7 @@
 /**
  * cabecera.php
  * Header del sistema con MenuManager integrado
+ * Versión mejorada con colores coherentes al login
  */
 include('logica/clssConsultas.php');
 
@@ -94,9 +95,6 @@ function tienePermiso($moduloPermiso = '', $permisoEspecifico = '') {
 }
 
 ?>
-
-
-
 <!DOCTYPE html>
 <html lang="es">
 
@@ -105,7 +103,7 @@ function tienePermiso($moduloPermiso = '', $permisoEspecifico = '') {
     <title>CAPTAIN <?php echo " | ". $_SESSION["nombre_comercial"]?></title>
     <meta charset="UTF-8">
     <meta content="width=device-width, initial-scale=1.0, shrink-to-fit=no" name="viewport" />
-    <link rel="icon" href="assets/img/Captain-logo.svg" type="image/x-icon" />
+    <link rel="icon" href="assets/img/logo-captain.svg" type="image/x-icon" />
 
     <!-- Fonts and icons -->
     <script src="assets/js/plugin/webfont/webfont.min.js"></script>
@@ -135,6 +133,253 @@ function tienePermiso($moduloPermiso = '', $permisoEspecifico = '') {
     <link rel="stylesheet" href="assets/css/kaiadmin.min.css" />
     <link rel="stylesheet" href="assets/css/demo.css" />
     <link rel="stylesheet" href="assets/css/stylePerzo.css" />
+    
+    <!-- Estilos personalizados coherentes con login -->
+    <style>
+        :root {
+            --primary-blue: #0033A0;
+            --primary-blue-light: #0055CC;
+            --primary-green: #2ecc71;
+            --primary-green-dark: #27ae60;
+            --dark-bg: #1a2035;
+            --sidebar-bg: linear-gradient(180deg, #0033A0 0%, #002080 100%);
+        }
+
+        /* Sidebar con gradiente azul peruano */
+        .sidebar[data-background-color="dark"] {
+            background: var(--sidebar-bg) !important;
+            box-shadow: 2px 0 15px rgba(0, 51, 160, 0.15);
+        }
+
+        .sidebar .logo-header[data-background-color="dark"] {
+            background: linear-gradient(135deg, #002080 0%, #0033A0 100%) !important;
+            border-bottom: 3px solid var(--primary-green);
+        }
+
+        /* Texto del menú principal - más visible */
+        .sidebar .nav-item > a {
+            color: #ffffff !important;
+            font-weight: 500;
+        }
+
+        .sidebar .nav-item > a span {
+            color: #ffffff !important;
+        }
+
+        .sidebar .nav-item > a i {
+            color: #ffffff !important;
+        }
+
+        /* Hover en items del menú */
+        .sidebar .nav-item a:hover {
+            background: rgba(46, 204, 113, 0.2) !important;
+            border-left: 4px solid var(--primary-green);
+            padding-left: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar .nav-item a:hover span,
+        .sidebar .nav-item a:hover i {
+            color: #ffffff !important;
+        }
+
+        /* Item activo del menú */
+        .sidebar .nav-item.active > a {
+            background: linear-gradient(90deg, rgba(46, 204, 113, 0.25) 0%, rgba(46, 204, 113, 0.1) 100%) !important;
+            border-left: 4px solid var(--primary-green);
+            font-weight: 600;
+            color: #ffffff !important;
+        }
+
+        .sidebar .nav-item.active > a span,
+        .sidebar .nav-item.active > a i {
+            color: #ffffff !important;
+        }
+
+        /* Navbar header con degradado */
+        .main-header {
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%) !important;
+            box-shadow: 0 4px 20px rgba(0, 51, 160, 0.08);
+            border-bottom: 3px solid var(--primary-green);
+        }
+
+        .navbar-header {
+            background: transparent !important;
+        }
+
+        /* Badge de bienvenida con colores peruanos */
+        .navbar-header span {
+            color: #2c3e50;
+        }
+
+        .navbar-header strong {
+            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-light) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 700;
+        }
+
+        /* Botón home con efecto */
+        .navbar-nav .btn {
+            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-light) 100%);
+            color: white !important;
+            border-radius: 10px;
+            padding: 8px 16px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(0, 51, 160, 0.2);
+        }
+
+        .navbar-nav .btn:hover {
+            background: linear-gradient(135deg, #002080 0%, var(--primary-blue) 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0, 51, 160, 0.3);
+        }
+
+        /* Dropdown de acciones rápidas */
+        .quick-actions-header {
+            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-light) 100%) !important;
+            color: white !important;
+            border-radius: 10px 10px 0 0;
+        }
+
+        .quick-actions-items .col-6:hover {
+            transform: translateY(-3px);
+            transition: all 0.3s ease;
+        }
+
+        /* Avatar y perfil de usuario */
+        .topbar-user .avatar-sm {
+            border: 3px solid var(--primary-green);
+            box-shadow: 0 4px 10px rgba(46, 204, 113, 0.2);
+        }
+
+        .profile-username .fw-bold {
+            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-green) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Dropdown del usuario */
+        .dropdown-user {
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0, 51, 160, 0.15);
+            border: 2px solid rgba(46, 204, 113, 0.2);
+        }
+
+        .user-box {
+            background: linear-gradient(135deg, rgba(0, 51, 160, 0.05) 0%, rgba(46, 204, 113, 0.05) 100%);
+            border-radius: 10px;
+            padding: 15px;
+        }
+
+        .user-box .avatar-lg {
+            border: 3px solid var(--primary-green);
+            border-radius: 10px;
+        }
+
+        .user-box h4 {
+            color: var(--primary-blue);
+            font-weight: 700;
+        }
+
+        .dropdown-user .dropdown-item {
+            border-radius: 8px;
+            margin: 5px 10px;
+            transition: all 0.3s ease;
+        }
+
+        .dropdown-user .dropdown-item:hover {
+            background: linear-gradient(90deg, rgba(0, 51, 160, 0.1) 0%, rgba(46, 204, 113, 0.1) 100%);
+            padding-left: 25px;
+            color: var(--primary-blue);
+        }
+
+        /* Toggle buttons con estilo peruano */
+        .btn-toggle {
+            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-light) 100%);
+            color: white;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-toggle:hover {
+            background: linear-gradient(135deg, var(--primary-green) 0%, var(--primary-green-dark) 100%);
+            transform: rotate(90deg);
+        }
+
+        /* Iconos con color verde */
+        .topbar-icon .nav-link i {
+            color: var(--primary-green);
+            transition: all 0.3s ease;
+        }
+
+        .topbar-icon .nav-link:hover i {
+            color: var(--primary-blue);
+            transform: scale(1.2);
+        }
+
+        /* Submenu collapse */
+        .nav-collapse .nav-link {
+            padding-left: 35px !important;
+            color: #e8f4f8 !important;
+            font-size: 0.95rem;
+        }
+
+        .nav-collapse .nav-link span {
+            color: #e8f4f8 !important;
+        }
+
+        .nav-collapse .nav-link i {
+            color: #e8f4f8 !important;
+        }
+
+        .nav-collapse .nav-link:hover {
+            background: rgba(46, 204, 113, 0.2) !important;
+            border-left: 3px solid var(--primary-green);
+            color: #ffffff !important;
+        }
+
+        .nav-collapse .nav-link:hover span,
+        .nav-collapse .nav-link:hover i {
+            color: #ffffff !important;
+        }
+
+        /* Flechas de los menús desplegables */
+        .sidebar .nav-item > a[data-bs-toggle="collapse"]::after {
+            color: #ffffff !important;
+        }
+
+        /* Badge y etiquetas en el sidebar */
+        .sidebar .badge {
+            background: var(--primary-green) !important;
+            color: #ffffff !important;
+        }
+
+        /* Animación de carga suave */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .main-header {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .navbar-header span {
+                font-size: 0.85rem;
+            }
+        }
+    </style>
 </head>
 
 <body>
@@ -144,11 +389,9 @@ function tienePermiso($moduloPermiso = '', $permisoEspecifico = '') {
             <div class="sidebar-logo">
                 <div class="logo-header" data-background-color="dark">
                     <a href="index.php" class="logo">
-    <!-- 
-                    <img src="assets/img/development.png" alt="navbar brand" class="navbar-brand" height="30" />
-                    -->
-                        
-                        <span style="color: white; font-size: 12px;"><?php echo $_SESSION["nombre_comercial"]?> | <strong>DeUnaPe 😎</strong></span>
+                        <span style="color: white; font-size: 12px; font-weight: 600;">
+                            <?php echo $_SESSION["nombre_comercial"]?> | <strong>DeUnaPe </strong>
+                        </span>
                     </a>
                     <div class="nav-toggle">
                         <button class="btn btn-toggle toggle-sidebar">
@@ -186,7 +429,7 @@ function tienePermiso($moduloPermiso = '', $permisoEspecifico = '') {
                 <div class="main-header-logo">
                     <div class="logo-header" data-background-color="dark">
                         <a href="index.php" class="logo">
-                            <img src="assets/img/kaiadmin/logo_light.svg" alt="navbar brand" class="navbar-brand" height="20" />
+                            <img src="assets/img/kaiadmin/logo_light.svg" alt="navbar brand" height="20" />
                         </a>
                         <div class="nav-toggle">
                             <button class="btn btn-toggle toggle-sidebar">
@@ -207,14 +450,18 @@ function tienePermiso($moduloPermiso = '', $permisoEspecifico = '') {
                     <div class="container-fluid">
                         <nav class="navbar navbar-header-left navbar-expand-lg navbar-form nav-search p-0 d-none d-lg-flex">
                         </nav>
-
-
                         
+                        <span>
+                            <i class="fab fa-telegram-plane" style="color: #2ecc71;"></i> Hola 👋,
+                        </span> 
+                        <span>
+                            <strong><?php echo " ". $_SESSION["nombre_comercial"]." "?></strong>, 
+                            Realiza todos tus movimientos desde el sistema de <strong>DeUnaPe</strong> 😎
+                        </span>
                         
-                        <span><i class="fab fa-telegram-plane"></i> Hola 👋,</span> <span><strong> <?php echo " ". $_SESSION["nombre_comercial"]." "?></strong>, Realiza todos tus movimientos desde el sistema de <strong>DeUnaPe 😎</strong></span>
                         <ul class="navbar-nav topbar-nav ms-md-auto align-items-center">
                             <a name="" id="" class="btn" href="index.php" role="button">
-                                <i class="fas fa-home"></i>
+                                <i class="fas fa-home"></i> Inicio
                             </a>
                             
                             <li class="nav-item topbar-icon dropdown hidden-caret">
@@ -222,7 +469,7 @@ function tienePermiso($moduloPermiso = '', $permisoEspecifico = '') {
                                     <i class="fas fa-layer-group"></i>
                                 </a>
                                 <div class="dropdown-menu quick-actions animated fadeIn">
-                                    <div class="quick-actions-header" style="background-color: #1a2035;">
+                                    <div class="quick-actions-header">
                                         <span class="title mb-1">Accesos Rápidos</span>
                                         <span class="subtitle op-7">Todo en un solo click.</span>
                                     </div>
@@ -262,14 +509,16 @@ function tienePermiso($moduloPermiso = '', $permisoEspecifico = '') {
                                                     <h4><?php echo htmlspecialchars($nombre . ' ' . $ape_usuario); ?></h4>
                                                     <p class="text-muted"><?php echo htmlspecialchars($correo ? $correo : 'Sin correo'); ?></p>
                                                     <p class="text-muted">
-                                                        <small>Rol: <strong><?php echo htmlspecialchars($rol); ?></strong></small>
+                                                        <small>Rol: <strong style="color: #2ecc71;"><?php echo htmlspecialchars($rol); ?></strong></small>
                                                     </p>
                                                 </div>
                                             </div>
                                         </li>
                                         <li>
                                             <div class="dropdown-divider"></div>
-                                            <a class="dropdown-item" href="logica/logout.php">Salir</a>
+                                            <a class="dropdown-item" href="logica/logout.php">
+                                                <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                                            </a>
                                         </li>
                                     </div>
                                 </ul>

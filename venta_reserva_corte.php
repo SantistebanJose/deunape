@@ -192,6 +192,8 @@ $sucursal_id = $_SESSION["sucursal_id"];
             padding: 6px 10px;
         }
     }
+
+    
 </style>
 
 <div class="container">
@@ -229,44 +231,51 @@ $sucursal_id = $_SESSION["sucursal_id"];
                 </div>
 
                 <!-- FILTROS DE BÚSQUEDA -->
-                <div class="table-filters mt-4">
-                    <div class="row g-3 align-items-end">
-                        <div class="col-md-2">
-                            <select id="filterCategoria" class="form-select">
-                                <option value="">Todas las Categorías</option>
-                            </select>
+                <div class="card mt-4">
+                    <div class="card-body">
+                        <!-- Fila de filtros -->
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-3">
+                                <select id="filterCategoria" class="form-select">
+                                    <option value="">Filtrar por Categoría</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <select id="filterTipo" class="form-select">
+                                    <option value="">Filtrar por Tipo</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <select id="filterDimension" class="form-select">
+                                    <option value="">Filtrar por Dimensión</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <select id="filterColor" class="form-select">
+                                    <option value="">Filtrar por Color</option>
+                                </select>
+                            </div>
                         </div>
-                        <div class="col-md-2">
-                            <select id="filterTipo" class="form-select">
-                                <option value="">Todos los Tipos</option>
-                            </select>
+
+                        <!-- Barra de búsqueda y botón limpiar -->
+                        <div class="row g-3">
+                            <div class="col-md-10">
+                                <input type="text" id="searchInput" class="form-control"
+                                    placeholder="Buscar Articulo..." onkeyup="filterProducts()">
+                            </div>
+                            <div class="col-md-2">
+                                <button id="clearFilters" class="btn btn-warning w-100">
+                                    <i class="fas fa-broom"></i> Limpiar Filtros
+                                </button>
+                            </div>
                         </div>
-                        <div class="col-md-2">
-                            <select id="filterDimension" class="form-select">
-                                <option value="">Todas las Dimensiones</option>
-                            </select>
-                        </div>
-                        <div class="col-md-2">
-                            <select id="filterColor" class="form-select">
-                                <option value="">Todos los Colores</option>
-                            </select>
-                        </div>
-                        <div class="col-md-4">
-                            <input type="text" id="searchInput" class="form-control" 
-                                   placeholder="🔍 Buscar artículo..." onkeyup="filterProducts()">
-                        </div>
-                    </div>
-                    <div class="text-center mt-3">
-                        <button id="clearFilters" class="btn btn-warning btn-round">
-                            <i class="fas fa-broom"></i> Limpiar Filtros
-                        </button>
                     </div>
                 </div>
 
-                <!-- CONTENEDOR DE PRODUCTOS -->
+                <!-- PRODUCTOS EN TARJETAS -->
                 <div class="container mt-4">
                     <div class="row" id="productoContainer">
-                        <!-- Productos dinámicos -->
+                        <!-- Los productos se generarán dinámicamente aquí -->
                     </div>
                 </div>
 
@@ -716,7 +725,7 @@ $sucursal_id = $_SESSION["sucursal_id"];
 // ===== CONFIGURACIÓN INICIAL =====
 const products = <?php echo json_encode(listarProductosVenta1($sucursal_id)); ?>;
 let currentPage = 1;
-const itemsPerPage = 6;
+const itemsPerPage = 8;
 let filteredProducts = products;
 
 const allCategories = [...new Set(products.map(p => p.categoria))];
@@ -760,42 +769,47 @@ function renderProducts(productsToDisplay) {
     productsToDisplay.forEach(product => {
         const stock = parseFloat(product.stock);
         const sinStock = stock === 0.00;
-        const flag_titulo = sinStock ? product.articulo + " - SIN STOCK" : product.articulo;
-        const flag_color = sinStock ? "#f31832" : "";
         
         const card = document.createElement('div');
-        card.classList.add('col-md-4', 'mb-3');
+        card.classList.add('col-6', 'col-md-3', 'mb-3');
         card.innerHTML = `
-            <div class="card card-post card-round" style="color:${flag_color}">
-                <div class="card-body">
-                    <div class="d-flex">
-                        <div class="info-post ms-2">
-                            <p class="username">${flag_titulo}</p>
-                        </div>
+            <div class="card card-post card-round h-100 ${sinStock ? 'border-danger' : ''}">
+                <div class="card-body p-2">
+                    <h6 class="fw-bold mb-1 small ${sinStock ? 'text-danger' : ''}">${product.articulo}</h6>
+                    ${sinStock ? '<span class="badge bg-danger badge-sm mb-1">SIN STOCK</span>' : ''}
+                    
+                    <p class="text-primary mb-1" style="font-size: 0.7rem;">${product.categoria}</p>
+                    
+                    <div style="font-size: 0.65rem;" class="text-muted mb-1">
+                        <div><b>Tipo:</b> ${product.tipo}</div>
+                        <div><b>Dim:</b> ${product.dimension}</div>
+                        <div><b>Color:</b> ${product.color}</div>
+                        <div><b>Stock:</b> <span class="${sinStock ? 'text-danger fw-bold' : ''}">${product.stock}</span></div>
                     </div>
-                    <div class="separator-solid"></div>
-                    <p class="card-category text-info mb-1">${product.categoria}</p>
-                    <div class="card-text"><b>Tipo:</b> ${product.tipo}</div>
-                    <div class="card-text"><b>Dimensión:</b> ${product.dimension}</div>
-                    <div class="card-text"><b>Color:</b> ${product.color}</div>
-                    <div class="card-text"><b>Stock:</b> ${product.stock}</div>
-                    <div class="separator-solid"></div>
-                    <div class="row justify-content-between align-items-center g-2">
-                        <div class="col-sm-8" style="font-size:18px"><b>S/${product.precio_venta}</b></div>
-                        <div class="col-sm-4 d-flex justify-content-center">
-                            <a href="#" class="btn btn-success btn-sm btn-round" 
-                               onclick='fn_agregar_venta(${JSON.stringify(product).replace(/'/g, "&#39;")})'>
-                                <i class="fas fa-plus"></i>
-                            </a>
-                        </div>
+                    
+                    <div class="d-flex justify-content-between align-items-center mt-2">
+                        <span class="fw-bold text-success" style="font-size: 0.9rem;">S/${product.precio_venta}</span>
+                        <button class="btn btn-success btn-sm py-1 px-2" 
+                                onclick='fn_agregar_venta(${JSON.stringify(product).replace(/'/g, "&#39;")})'
+                                ${sinStock ? 'disabled' : ''}>
+                            <i class="fas fa-plus"></i>
+                        </button>
                     </div>
                 </div>
             </div>
         `;
         container.appendChild(card);
     });
-}
 
+    if (productsToDisplay.length === 0) {
+        container.innerHTML = `
+            <div class="col-12 text-center text-muted py-4">
+                <i class="fas fa-inbox fa-3x mb-3"></i>
+                <p class="mb-0">No se encontraron productos</p>
+            </div>
+        `;
+    }
+}
 // ===== PAGINACIÓN =====
 function changePage(direction) {
     currentPage += direction;

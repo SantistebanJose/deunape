@@ -10,7 +10,7 @@ function controladorFiltro($accion){
     switch($accion){
         case 'FILTROPERSONA':
             $data = $_POST["data"];
-           
+            $sucursal_id = $_POST["sucursal_id"];
             consultapersonaventa($data);
             break;
         case 'FILTROEMPLEADO':
@@ -29,49 +29,49 @@ function controladorFiltro($accion){
     }
 }
 
-function consultapersonaventa($data): void
+function consultapersonaventa($data, $sucursal_id): void
 {
     global $conectar;
 
     try {
-        // Consulta SQL con la función ILIKE para hacer la comparación insensible a mayúsculas y minúsculas
         $query = $conectar->prepare("
-        SELECT 
-            id, 
-            CONCAT(numero_documento, ' - ', nombres, ' ', apellidos, razon_social) AS persona_concatenada,
-            nombres,
-            apellidos,
-            numero_documento,
-            COALESCE(NULLIF(telefonomovil, ''), 'Sin número') AS telefonomovil,
-            COALESCE(NULLIF(email, ''), 'Sin correo') AS email
-        FROM persona
-        WHERE 
-            numero_documento ILIKE :data OR
-            nombres ILIKE :data OR
-            apellidos ILIKE :data
-        LIMIT 10;
+            SELECT DISTINCT
+                p.id, 
+                CONCAT(p.numero_documento, ' - ', p.nombres, ' ', p.apellidos, p.razon_social) AS persona_concatenada,
+                p.nombres,
+                p.apellidos,
+                p.numero_documento,
+                COALESCE(NULLIF(p.telefonomovil, ''), 'Sin número') AS telefonomovil,
+                COALESCE(NULLIF(p.email, ''), 'Sin correo') AS email
+            FROM persona p
+            INNER JOIN venta v ON v.persona_id = p.id
+            WHERE 
+                v.sucursal_id = :sucursal_id
+                AND (
+                    p.numero_documento ILIKE :data OR
+                    p.nombres         ILIKE :data OR
+                    p.apellidos       ILIKE :data
+                )
+            LIMIT 10;
         ");
 
-        // Pasamos el parámetro con los signos de porcentaje en PHP
-        $likeData = '%' . $data . '%';  // Añadimos los comodines en PHP
+        $likeData = '%' . $data . '%';
 
-        // Usamos bindValue para pasar el parámetro
-        $query->bindValue(':data', $likeData, PDO::PARAM_STR);
+        $query->bindValue(':data',        $likeData,    PDO::PARAM_STR);
+        $query->bindValue(':sucursal_id', $sucursal_id, PDO::PARAM_INT);
         $query->execute();
         
-        // Recuperar los resultados como un array asociativo
         $result = $query->fetchAll(PDO::FETCH_ASSOC);
-
-        // Devolver los resultados como JSON
         echo json_encode($result);
+
     } catch (\Throwable $th) {
-        // En caso de error, devolver un JSON con el mensaje de error
         echo json_encode([
-            "error" => true,
+            "error"   => true,
             "message" => $th->getMessage()
         ]);
     }
 }
+
 function consultarPersonaSinSerEmpleado($data): void
 {
     global $conectar;

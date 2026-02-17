@@ -987,7 +987,8 @@ if (!$sucursal_id) {
                     type: 'POST',
                     data: {
                         accion: "BUSQUEDAD_PROVEEDOR",
-                        cadenaBusqueda: busqueda // El valor de lo que escribe el usuario
+                        cadenaBusqueda: busqueda, // El valor de lo que escribe el usuario
+                        sucursal_id: SUCURSAL_ID 
                     },
                     dataType: 'json',
                     success: function(data) {

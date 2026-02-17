@@ -172,7 +172,11 @@ include("cabecera.php");
             serverSide: true,
             ajax: {
                 "url": "logica/listar_personas.php",
-                "type": "POST"
+                "type": "POST",
+                "data": function(d) {
+                    // Agregar sucursal_id al request
+                    d.sucursal_id = "<?php echo $_SESSION['sucursal_id'] ?? ''; ?>";
+                }
             },
             columns: [
                 { "data": "id" },

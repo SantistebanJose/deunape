@@ -1,5 +1,13 @@
 <?php
 include("cabecera.php");
+
+// Verificar que el usuario esté autenticado y tenga una sucursal asignada
+if (!isset($_SESSION['sucursal_id']) || empty($_SESSION['sucursal_id'])) {
+    echo '<div class="alert alert-danger">Error: No se pudo determinar la sucursal del usuario.</div>';
+    exit;
+}
+
+$sucursal_id_usuario = $_SESSION['sucursal_id'];
 ?>
 
 <style>
@@ -34,6 +42,17 @@ include("cabecera.php");
         color: #6c757d;
         margin-bottom: 0;
         font-size: 15px;
+    }
+
+    .sucursal-badge {
+        display: inline-block;
+        background: linear-gradient(135deg, #6861ce 0%, #5651b8 100%);
+        color: white;
+        padding: 8px 20px;
+        border-radius: 20px;
+        font-size: 14px;
+        font-weight: 600;
+        margin-top: 10px;
     }
 
     .control-panel {
@@ -296,6 +315,11 @@ include("cabecera.php");
     <div class="header-card">
         <h1><i class="fas fa-tags"></i> Generador de Etiquetas de Precios</h1>
         <p>Crea etiquetas profesionales para tus artículos y descárgalas en PDF</p>
+        <?php
+        // Mostrar información de la sucursal
+        $nombreSucursal = isset($_SESSION['sucursal_nombre']) ? $_SESSION['sucursal_nombre'] : 'Sucursal #' . $sucursal_id_usuario;
+        echo '<div class="sucursal-badge"><i class="fas fa-store"></i> ' . htmlspecialchars($nombreSucursal) . '</div>';
+        ?>
     </div>
 
     <!-- Panel de Control -->
@@ -357,7 +381,7 @@ include("cabecera.php");
         <div class="empty-state" id="emptyState" style="display: none;">
             <i class="fas fa-box-open"></i>
             <h4>No hay artículos para mostrar</h4>
-            <p>No se encontraron artículos con los filtros aplicados</p>
+            <p>No se encontraron artículos con los filtros aplicados en tu sucursal</p>
         </div>
 
         <div class="etiqueta-grid" id="etiquetasGrid"></div>
@@ -366,18 +390,24 @@ include("cabecera.php");
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
-    // Datos reales desde la base de datos
+    // Datos filtrados por sucursal desde la base de datos
     let articulosData = <?php 
+        // Obtener artículos filtrados por sucursal
         $articulos = listarArticuloSinview();
         $datosParaJS = [];
+        
         foreach ($articulos as $art) {
-            // Solo incluir artículos con precio de venta mayor a 0
-            if (floatval($art['precio_venta']) > 0) {
+            // Filtrar por sucursal_id y precio de venta mayor a 0
+            if (isset($art['sucursal_id']) && 
+                $art['sucursal_id'] == $sucursal_id_usuario && 
+                floatval($art['precio_venta']) > 0) {
+                
                 $datosParaJS[] = [
                     'codigo' => 'ART-' . str_pad($art['articulo_id'], 4, '0', STR_PAD_LEFT),
                     'nombre' => $art['articulo'],
                     'precio' => floatval($art['precio_venta']),
-                    'categoria' => $art['categoria'] ?? 'Sin categoría'
+                    'categoria' => $art['categoria'] ?? 'Sin categoría',
+                    'sucursal_id' => $art['sucursal_id']
                 ];
             }
         }
@@ -388,6 +418,7 @@ include("cabecera.php");
 
     // Inicializar la aplicación
     document.addEventListener('DOMContentLoaded', function() {
+        console.log(`Artículos cargados para la sucursal: ${articulosData.length}`);
         cargarCategorias();
         renderizarEtiquetas();
         configurarEventos();
@@ -566,7 +597,8 @@ include("cabecera.php");
 
             // Guardar el PDF
             const fecha = new Date().toISOString().split('T')[0];
-            pdf.save(`etiquetas-precios-${fecha}.pdf`);
+            const nombreArchivo = `etiquetas-precios-sucursal-${fecha}.pdf`;
+            pdf.save(nombreArchivo);
 
             // Mensaje de éxito
             btn.innerHTML = '<i class="fas fa-check"></i> ¡PDF Generado!';

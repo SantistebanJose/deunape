@@ -2,6 +2,7 @@
 include("bd.php");
 
 
+
 function listarMovimientos2(): array {
     global $conectar;
     try {

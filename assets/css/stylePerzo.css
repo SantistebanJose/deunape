@@ -1,3 +1,478 @@
-.resaltar-fila {
-    background-color: rgb(255, 213, 0) !important;
-  }
+/**
+ * stylePerzo.css - Tema Peruano DeUnaPe
+ * Colores: Azul (#0033A0, #0066CC), Verde (#2ecc71, #27ae60), Blanco
+ */
+
+/* ========================================
+   VARIABLES DE COLORES PERUANOS
+======================================== */
+:root {
+    --color-azul-principal: #0033A0;
+    --color-azul-hover: #0066CC;
+    --color-verde-principal: #2ecc71;
+    --color-verde-hover: #27ae60;
+    --color-blanco: #ffffff;
+    --color-texto-oscuro: #1a1a1a;
+    --color-texto-gris: #555555;
+    --color-fondo-claro: #f8f9fa;
+}
+
+/* ========================================
+   SIDEBAR - TEMA PERUANO PROFESIONAL
+======================================== */
+.sidebar[data-background-color="dark"] {
+    background: linear-gradient(180deg, #2c3e50 0%, #1a252f 100%) !important;
+    box-shadow: 2px 0 20px rgba(0, 0, 0, 0.1);
+}
+
+.sidebar[data-background-color="dark"] .logo-header[data-background-color="dark"] {
+    background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%) !important;
+    border-bottom: none;
+    box-shadow: 0 2px 10px rgba(46, 204, 113, 0.3);
+}
+
+/* Logo en el sidebar */
+.sidebar .logo-header .logo span {
+    background: linear-gradient(135deg, var(--color-blanco) 0%, #f0f0f0 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-weight: 700 !important;
+}
+
+/* Items del menú */
+.sidebar .nav > li > a {
+    color: rgba(255, 255, 255, 0.85) !important;
+    transition: all 0.3s ease;
+    border-left: 3px solid transparent;
+    padding: 12px 20px;
+}
+
+.sidebar .nav > li > a:hover {
+    background: rgba(46, 204, 113, 0.1) !important;
+    border-left: 3px solid #2ecc71;
+    color: #ffffff !important;
+}
+
+.sidebar .nav > li.active > a {
+    background: rgba(46, 204, 113, 0.15) !important;
+    border-left: 3px solid #2ecc71;
+    color: #ffffff !important;
+    font-weight: 600;
+}
+
+/* Iconos del menú */
+.sidebar .nav > li > a i {
+    color: #95a5a6;
+    margin-right: 10px;
+}
+
+.sidebar .nav > li.active > a i,
+.sidebar .nav > li > a:hover i {
+    color: #2ecc71;
+}
+
+/* Submenú */
+.sidebar .nav .nav-collapse {
+    background: rgba(0, 0, 0, 0.2) !important;
+}
+
+.sidebar .nav .nav-collapse li a {
+    color: rgba(255, 255, 255, 0.75) !important;
+    padding-left: 55px;
+}
+
+.sidebar .nav .nav-collapse li a:hover {
+    background: rgba(46, 204, 113, 0.08) !important;
+    color: #ffffff !important;
+}
+
+.sidebar .nav .nav-collapse li.active a {
+    background: rgba(46, 204, 113, 0.12) !important;
+    color: #2ecc71 !important;
+    font-weight: 600;
+}
+
+/* ========================================
+   NAVBAR HEADER - TEMA PROFESIONAL
+======================================== */
+.main-header {
+    background: #ffffff !important;
+    border-bottom: 1px solid #e8e8e8;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+}
+
+.navbar-header {
+    background: #ffffff !important;
+}
+
+/* Texto de bienvenida */
+.navbar-header span {
+    color: #555555;
+    font-weight: 400;
+}
+
+.navbar-header span strong {
+    color: #2ecc71;
+    font-weight: 600;
+}
+
+/* Botón home */
+.navbar-nav .btn {
+    background: #2ecc71;
+    color: #ffffff;
+    border-radius: 8px;
+    padding: 8px 16px;
+    transition: all 0.3s ease;
+    border: none;
+}
+
+.navbar-nav .btn:hover {
+    background: #27ae60;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(46, 204, 113, 0.3);
+}
+
+/* Iconos del navbar */
+.navbar-nav .nav-link {
+    color: #555555 !important;
+    transition: all 0.3s ease;
+}
+
+.navbar-nav .nav-link:hover {
+    color: #2ecc71 !important;
+}
+
+/* ========================================
+   DROPDOWN ACCESOS RÁPIDOS PROFESIONAL
+======================================== */
+.quick-actions-header {
+    background: #2c3e50 !important;
+    border-bottom: 3px solid #2ecc71;
+}
+
+.quick-actions-header .title {
+    color: #ffffff;
+    font-weight: 600;
+}
+
+.quick-actions-header .subtitle {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.quick-actions-items .col-6 a {
+    transition: all 0.3s ease;
+    border-radius: 8px;
+    padding: 15px;
+}
+
+.quick-actions-items .col-6 a:hover {
+    background: rgba(46, 204, 113, 0.1);
+    transform: translateY(-2px);
+}
+
+.quick-actions-items .col-6 a i {
+    color: #2ecc71;
+}
+
+.quick-actions-items .col-6 a:hover i {
+    color: #27ae60;
+}
+
+/* ========================================
+   DROPDOWN USUARIO PROFESIONAL
+======================================== */
+.dropdown-user .user-box {
+    background: #f8f9fa;
+    border-bottom: 3px solid #2ecc71;
+    padding: 15px;
+}
+
+.dropdown-user .user-box h4 {
+    color: #2c3e50;
+    font-weight: 600;
+}
+
+.dropdown-user .user-box p strong {
+    color: #2ecc71;
+}
+
+.dropdown-user .user-box .avatar-lg img {
+    border-radius: 50% !important;
+}
+
+.dropdown-user .dropdown-item {
+    color: #555555;
+    transition: all 0.3s ease;
+}
+
+.dropdown-user .dropdown-item:hover {
+    background: rgba(46, 204, 113, 0.1);
+    color: #2ecc71;
+    padding-left: 20px;
+}
+
+/* Avatar del usuario en navbar - CIRCULAR */
+.topbar-user .avatar-sm,
+.topbar-user .avatar-sm img {
+    border-radius: 50% !important;
+}
+
+.user-box .avatar-lg,
+.user-box .avatar-lg img {
+    border-radius: 50% !important;
+}
+
+/* ========================================
+   BOTONES PRINCIPALES PROFESIONAL
+======================================== */
+.btn-primary {
+    background: #2ecc71 !important;
+    border: none !important;
+    color: #ffffff !important;
+    box-shadow: 0 2px 6px rgba(46, 204, 113, 0.3);
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    background: #27ae60 !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(46, 204, 113, 0.4);
+}
+
+.btn-success {
+    background: #2ecc71 !important;
+    border: none !important;
+    color: #ffffff !important;
+    box-shadow: 0 2px 6px rgba(46, 204, 113, 0.3);
+}
+
+.btn-success:hover {
+    background: #27ae60 !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(46, 204, 113, 0.4);
+}
+
+.btn-info {
+    background: #3498db !important;
+    border: none !important;
+    color: #ffffff !important;
+    box-shadow: 0 2px 6px rgba(52, 152, 219, 0.3);
+}
+
+.btn-info:hover {
+    background: #2980b9 !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(52, 152, 219, 0.4);
+}
+
+.btn-warning {
+    background: #f39c12 !important;
+    border: none !important;
+    color: #ffffff !important;
+    box-shadow: 0 2px 6px rgba(243, 156, 18, 0.3);
+}
+
+.btn-warning:hover {
+    background: #e67e22 !important;
+    transform: translateY(-1px);
+}
+
+.btn-danger {
+    background: #e74c3c !important;
+    border: none !important;
+    color: #ffffff !important;
+    box-shadow: 0 2px 6px rgba(231, 76, 60, 0.3);
+}
+
+.btn-danger:hover {
+    background: #c0392b !important;
+    transform: translateY(-1px);
+}
+
+/* ========================================
+   CARDS Y WIDGETS PROFESIONAL
+======================================== */
+.card {
+    border: 1px solid #e8e8e8;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+}
+
+.card-header {
+    background: #ffffff;
+    border-bottom: 2px solid #2ecc71;
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+/* ========================================
+   TABLAS PROFESIONAL
+======================================== */
+.table thead th {
+    background: #2ecc71;
+    color: #ffffff;
+    border: none;
+    font-weight: 600;
+    padding: 12px;
+}
+
+.table tbody tr {
+    transition: all 0.2s ease;
+}
+
+.table tbody tr:hover {
+    background: rgba(46, 204, 113, 0.05);
+}
+
+.table tbody td {
+    vertical-align: middle;
+    padding: 12px;
+}
+
+/* ========================================
+   BADGES PROFESIONAL
+======================================== */
+.badge-primary {
+    background: #2ecc71;
+    color: #ffffff;
+}
+
+.badge-success {
+    background: #2ecc71;
+    color: #ffffff;
+}
+
+.badge-info {
+    background: #3498db;
+    color: #ffffff;
+}
+
+.badge-warning {
+    background: #f39c12;
+    color: #ffffff;
+}
+
+.badge-danger {
+    background: #e74c3c;
+    color: #ffffff;
+}
+
+/* ========================================
+   SCROLLBAR PERSONALIZADO PROFESIONAL
+======================================== */
+.scrollbar-outer::-webkit-scrollbar {
+    width: 6px;
+}
+
+.scrollbar-outer::-webkit-scrollbar-track {
+    background: #f0f0f0;
+}
+
+.scrollbar-outer::-webkit-scrollbar-thumb {
+    background: #2ecc71;
+    border-radius: 10px;
+}
+
+.scrollbar-outer::-webkit-scrollbar-thumb:hover {
+    background: #27ae60;
+}
+
+/* ========================================
+   INPUTS Y FORMS PROFESIONAL
+======================================== */
+.form-control:focus {
+    border-color: #2ecc71;
+    box-shadow: 0 0 0 0.2rem rgba(46, 204, 113, 0.15);
+}
+
+.form-label {
+    color: #2c3e50;
+    font-weight: 600;
+}
+
+/* ========================================
+   ALERTAS PERSONALIZADAS PROFESIONAL
+======================================== */
+.alert-primary {
+    background: rgba(46, 204, 113, 0.1);
+    border-left: 4px solid #2ecc71;
+    color: #27ae60;
+}
+
+.alert-success {
+    background: rgba(46, 204, 113, 0.1);
+    border-left: 4px solid #2ecc71;
+    color: #27ae60;
+}
+
+.alert-info {
+    background: rgba(52, 152, 219, 0.1);
+    border-left: 4px solid #3498db;
+    color: #2980b9;
+}
+
+.alert-warning {
+    background: rgba(243, 156, 18, 0.1);
+    border-left: 4px solid #f39c12;
+    color: #e67e22;
+}
+
+.alert-danger {
+    background: rgba(231, 76, 60, 0.1);
+    border-left: 4px solid #e74c3c;
+    color: #c0392b;
+}
+
+/* ========================================
+   ANIMACIONES PERSONALIZADAS
+======================================== */
+@keyframes peruGlow {
+    0%, 100% {
+        box-shadow: 0 0 5px rgba(46, 204, 113, 0.3);
+    }
+    50% {
+        box-shadow: 0 0 15px rgba(46, 204, 113, 0.5);
+    }
+}
+
+.glow-peru {
+    animation: peruGlow 2s ease-in-out infinite;
+}
+
+/* ========================================
+   DECORACIONES EXTRAS
+======================================== */
+.divider-peru {
+    height: 2px;
+    background: #2ecc71;
+    border-radius: 5px;
+    margin: 20px 0;
+}
+
+/* Borde decorativo peruano */
+.border-peru {
+    border: 2px solid #2ecc71;
+    border-radius: 8px;
+}
+
+/* ========================================
+   RESPONSIVE
+======================================== */
+@media (max-width: 991px) {
+    .sidebar[data-background-color="dark"] {
+        background: linear-gradient(180deg, #2c3e50 0%, #1a252f 100%) !important;
+    }
+}
+
+@media (max-width: 576px) {
+    .navbar-header span {
+        font-size: 0.85rem;
+    }
+}

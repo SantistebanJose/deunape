@@ -124,33 +124,87 @@ $emisorExiste = !empty($datosEmisor);
                                 </div>
                             </div>
 
+                            <!-- ✅ NUEVOS CAMPOS: LOGO Y FIRMA DIGITAL -->
+                            <hr>
+                            <div class="col-12">
+                                <h6 class="text-primary"><i class="fas fa-file-invoice"></i> Configuración de Comprobantes</h6>
+                            </div>
+
+                            <div class="col-12 col-sm-6 col-md-6 col-lg-6">
+                                <div class="mb-3">
+                                    <label for="idLogoSucursal" class="form-label">
+                                        <b><i class="fas fa-image"></i> Logo de la Sucursal</b>
+                                        <small class="text-muted d-block">Para boletas y facturas</small>
+                                    </label>
+                                    <input type="file" 
+                                           class="form-control" 
+                                           id="idLogoSucursal" 
+                                           accept="image/jpeg,image/jpg,image/png"
+                                           disabled>
+                                    <small class="text-muted">Formatos: JPG, JPEG, PNG (máx. 2MB)</small>
+                                    
+                                    <?php if ($emisorExiste && !empty($datosEmisor[0]["ruta_logo"])): ?>
+                                        <div class="mt-2">
+                                            <img src="<?php echo $datosEmisor[0]["ruta_logo"]; ?>" 
+                                                 alt="Logo actual" 
+                                                 class="img-thumbnail" 
+                                                 style="max-height: 100px;">
+                                            <input type="hidden" id="idRutaLogoActual" value="<?php echo $datosEmisor[0]["ruta_logo"]; ?>">
+                                        </div>
+                                    <?php else: ?>
+                                        <input type="hidden" id="idRutaLogoActual" value="">
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+
+                            <div class="col-12 col-sm-6 col-md-6 col-lg-6">
+                                <div class="mb-3">
+                                    <label for="idFirmaDigital" class="form-label">
+                                        <b><i class="fas fa-file-signature"></i> Firma Digital SUNAT</b>
+                                        <small class="text-muted d-block">Certificado digital (.pfx / .p12)</small>
+                                    </label>
+                                    <input type="file" 
+                                           class="form-control" 
+                                           id="idFirmaDigital" 
+                                           accept=".pfx,.p12"
+                                           disabled>
+                                    <small class="text-muted">Formatos: PFX, P12 (máx. 5MB)</small>
+                                    
+                                    <?php if ($emisorExiste && !empty($datosEmisor[0]["direccion_firma_digital"])): ?>
+                                        <div class="mt-2 alert alert-success py-1">
+                                            <i class="fas fa-check-circle"></i> 
+                                            <small>Certificado cargado: 
+                                                <strong><?php echo basename($datosEmisor[0]["direccion_firma_digital"]); ?></strong>
+                                            </small>
+                                            <input type="hidden" id="idRutaFirmaActual" value="<?php echo $datosEmisor[0]["direccion_firma_digital"]; ?>">
+                                        </div>
+                                    <?php else: ?>
+                                        <input type="hidden" id="idRutaFirmaActual" value="">
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+
+                            <div class="col-12 col-sm-6 col-md-6 col-lg-6">
+                                <div class="mb-3">
+                                    <label for="idPasswordFirma" class="form-label">
+                                        <b><i class="fas fa-key"></i> Contraseña del Certificado</b>
+                                    </label>
+                                    <input type="password" 
+                                           class="form-control" 
+                                           id="idPasswordFirma" 
+                                           value="<?php echo $emisorExiste ? $datosEmisor[0]["contraseña_firma_digital"] : ''; ?>" 
+                                           disabled
+                                           placeholder="••••••••">
+                                    <small class="text-muted">Contraseña del archivo .pfx/.p12</small>
+                                </div>
+                            </div>
+
                             <!-- Botón para alternar entre mostrar y ocultar las contraseñas -->
-                            <button type="button" id="togglePassword" class="btn btn-link mt-2">
-                                <i class="fas fa-eye"></i> Mostrar
-                            </button>
-
-                            <script>
-                                const passwordFields = document.querySelectorAll("#idUsuarioSol, #idClaveSol");
-                                const togglePasswordButton = document.getElementById("togglePassword");
-
-                                togglePasswordButton.addEventListener("click", function() {
-                                    passwordFields.forEach(function(field) {
-                                        const type = field.type === "password" ? "text" : "password";
-                                        field.type = type;
-                                    });
-
-                                    const icon = togglePasswordButton.querySelector('i');
-                                    if (icon.classList.contains('fa-eye')) {
-                                        icon.classList.remove('fa-eye');
-                                        icon.classList.add('fa-eye-slash');
-                                        togglePasswordButton.innerHTML = '<i class="fas fa-eye-slash"></i> Ocultar';
-                                    } else {
-                                        icon.classList.remove('fa-eye-slash');
-                                        icon.classList.add('fa-eye');
-                                        togglePasswordButton.innerHTML = '<i class="fas fa-eye"></i> Mostrar';
-                                    }
-                                });
-                            </script>
+                            <div class="col-12">
+                                <button type="button" id="togglePassword" class="btn btn-link">
+                                    <i class="fas fa-eye"></i> Mostrar Contraseñas
+                                </button>
+                            </div>
 
                             <hr>
                             <div class="col-12 col-sm-6 col-md-6 col-lg-6">
@@ -192,7 +246,7 @@ $emisorExiste = !empty($datosEmisor);
                             <div class="col-12 col-sm-6 col-md-6 col-lg-6">
                                 <div class="mb-3">
                                     <label for="" class="form-label"><b>Ubigeo</b></label>
-                                    <input type="number" 
+                                    <input type="text" 
                                            class="form-control" 
                                            id="idUbigeo" 
                                            value="<?php echo $emisorExiste ? $datosEmisor[0]["ubigeo"] : ''; ?>" 
@@ -270,6 +324,28 @@ include("pie.php");
         });
     }
 
+    // ✅ SCRIPT PARA MOSTRAR/OCULTAR CONTRASEÑAS
+    const passwordFields = document.querySelectorAll("#idUsuarioSol, #idClaveSol, #idPasswordFirma");
+    const togglePasswordButton = document.getElementById("togglePassword");
+
+    togglePasswordButton.addEventListener("click", function() {
+        passwordFields.forEach(function(field) {
+            const type = field.type === "password" ? "text" : "password";
+            field.type = type;
+        });
+
+        const icon = togglePasswordButton.querySelector('i');
+        if (icon.classList.contains('fa-eye')) {
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
+            togglePasswordButton.innerHTML = '<i class="fas fa-eye-slash"></i> Ocultar Contraseñas';
+        } else {
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
+            togglePasswordButton.innerHTML = '<i class="fas fa-eye"></i> Mostrar Contraseñas';
+        }
+    });
+
     function fn_guardar_cambios() {
         console.log("💾 === GUARDANDO CAMBIOS ===");
         
@@ -324,36 +400,70 @@ include("pie.php");
             return;
         }
 
-        // ✅ PREPARAR DATOS CON SUCURSAL_ID Y TIPO_DOCUMENTO
-        var datos_emisor = {
-            "sucursal_id": SUCURSAL_ID,
-            "tipo_documento": tipoDocumento, // ✅ NUEVO CAMPO
-            "ruc": ruc,
-            "razon_social": razonSocial,
-            "nombre_comercial": nombreComercial,
-            "usuario_sol": usuarioSol,
-            "clave_sol": claveSol,
-            "departamento": departamento,
-            "provincia": provincia,
-            "distrito": document.getElementById("idDistrito").value.trim(),
-            "ubigeo": document.getElementById("idUbigeo").value.trim(),
-            "direccion": direccion
-        };
+        // ✅ PREPARAR FormData PARA ARCHIVOS
+        const formData = new FormData();
+        formData.append('accion', 'EDITAR_EMISOR');
+        formData.append('sucursal_id', SUCURSAL_ID);
+        formData.append('tipo_documento', tipoDocumento);
+        formData.append('ruc', ruc);
+        formData.append('razon_social', razonSocial);
+        formData.append('nombre_comercial', nombreComercial);
+        formData.append('usuario_sol', usuarioSol);
+        formData.append('clave_sol', claveSol);
+        formData.append('password_firma', document.getElementById("idPasswordFirma").value.trim());
+        formData.append('departamento', departamento);
+        formData.append('provincia', provincia);
+        formData.append('distrito', document.getElementById("idDistrito").value.trim());
+        formData.append('ubigeo', document.getElementById("idUbigeo").value.trim());
+        formData.append('direccion', direccion);
 
-        console.log("📤 Datos a enviar:", datos_emisor);
+        // ✅ AGREGAR ARCHIVOS SI FUERON SELECCIONADOS
+        const logoFile = document.getElementById("idLogoSucursal").files[0];
+        const firmaFile = document.getElementById("idFirmaDigital").files[0];
+
+        if (logoFile) {
+            // Validar tamaño del logo (máx 2MB)
+            if (logoFile.size > 2 * 1024 * 1024) {
+                swal("Error", "El logo no debe superar los 2MB", {
+                    icon: "error",
+                    buttons: { confirm: { className: "btn btn-danger" } }
+                });
+                return;
+            }
+            formData.append('logo_sucursal', logoFile);
+        } else {
+            // Mantener ruta actual si no se subió nuevo archivo
+            formData.append('ruta_logo_actual', document.getElementById("idRutaLogoActual").value);
+        }
+
+        if (firmaFile) {
+            // Validar tamaño de la firma (máx 5MB)
+            if (firmaFile.size > 5 * 1024 * 1024) {
+                swal("Error", "El certificado digital no debe superar los 5MB", {
+                    icon: "error",
+                    buttons: { confirm: { className: "btn btn-danger" } }
+                });
+                return;
+            }
+            formData.append('firma_digital', firmaFile);
+        } else {
+            // Mantener ruta actual si no se subió nuevo archivo
+            formData.append('ruta_firma_actual', document.getElementById("idRutaFirmaActual").value);
+        }
+
+        console.log("📤 Datos a enviar (FormData preparado)");
 
         // ✅ ENVIAR CON AJAX
         $.ajax({
             url: 'logica/clssInsertPA.php',
             type: 'POST',
-            data: {
-                accion: 'EDITAR_EMISOR',
-                jsDatos: JSON.stringify(datos_emisor)
-            },
+            data: formData,
+            processData: false,  // ✅ IMPORTANTE para FormData
+            contentType: false,  // ✅ IMPORTANTE para FormData
             beforeSend: function() {
                 swal({
                     title: "Guardando...",
-                    text: "Por favor espere",
+                    text: "Subiendo archivos y guardando datos, por favor espere",
                     icon: "info",
                     buttons: false,
                     closeOnClickOutside: false,

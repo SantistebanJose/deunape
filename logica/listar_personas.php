@@ -1,4 +1,5 @@
 <?php
+session_start(); // Iniciar sesión para obtener sucursal_id
 require 'bd.php'; // Asegúrate de que este archivo define correctamente $conectar
 
 // Verificar si las variables de DataTables están definidas antes de usarlas
@@ -6,6 +7,9 @@ $draw = isset($_POST['draw']) ? intval($_POST['draw']) : 1;
 $start = isset($_POST['start']) ? intval($_POST['start']) : 0;
 $length = isset($_POST['length']) ? intval($_POST['length']) : 10;
 $searchValue = isset($_POST['search']['value']) ? $_POST['search']['value'] : '';
+
+// OBTENER SUCURSAL_ID del POST o de la sesión
+$sucursal_id = isset($_POST['sucursal_id']) ? intval($_POST['sucursal_id']) : (isset($_SESSION['sucursal_id']) ? intval($_SESSION['sucursal_id']) : null);
 
 // Manejo del ordenamiento
 $columnIndex = isset($_POST['order'][0]['column']) ? intval($_POST['order'][0]['column']) : 0;
@@ -28,27 +32,44 @@ $sqlBase = "SELECT id, numero_documento,
                    COALESCE(condicion, '-') AS condicion, 
                    COALESCE(telefonomovil, COALESCE(telefonofijo, '-')) AS telefono, 
                    deleted_at 
-            FROM persona
-            
-            --where deleted_at is null   
-            ";
-// Aplicar búsqueda si hay un valor de búsqueda
-$sqlFiltro = "";
+            FROM persona";
+
+// Aplicar filtros
+$sqlFiltro = " WHERE 1=1";
 $params = [];
+
+// FILTRO POR SUCURSAL_ID (AGREGADO)
+if ($sucursal_id !== null) {
+    $sqlFiltro .= " AND sucursal_id = ?";
+    $params[] = $sucursal_id;
+}
+
+// Filtro para no mostrar eliminados (opcional, descomenta si lo necesitas)
+// $sqlFiltro .= " AND deleted_at IS NULL";
+
+// Aplicar búsqueda si hay un valor de búsqueda
 if (!empty($searchValue)) {
-    $sqlFiltro = " WHERE (numero_documento ILIKE ? OR 
+    $sqlFiltro .= " AND (numero_documento ILIKE ? OR 
                           nombres ILIKE ? OR 
                           apellidos ILIKE ? OR 
                           razon_social ILIKE ? OR 
                           condicion ILIKE ? OR 
                           telefonomovil ILIKE ? OR 
                           telefonofijo ILIKE ?)";
-    $params = array_fill(0, 7, "%$searchValue%");
+    $searchParam = "%$searchValue%";
+    $params = array_merge($params, array_fill(0, 7, $searchParam));
 }
 
-// Obtener el total de registros sin filtrar
-$sqlTotal = "SELECT COUNT(*) FROM persona";
-$totalRecords = $conectar->query($sqlTotal)->fetchColumn();
+// Obtener el total de registros sin filtrar (pero con filtro de sucursal)
+$sqlTotal = "SELECT COUNT(*) FROM persona WHERE 1=1";
+$paramsTotal = [];
+if ($sucursal_id !== null) {
+    $sqlTotal .= " AND sucursal_id = ?";
+    $paramsTotal[] = $sucursal_id;
+}
+$stmtTotal = $conectar->prepare($sqlTotal);
+$stmtTotal->execute($paramsTotal);
+$totalRecords = $stmtTotal->fetchColumn();
 
 // Obtener el total de registros filtrados
 $sqlFilteredTotal = "SELECT COUNT(*) FROM persona " . $sqlFiltro;

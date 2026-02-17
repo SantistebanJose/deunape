@@ -329,6 +329,48 @@ $sucursal_id = $_SESSION["sucursal_id"];
     #sugerencias .list-group-item:hover {
         background-color: #f0f8ff;
     }
+
+/* Optimización para móviles */
+@media (max-width: 576px) {
+    .card-post .card-body {
+        padding: 0.75rem !important;
+    }
+    
+    .card-post h6 {
+        font-size: 0.9rem;
+        line-height: 1.2;
+    }
+    
+    .card-post .small {
+        font-size: 0.75rem;
+    }
+    
+    .card-post .fs-5 {
+        font-size: 1rem !important;
+    }
+}
+
+/* Reducir altura de las tarjetas */
+.card-post {
+    margin-bottom: 0.75rem;
+}
+
+.card-post .separator-solid {
+    margin: 0.5rem 0;
+}
+
+/* ===== Z-INDEX PARA MODALES ANIDADOS ===== */
+#modalCliente {
+    z-index: 1060 !important;
+}
+
+#modalCliente.show ~ .modal-backdrop {
+    z-index: 1055 !important;
+}
+
+.modal-backdrop.show {
+    z-index: 1050;
+}
 </style>
 
 <div class="container">
@@ -366,59 +408,52 @@ $sucursal_id = $_SESSION["sucursal_id"];
                 </div>
 
                 <!-- FILTROS DE BÚSQUEDA -->
-                <div class="table-filters mt-4">
-                    <div class="row g-3 align-items-end">
-                        <div class="col-md-2">
-                            <select id="filterCategoria" class="form-select">
-                                <option value="">Todas las Categorías</option>
-                            </select>
+                <div class="card mt-4">
+                    <div class="card-body">
+                        <!-- Fila de filtros -->
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-3">
+                                <select id="filterCategoria" class="form-select">
+                                    <option value="">Filtrar por Categoría</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <select id="filterTipo" class="form-select">
+                                    <option value="">Filtrar por Tipo</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <select id="filterDimension" class="form-select">
+                                    <option value="">Filtrar por Dimensión</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <select id="filterColor" class="form-select">
+                                    <option value="">Filtrar por Color</option>
+                                </select>
+                            </div>
                         </div>
-                        <div class="col-md-2">
-                            <select id="filterTipo" class="form-select">
-                                <option value="">Todos los Tipos</option>
-                            </select>
+
+                        <!-- Barra de búsqueda y botón limpiar -->
+                        <div class="row g-3">
+                            <div class="col-md-10">
+                                <input type="text" id="searchInput" class="form-control"
+                                    placeholder="Buscar Articulo..." onkeyup="filterProducts()">
+                            </div>
+                            <div class="col-md-2">
+                                <button id="clearFilters" class="btn btn-warning w-100">
+                                    <i class="fas fa-broom"></i> Limpiar Filtros
+                                </button>
+                            </div>
                         </div>
-                        <div class="col-md-2">
-                            <select id="filterDimension" class="form-select">
-                                <option value="">Todas las Dimensiones</option>
-                            </select>
-                        </div>
-                        <div class="col-md-2">
-                            <select id="filterColor" class="form-select">
-                                <option value="">Todos los Colores</option>
-                            </select>
-                        </div>
-                        <div class="col-md-4">
-                            <input type="text" id="searchInput" class="form-control"
-                                placeholder="🔍 Buscar artículo..." onkeyup="filterProducts()">
-                        </div>
-                    </div>
-                    <div class="text-center mt-3">
-                        <button id="clearFilters" class="btn btn-warning btn-round">
-                            <i class="fas fa-broom"></i> Limpiar Filtros
-                        </button>
                     </div>
                 </div>
 
-                <!-- TABLA DE PRODUCTOS -->
-                <div class="table-responsive mt-4">
-                    <table class="table table-hover align-middle" id="productosTable">
-                        <thead>
-                            <tr>
-                                <th>Artículo</th>
-                                <th>Categoría</th>
-                                <th>Tipo</th>
-                                <th>Dimensión</th>
-                                <th>Color</th>
-                                <th class="text-center">Stock</th>
-                                <th class="text-end">Precio</th>
-                                <th class="text-center">Acción</th>
-                            </tr>
-                        </thead>
-                        <tbody id="productoContainer">
-                            <!-- Productos dinámicos -->
-                        </tbody>
-                    </table>
+                <!-- PRODUCTOS EN TARJETAS -->
+                <div class="container mt-4">
+                    <div class="row" id="productoContainer">
+                        <!-- Los productos se generarán dinámicamente aquí -->
+                    </div>
                 </div>
 
                 <!-- PAGINACIÓN -->
@@ -909,7 +944,7 @@ $sucursal_id = $_SESSION["sucursal_id"];
                                     <div class="row g-2">
                                         <div class="col-md-6">
                                             <select class="form-select form-select-sm" name="formaPago" id="formaPagoSelect">
-                                                <?php foreach (listarFormaPago() as $datosFormaPago): ?>
+                                                <?php foreach (listarFormaPago_v2($sucursal_id) as $datosFormaPago): ?>
                                                     <option value="<?php echo $datosFormaPago["id"] ?>">
                                                         <?php echo $datosFormaPago["nombre"] ?>
                                                     </option>
@@ -1001,9 +1036,8 @@ $sucursal_id = $_SESSION["sucursal_id"];
                                 <div class="card-body">
                                     <div class="row g-2">
                                         <div class="col-md-6">
-                                            <select class="form-select form-select-sm" name="formaPagoCredito[]"
-                                                id="formaPagoCreditoSelect_0">
-                                                <?php foreach (listarFormaPago() as $datosFormaPago): ?>
+                                            <select class="form-select form-select-sm" name="formaPagoCredito[]" id="formaPagoCreditoSelect_0">
+                                                <?php foreach (listarFormaPago_v2($sucursal_id) as $datosFormaPago): ?>
                                                     <option value="<?php echo $datosFormaPago["id"] ?>">
                                                         <?php echo $datosFormaPago["nombre"] ?>
                                                     </option>
@@ -1062,7 +1096,7 @@ $sucursal_id = $_SESSION["sucursal_id"];
     // ===== CONFIGURACIÓN INICIAL =====
     const products = <?php echo json_encode(listarProductosVenta1($sucursal_id)); ?>;
     let currentPage = 1;
-    const itemsPerPage = 6;
+    const itemsPerPage = 8;
     let filteredProducts = products;
 
     const allCategories = [...new Set(products.map(p => p.categoria))];
@@ -1100,55 +1134,55 @@ $sucursal_id = $_SESSION["sucursal_id"];
     }
 
     // ===== RENDERIZAR PRODUCTOS =====
-    function renderProducts(productsToDisplay) {
+        function renderProducts(productsToDisplay) {
         const container = document.getElementById('productoContainer');
         container.innerHTML = '';
-
+        
         productsToDisplay.forEach(product => {
             const stock = parseFloat(product.stock);
             const sinStock = stock === 0.00;
-
-            const row = document.createElement('tr');
-            row.className = sinStock ? 'table-danger' : '';
-
-            row.innerHTML = `
-            <td class="${sinStock ? 'text-danger fw-bold' : ''}">
-                <strong>${product.articulo}</strong> 
-                ${sinStock ? '<span class="badge bg-danger ms-2">SIN STOCK</span>' : ''}
-            </td>
-            <td><span class="badge bg-info">${product.categoria}</span></td>
-            <td>${product.tipo}</td>
-            <td>${product.dimension}</td>
-            <td>${product.color}</td>
-            <td class="text-center ${sinStock ? 'text-danger fw-bold' : ''}">
-                <strong>${product.stock}</strong>
-            </td>
-            <td class="text-end">
-                <strong class="text-success">S/ ${product.precio_venta}</strong>
-            </td>
-            <td class="text-center">
-                <button class="btn btn-success btn-sm btn-round" 
-                        onclick='fn_agregar_venta(${JSON.stringify(product).replace(/'/g, "&#39;")})'
-                        ${sinStock ? 'disabled' : ''}>
-                    <i class="fas fa-plus"></i> Agregar
-                </button>
-            </td>
-        `;
-            container.appendChild(row);
+            
+            const card = document.createElement('div');
+            // Cambiado: col-6 para móviles (2 por fila)
+            card.classList.add('col-6', 'col-md-3', 'mb-3');
+            card.innerHTML = `
+                <div class="card card-post card-round h-100 ${sinStock ? 'border-danger' : ''}">
+                    <div class="card-body p-2">
+                        <h6 class="fw-bold mb-1 small ${sinStock ? 'text-danger' : ''}">${product.articulo}</h6>
+                        ${sinStock ? '<span class="badge bg-danger badge-sm mb-1">SIN STOCK</span>' : ''}
+                        
+                        <p class="text-primary mb-1" style="font-size: 0.7rem;">${product.categoria}</p>
+                        
+                        <div style="font-size: 0.65rem;" class="text-muted mb-1">
+                            <div><b>Tipo:</b> ${product.tipo}</div>
+                            <div><b>Dim:</b> ${product.dimension}</div>
+                            <div><b>Color:</b> ${product.color}</div>
+                            <div><b>Stock:</b> <span class="${sinStock ? 'text-danger fw-bold' : ''}">${product.stock}</span></div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between align-items-center mt-2">
+                            <span class="fw-bold text-success" style="font-size: 0.9rem;">S/${product.precio_venta}</span>
+                            <button class="btn btn-success btn-sm py-1 px-2" 
+                                    onclick='fn_agregar_venta(${JSON.stringify(product).replace(/'/g, "&#39;")})'
+                                    ${sinStock ? 'disabled' : ''}>
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            container.appendChild(card);
         });
 
         if (productsToDisplay.length === 0) {
             container.innerHTML = `
-            <tr>
-                <td colspan="8" class="text-center text-muted py-4">
+                <div class="col-12 text-center text-muted py-4">
                     <i class="fas fa-inbox fa-3x mb-3"></i>
                     <p class="mb-0">No se encontraron productos</p>
-                </td>
-            </tr>
-        `;
+                </div>
+            `;
         }
     }
-
     // ===== PAGINACIÓN =====
     function changePage(direction) {
         currentPage += direction;
@@ -1746,29 +1780,29 @@ $sucursal_id = $_SESSION["sucursal_id"];
             const div = document.createElement('div');
             div.className = 'card bg-light mb-2';
             div.innerHTML = `
-            <div class="card-body">
-                <div class="row g-2">
-                    <div class="col-md-5">
-                        <select class="form-select form-select-sm" name="formaPago_${contadorPagos}" 
-                                onchange="detectarEfectivo()">
-                            <?php foreach (listarFormaPago() as $fp): ?>
-                                <option value="<?php echo $fp['id'] ?>"><?php echo $fp['nombre'] ?></option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-                    <div class="col-md-5">
-                        <input type="number" class="form-control form-control-sm" name="monto_${contadorPagos}" 
-                               placeholder="Monto S/" min="0" step="0.01">
-                    </div>
-                    <div class="col-md-2">
-                        <button type="button" class="btn btn-danger btn-sm w-100" 
-                                onclick="this.closest('.card').remove(); detectarEfectivo();">
-                            <i class="fas fa-times"></i>
-                        </button>
+                <div class="card-body">
+                    <div class="row g-2">
+                        <div class="col-md-5">
+                            <select class="form-select form-select-sm" name="formaPago_${contadorPagos}" 
+                                    onchange="detectarEfectivo()">
+                                <?php foreach (listarFormaPago_v2($sucursal_id) as $fp): ?>
+                                    <option value="<?php echo $fp['id'] ?>"><?php echo $fp['nombre'] ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="col-md-5">
+                            <input type="number" class="form-control form-control-sm" name="monto_${contadorPagos}" 
+                                placeholder="Monto S/" min="0" step="0.01">
+                        </div>
+                        <div class="col-md-2">
+                            <button type="button" class="btn btn-danger btn-sm w-100" 
+                                    onclick="this.closest('.card').remove(); detectarEfectivo();">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
                     </div>
                 </div>
-            </div>
-        `;
+            `;
             container.appendChild(div);
             contadorPagos++;
             detectarEfectivo();
@@ -1780,28 +1814,28 @@ $sucursal_id = $_SESSION["sucursal_id"];
             const div = document.createElement('div');
             div.className = 'card bg-light mb-2';
             div.innerHTML = `
-            <div class="card-body">
-                <div class="row g-2">
-                    <div class="col-md-5">
-                        <select class="form-select form-select-sm" name="formaPagoCredito[]">
-                            <?php foreach (listarFormaPago() as $fp): ?>
-                                <option value="<?php echo $fp['id'] ?>"><?php echo $fp['nombre'] ?></option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-                    <div class="col-md-5">
-                        <input type="number" class="form-control form-control-sm" name="montoCredito[]" 
-                               placeholder="Monto S/" min="0" step="0.01">
-                    </div>
-                    <div class="col-md-2">
-                        <button type="button" class="btn btn-danger btn-sm w-100" 
-                                onclick="this.closest('.card').remove()">
-                            <i class="fas fa-times"></i>
-                        </button>
+                <div class="card-body">
+                    <div class="row g-2">
+                        <div class="col-md-5">
+                            <select class="form-select form-select-sm" name="formaPagoCredito[]">
+                                <?php foreach (listarFormaPago_v2($sucursal_id) as $fp): ?>
+                                    <option value="<?php echo $fp['id'] ?>"><?php echo $fp['nombre'] ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="col-md-5">
+                            <input type="number" class="form-control form-control-sm" name="montoCredito[]" 
+                                placeholder="Monto S/" min="0" step="0.01">
+                        </div>
+                        <div class="col-md-2">
+                            <button type="button" class="btn btn-danger btn-sm w-100" 
+                                    onclick="this.closest('.card').remove()">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
                     </div>
                 </div>
-            </div>
-        `;
+            `;
             container.appendChild(div);
             contadorCredito++;
         });
@@ -2205,7 +2239,9 @@ $sucursal_id = $_SESSION["sucursal_id"];
             url: 'logica/clssFiltro.php',
             data: {
                 accion: 'FILTROPERSONA',
-                data: query
+                data: query,
+                sucursal_id: <?php echo $sucursal_id; ?>   // ← AGREGAR ESTA LÍNEA
+
             },
             success: function(response) {
                 try {
