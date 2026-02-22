@@ -241,7 +241,7 @@
 }
 
 .btn-success {
-    background: #2ecc71 !important;
+    background: #43c422 !important;
     border: none !important;
     color: #ffffff !important;
     box-shadow: 0 2px 6px rgba(46, 204, 113, 0.3);
@@ -316,7 +316,7 @@
    TABLAS PROFESIONAL
 ======================================== */
 .table thead th {
-    background: #2ecc71;
+    background: #43c422;
     color: #ffffff;
     border: none;
     font-weight: 600;

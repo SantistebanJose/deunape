@@ -32,7 +32,7 @@ $sucursal_id = $_SESSION["sucursal_id"];
     }
 
     .card-header {
-        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+        background: linear-gradient(135deg, #1800ad, #1800ad);
         color: white;
         border-radius: 12px 12px 0 0 !important;
         padding: 1.25rem;
@@ -80,7 +80,7 @@ $sucursal_id = $_SESSION["sucursal_id"];
     }
 
     .modal-header {
-        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+        background: linear-gradient(135deg, #1800ad, #1800ad);
         color: white;
         border-radius: 15px 15px 0 0;
         padding: 1.25rem;
@@ -219,13 +219,6 @@ $sucursal_id = $_SESSION["sucursal_id"];
                                     <i class="fas fa-external-link-alt"></i> <?php echo $datos["descripcion"] ?>
                                 </button>
                             <?php endforeach; ?>
-                            
-                            <button class="btn btn-secondary btn-round btn-sm" id="btnAbrirModalSolo">
-                                <i class="fas fa-cut"></i> SOLO CORTE
-                            </button>
-                            <button class="btn btn-secondary btn-round btn-sm" id="btnAbrirModalSolov2">
-                                <i class="fas fa-print"></i> IMPRESIÓN 3D
-                            </button>
                         </div>
                     </div>
                 </div>

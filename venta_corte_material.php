@@ -527,7 +527,7 @@ $sucursal_id = $_SESSION["sucursal_id"];
                     <div class="col-md-4">
                         <div class="card card-stats card-round">
                             <div class="card-body text-center">
-                                <h5 id="label_total_cortes" class="card-title">Cortes (S/)</h5>
+                                <h5 id="label_total_cortes" class="card-title">Servicios (S/)</h5>
                                 <span id="id_subtotal_cortes" style="font-size: 1.3rem;" aria-labelledby="label_total_cortes">xx.xx</span>
                             </div>
                         </div>

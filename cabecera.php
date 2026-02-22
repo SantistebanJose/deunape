@@ -100,7 +100,7 @@ function tienePermiso($moduloPermiso = '', $permisoEspecifico = '') {
 
 <head>
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <title>CAPTAIN <?php echo " | ". $_SESSION["nombre_comercial"]?></title>
+    <title>DeUnaPe <?php echo " | ". $_SESSION["nombre_comercial"]?></title>
     <meta charset="UTF-8">
     <meta content="width=device-width, initial-scale=1.0, shrink-to-fit=no" name="viewport" />
     <link rel="icon" href="assets/img/logo-captain.svg" type="image/x-icon" />
@@ -429,7 +429,7 @@ function tienePermiso($moduloPermiso = '', $permisoEspecifico = '') {
                 <div class="main-header-logo">
                     <div class="logo-header" data-background-color="dark">
                         <a href="index.php" class="logo">
-                            <img src="assets/img/kaiadmin/logo_light.svg" alt="navbar brand" height="20" />
+                        <img src="assets/img/logo-captain.png" alt="navbar brand" height="40" />  <!--// agregar logo si se desea --> 
                         </a>
                         <div class="nav-toggle">
                             <button class="btn btn-toggle toggle-sidebar">

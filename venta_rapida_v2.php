@@ -32,7 +32,7 @@ $sucursal_id = $_SESSION["sucursal_id"];
     }
 
     .card-header {
-        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+        background: linear-gradient(135deg, #1800ad);
         color: white;
         border-radius: 12px 12px 0 0 !important;
         padding: 1.25rem;
