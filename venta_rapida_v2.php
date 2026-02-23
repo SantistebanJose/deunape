@@ -26,8 +26,28 @@ $sucursal_id = $_SESSION["sucursal_id"];
 .venta-header p{opacity:.85;margin-bottom:0;font-size:.97rem;}
 
 /* === PANELES BLANCOS === */
-.panel-izq,.panel-der{background:white;border-radius:16px;box-shadow:var(--shadow-card);padding:22px 20px;height:100%;}
-.tabla-venta-wrapper{background:white;border-radius:16px;box-shadow:var(--shadow-card);padding:20px;height:100%;}
+.panel-izq {
+    background: white;
+    border-radius: 16px;
+    box-shadow: var(--shadow-card);
+    padding: 22px 20px;
+    position: relative;          /* ← NUEVO: necesario para el dropdown */
+    /* SIN height:100% para que el dropdown pueda salir */
+}
+.panel-der {
+    background: white;
+    border-radius: 16px;
+    box-shadow: var(--shadow-card);
+    padding: 22px 20px;
+    height: 100%;
+}
+.tabla-venta-wrapper {
+    background: white;
+    border-radius: 16px;
+    box-shadow: var(--shadow-card);
+    padding: 20px;
+    height: 100%;
+}
 .section-title{font-weight:700;color:var(--primary);font-size:1rem;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
 .section-title i{color:var(--accent);}
 
@@ -41,21 +61,99 @@ $sucursal_id = $_SESSION["sucursal_id"];
 /* === FILTROS === */
 .filtro-input{border:2px solid var(--border-soft);border-radius:12px;padding:8px 12px;font-size:.85rem;width:100%;transition:border-color .2s;background:white;}
 .filtro-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(102,126,234,.12);outline:none;}
-.search-wrapper{position:relative;}
-#searchInput{border:2px solid var(--border-soft);border-radius:12px;padding:10px 40px 10px 16px;font-size:.9rem;width:100%;transition:border-color .2s;}
-#searchInput:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(102,126,234,.12);outline:none;}
+.search-wrapper {
+    position: relative;
+    width: 100%;
+}
+#searchInput {
+    border: 2px solid var(--border-soft);
+    border-radius: 12px;
+    padding: 10px 40px 10px 16px;
+    font-size: .9rem;
+    width: 100%;
+    transition: border-color .2s, box-shadow .2s;
+    background: #fafbff;
+}
+#searchInput:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, .12);
+    outline: none;
+    background: white;
+}
 .search-icon-abs{position:absolute;right:14px;top:50%;transform:translateY(-50%);color:var(--accent);font-size:.9rem;pointer-events:none;}
 
 /* === RESULTADOS DROPDOWN === */
-#resultadosProductos{max-height:300px;overflow-y:auto;border:1.5px solid var(--border-soft);border-radius:12px;margin-top:6px;background:white;box-shadow:0 6px 20px rgba(0,0,0,.10);position:absolute;width:100%;z-index:500;}
-.producto-item{padding:10px 14px;cursor:pointer;border-bottom:1px solid #f0f0f5;transition:background .15s;display:flex;justify-content:space-between;align-items:center;gap:8px;}
-.producto-item:hover{background:#f0f3ff;}
-.producto-item:last-child{border-bottom:none;}
-.prod-nombre{font-weight:600;font-size:.88rem;color:var(--primary);}
-.prod-info{font-size:.73rem;color:var(--text-muted);}
-.prod-precio{font-weight:700;color:var(--success);font-size:.92rem;white-space:nowrap;}
-.sin-stock-badge{display:inline-block;background:#fee2e2;color:var(--danger);border-radius:12px;padding:1px 8px;font-size:.68rem;font-weight:700;}
+#resultadosProductos {
+    max-height: 320px;
+    overflow-y: auto;
+    border: 1.5px solid var(--border-soft);
+    border-radius: 14px;
+    margin-top: 4px;
+    background: white;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, .13);
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
+}
+/* Scrollbar delgado y elegante */
+#resultadosProductos::-webkit-scrollbar { width: 6px; }
+#resultadosProductos::-webkit-scrollbar-track { background: #f0f3ff; border-radius: 10px; }
+#resultadosProductos::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 10px; opacity: .5; }
+#resultadosProductos::-webkit-scrollbar-thumb:hover { background: var(--accent); }
 
+.producto-item {
+    padding: 11px 16px;
+    cursor: pointer;
+    border-bottom: 1px solid #f0f0f5;
+    transition: background .15s;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+}
+.producto-item:hover { background: #f0f3ff; }
+.producto-item:last-child { border-bottom: none; }
+.prod-nombre {
+    font-weight: 700;
+    font-size: .85rem;
+    color: #1a1a2e;
+    line-height: 1.3;
+    text-transform: uppercase;   /* ← como imagen 2 */
+    letter-spacing: .3px;
+}
+.prod-info {
+    font-size: .72rem;
+    color: var(--text-muted);
+    margin-top: 3px;
+}
+.prod-precio {
+    font-weight: 800;
+    color: white;
+    font-size: .88rem;
+    white-space: nowrap;
+    background: var(--gradient-main);   /* ← azul de tu tema */
+    border-radius: 20px;
+    padding: 4px 12px;
+    flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(0, 51, 160, .25);
+}
+/* Columna izquierda — permitir que el dropdown salga */
+.col-lg-4 {
+    overflow: visible !important;
+}
+
+/* Panel izquierdo — sin overflow oculto */
+.panel-izq {
+    background: white;
+    border-radius: 16px;
+    box-shadow: var(--shadow-card);
+    padding: 22px 20px;
+    position: relative;
+    overflow: visible !important;   /* ← clave */
+}
+.sin-stock-badge {display: inline-block; background: #fee2e2; color: var(--danger); border-radius: 12px; padding: 1px 8px; font-size: .68rem; font-weight: 700;}
 /* === TABS MODO AGREGAR === */
 .add-mode-tabs{display:flex;gap:6px;margin-bottom:14px;}
 .add-mode-tab{flex:1;padding:8px 6px;border:2px solid var(--border-soft);border-radius:10px;background:white;color:var(--text-muted);font-weight:600;font-size:.78rem;cursor:pointer;transition:all .2s;text-align:center;}
@@ -152,14 +250,17 @@ $sucursal_id = $_SESSION["sucursal_id"];
 #sugerencias .list-group-item{cursor:pointer;font-size:.88rem;border-color:#f0f3ff;padding:10px 16px;}
 #sugerencias .list-group-item:hover{background:#f0f3ff;color:var(--primary);}
 #modalCliente{z-index:1060!important;}
+#panelBuscar {
+    position: relative;
+    overflow: visible;
+}
 
 /* === ANIMACIONES === */
 .fade-in-row{animation:fadeInRow .3s ease;}
 @keyframes fadeInRow{from{opacity:0;transform:translateY(-6px);}to{opacity:1;transform:translateY(0);}}
 .pulse-total{animation:pulseTotal .35s ease;}
 @keyframes pulseTotal{0%,100%{transform:scale(1);}50%{transform:scale(1.05);}}
-.search-hint{font-size:.78rem;color:var(--text-muted);padding:16px 0;text-align:center;}
-
+.search-hint {font-size: .78rem; color: var(--text-muted); padding: 20px 0 8px; text-align: center; opacity: .7;}
 /* === RESPONSIVE === */
 @media(max-width:768px){
     .venta-header{padding:18px 16px;}
@@ -181,7 +282,7 @@ $sucursal_id = $_SESSION["sucursal_id"];
     </div>
 
     <!-- ====== LAYOUT 3 COLUMNAS ====== -->
-    <div class="row g-3">
+    <div class="row g-3" style="overflow:visible;">
 
         <!-- ── COL IZQUIERDA: servicios + búsqueda ── -->
         <div class="col-lg-4">
