@@ -1,4 +1,5 @@
 <?php
+//cotizacion.php
 include("cabecera.php");
 include("logica/clssVenta.php");
 ?>
