@@ -99,19 +99,20 @@ function registrar_reserva($datos = array())
     try {
         $conectar->beginTransaction();
 
-        $orden = $conectar->prepare("INSERT INTO venta(usuario_id, cliente_id,total,fecha, estado_pago, estado_venta) 
-                                     VALUES (:usuario_id, :cliente_id,:total,current_date, 'P', 'R');");
+        $orden = $conectar->prepare("INSERT INTO venta(usuario_id, cliente_id,total,fecha, estado_pago, estado_venta,sucursal_id) 
+                                     VALUES (:usuario_id, :cliente_id,:total,current_date, 'P', 'R',:sucursal_id);");
         $orden->bindParam(":usuario_id", $datos['usuario_id']);
         $orden->bindParam(":cliente_id", $datos['cliente_id']);
         $orden->bindParam(":total", $datos['total']);
+        $orden->bindParam(":sucursal_id", $datos['sucursal_id']);
         $orden->execute();
         $venta_id = $conectar->lastInsertId(); // Obtener el ID de la venta recién creada
         $orden->closeCursor();
 
         // Insertar en la tabla rel_venta_articulo y descontar stock
         foreach ($datos['articulos'] as $articulo) {
-            $orden = $conectar->prepare("INSERT INTO rel_venta_articulo(venta_id, articulo_id, minutos, costo_por_minuto, precio_unitario_articulo, cantidad, sub_total,movimiento_id,nota_archivo) 
-                                         VALUES (:venta_id, :articulo_id, :minutos, :costo_por_minuto, :precio_unitario, :cantidad, :sub_total, :movimiento_id,:nota_archivo)");
+            $orden = $conectar->prepare("INSERT INTO rel_venta_articulo(venta_id, articulo_id, minutos, costo_por_minuto, precio_unitario_articulo, cantidad, sub_total,movimiento_id,nota_archivo,sucursal_id) 
+                                         VALUES (:venta_id, :articulo_id, :minutos, :costo_por_minuto, :precio_unitario, :cantidad, :sub_total, :movimiento_id,:nota_archivo, :sucursal_id)");
             $orden->bindParam(":venta_id", $venta_id);
 
             $articuloId = ($articulo['articulo_id'] === 0 || (int)$articulo['articulo_id'] === 0)
@@ -133,6 +134,8 @@ function registrar_reserva($datos = array())
             $orden->bindParam(":sub_total", $articulo['sub_total']);
             $orden->bindParam(":movimiento_id", $articulo['movimiento_id']);
             $orden->bindParam(":nota_archivo", $articulo['nota_archivo']);
+            $orden->bindParam(":sucursal_id", $articulo['sucursal_id']);
+            
 
             $orden->execute();
             $orden->closeCursor();

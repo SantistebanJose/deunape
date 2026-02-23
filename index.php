@@ -1,6 +1,6 @@
 <?php include("cabecera.php") ?>
 
-<div class="container-fluid px-4 py-4">
+<div class="container px-4 py-4">
     <div class="page-inner">
         
         <!-- Header Mejorado con Mejor Visibilidad -->
