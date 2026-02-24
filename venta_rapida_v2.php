@@ -21,7 +21,7 @@ $sucursal_id = $_SESSION["sucursal_id"];
 
 /* === HEADER === */
 .venta-header{background:var(--gradient-main);border-radius:18px;color:white;padding:28px 32px 22px;margin-bottom:28px;box-shadow:var(--shadow-hover);position:relative;overflow:hidden;}
-.venta-header::before{content:"🛒";position:absolute;right:28px;top:18px;font-size:3.5rem;opacity:.18;pointer-events:none;}
+.venta-header::before{content:"🛒";position:absolute;right:28px;top:18px;font-size:3.5rem;opacity:1;pointer-events:none;}
 .venta-header h3{font-weight:800;letter-spacing:-.5px;margin-bottom:4px;}
 .venta-header p{opacity:.85;margin-bottom:0;font-size:.97rem;}
 
@@ -171,8 +171,8 @@ $sucursal_id = $_SESSION["sucursal_id"];
 #tabla_articulos tbody tr:hover{background:#f8f9ff;}
 #tabla_articulos tbody td{padding:10px 14px;font-size:.88rem;vertical-align:middle;}
 #tabla_articulos th:nth-child(1),#tabla_articulos td:nth-child(1),
-#tabla_articulos th:nth-child(6),#tabla_articulos td:nth-child(6),
-#tabla_articulos th:nth-child(7),#tabla_articulos td:nth-child(7){display:none!important;}
+#tabla_articulos th:nth-child(7),#tabla_articulos td:nth-child(7),
+#tabla_articulos th:nth-child(8),#tabla_articulos td:nth-child(8){display:none!important;}
 .col-subtotal{font-weight:700;color:var(--success);font-size:.93rem;}
 
 /* === RESUMEN PANEL DER === */
@@ -199,9 +199,17 @@ $sucursal_id = $_SESSION["sucursal_id"];
 .empty-state p{font-size:.9rem;}
 
 /* === BTN ELIMINAR FILA === */
+/* === BTN ELIMINAR FILA === */
 .btn-eliminar-fila{background:#fee2e2;border:none;color:var(--danger);border-radius:8px;padding:5px 10px;font-size:.8rem;cursor:pointer;transition:all .2s;}
 .btn-eliminar-fila:hover{background:var(--danger);color:white;}
 
+/* === QTY INLINE EN TABLA === */
+.qty-inline{display:inline-flex;align-items:center;gap:4px;background:var(--bg-card);border-radius:10px;padding:3px 6px;border:1.5px solid var(--border-soft);}
+.qty-inline-btn{width:24px;height:24px;border-radius:50%;border:none;font-weight:900;font-size:.85rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .18s;line-height:1;}
+.qty-inline-minus{background:#fee2e2;color:var(--danger);}
+.qty-inline-plus{background:#d1fae5;color:var(--success);}
+.qty-inline-btn:hover{transform:scale(1.18);}
+.qty-inline-val{min-width:28px;text-align:center;font-weight:800;font-size:.88rem;color:var(--primary);}
 /* === FORM MANUAL === */
 .form-manual label{font-size:.83rem;font-weight:600;color:var(--primary);}
 .form-manual .form-control{border:1.5px solid var(--border-soft);border-radius:10px;font-size:.88rem;padding:8px 12px;}
@@ -978,26 +986,67 @@ function agregarATabla(datos) {
     const tbody=document.getElementById('tabla_articulos').getElementsByTagName('tbody')[0];
     datos.forEach(item=>{
         const fila=tbody.insertRow(); fila.className='fade-in-row';
+        // Col 0: ID (oculta)
         fila.insertCell(0).textContent=item.id;
+        // Col 1: Artículo
         const tdArt=fila.insertCell(1); tdArt.textContent=item.articulo; tdArt.setAttribute('data-label','Artículo');
-        const tdC=fila.insertCell(2); tdC.textContent=item.cantidad; tdC.setAttribute('data-label','Cant.');
+        // Col 2: Cantidad — con controles inline
+        const tdC=fila.insertCell(2); tdC.setAttribute('data-label','Cant.');
+        const cantidadEsNumero = !isNaN(parseInt(item.cantidad)) && item.cantidad !== '-';
+        if (cantidadEsNumero) {
+            const cantInit = parseInt(item.cantidad);
+            const precioUnit = parseFloat(item.precio_unitario) || null;
+            tdC.innerHTML=`<div class="qty-inline">
+                <button class="qty-inline-btn qty-inline-minus" title="Restar">−</button>
+                <span class="qty-inline-val">${cantInit}</span>
+                <button class="qty-inline-btn qty-inline-plus" title="Sumar">+</button>
+            </div>`;
+            const btnMinus=tdC.querySelector('.qty-inline-minus');
+            const btnPlus=tdC.querySelector('.qty-inline-plus');
+            const valEl=tdC.querySelector('.qty-inline-val');
+            btnMinus.addEventListener('click',()=>{
+                let v=parseInt(valEl.textContent);
+                if(v>1){ valEl.textContent=v-1; recalcularFila(fila, precioUnit); }
+            });
+            btnPlus.addEventListener('click',()=>{
+                let v=parseInt(valEl.textContent);
+                valEl.textContent=v+1; recalcularFila(fila, precioUnit);
+            });
+        } else {
+            tdC.textContent = item.cantidad;
+        }
+        // Col 3: Precio unitario
         const tdP=fila.insertCell(3); tdP.textContent=item.precio_unitario; tdP.setAttribute('data-label','P. Unit.');
+        // Col 4: Subtotal
         const tdS=fila.insertCell(4); tdS.className='col-subtotal'; tdS.textContent='S/ '+parseFloat(item.subtotal).toFixed(2); tdS.setAttribute('data-label','Subtotal');
+        // Col 5: Acciones
         const tdA=fila.insertCell(5); tdA.setAttribute('data-label','Acc.'); tdA.style.textAlign='center';
         const btn=document.createElement('button'); btn.className='btn-eliminar-fila'; btn.innerHTML='<i class="fas fa-trash-alt"></i>';
         btn.onclick=()=>{Swal.fire({title:'¿Eliminar?',icon:'warning',showCancelButton:true,confirmButtonColor:'#dc3545',cancelButtonColor:'#6c757d',confirmButtonText:'Sí',cancelButtonText:'Cancelar'}).then(r=>{if(r.isConfirmed){fila.remove();calcularTotales();showNotification&&showNotification("success");}});};
         tdA.appendChild(btn);
+        // Col 6: ID_MOV (oculta)
         fila.insertCell(6).textContent=item.idmovimiento;
+        // Col 7: NOTA (oculta)
         fila.insertCell(7).textContent=item.nota||'';
     });
     calcularTotales();
 }
 
+function recalcularFila(fila, precioUnit) {
+    if (precioUnit === null || isNaN(precioUnit)) { calcularTotales(); return; }
+    const valEl = fila.cells[2].querySelector('.qty-inline-val');
+    if (!valEl) { calcularTotales(); return; }
+    const nuevaCant = parseInt(valEl.textContent) || 1;
+    const nuevoSub = nuevaCant * precioUnit;
+    fila.cells[4].textContent = 'S/ ' + nuevoSub.toFixed(2);
+    calcularTotales();
+}
 function calcularTotales() {
     const filas=document.querySelectorAll('#tabla_articulos tbody tr');
     let totalArt=0,totalGen=0,totalUnid=0;
     filas.forEach(f=>{
-        const cant=parseFloat(f.cells[2].textContent)||0;
+        const qtyEl = f.cells[2].querySelector('.qty-inline-val');
+        const cant = parseFloat(qtyEl ? qtyEl.textContent : f.cells[2].textContent) || 0;
         const precio=parseFloat(f.cells[3].textContent)||0;
         const sub=parseFloat((f.cells[4].textContent||'').replace('S/ ',''))||0;
         totalArt+=cant*precio; totalGen+=sub;
@@ -1181,15 +1230,20 @@ function fn_pagar_credito(){
 }
 
 function obtenerArticulos(){
-    return Array.from(document.querySelectorAll('#tabla_articulos tbody tr')).map(f=>({
-        articulo_id:f.cells[0].textContent==='0'?null:parseInt(f.cells[0].textContent),
-        minutos:null,costoxminuto:null,
-        precio_unitario:isNaN(parseFloat(f.cells[3].textContent))?null:parseFloat(f.cells[3].textContent),
-        cantidad:isNaN(parseInt(f.cells[2].textContent))?null:parseInt(f.cells[2].textContent),
-        sub_total:parseFloat((f.cells[4].textContent||'').replace('S/ ',''))||0,
-        movimiento_id:parseInt(f.cells[6].textContent),
-        nota_archivo:f.cells[1].textContent+(f.cells[7].textContent?' / '+f.cells[7].textContent:'')
-    }));
+    return Array.from(document.querySelectorAll('#tabla_articulos tbody tr')).map(f=>{
+        // Cantidad: puede estar en span.qty-inline-val o como texto directo
+        const qtyEl = f.cells[2].querySelector('.qty-inline-val');
+        const cantRaw = qtyEl ? qtyEl.textContent : f.cells[2].textContent;
+        return {
+            articulo_id:f.cells[0].textContent==='0'?null:parseInt(f.cells[0].textContent),
+            minutos:null,costoxminuto:null,
+            precio_unitario:isNaN(parseFloat(f.cells[3].textContent))?null:parseFloat(f.cells[3].textContent),
+            cantidad:isNaN(parseInt(cantRaw))?null:parseInt(cantRaw),
+            sub_total:parseFloat((f.cells[4].textContent||'').replace('S/ ',''))||0,
+            movimiento_id:parseInt(f.cells[6].textContent),
+            nota_archivo:f.cells[1].textContent+(f.cells[7].textContent?' / '+f.cells[7].textContent:'')
+        };
+    });
 }
 
 /* --- CLIENTE --- */
