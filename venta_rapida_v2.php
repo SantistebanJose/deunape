@@ -971,7 +971,7 @@ function fn_agregar_venta(articulo) {
         const pCorte=parseFloat(document.getElementById('precioCorte').value)||0;
         const nota=document.getElementById('idTextAreaDetalleInsert').value;
         if(cant>articulo.stock){Swal.fire({icon:'warning',title:'Stock insuficiente',text:`Solo hay ${articulo.stock} unidades`,timer:2000,showConfirmButton:false});return;}
-        agregarATabla([{id:articulo.id,articulo:articulo.articulo+(nota?` - ${nota}`:''),cantidad:cant,precio_unitario:articulo.precio_venta,subtotal:(cant*articulo.precio_venta)+(min*pCorte),idmovimiento:1,nota}]);
+        agregarATabla([{id:articulo.id,articulo:articulo.articulo+(nota?` - ${nota}`:''),cantidad:cant,precio_unitario:articulo.precio_venta,subtotal:(cant*articulo.precio_venta)+(min*pCorte),idmovimiento:1,nota,stock: articulo.stock}]);
         modal.hide();
         document.getElementById('resultadosProductos').style.display='none';
         document.getElementById('searchInput').value='';
@@ -983,51 +983,113 @@ function fn_agregar_venta(articulo) {
 
 /* --- TABLA --- */
 function agregarATabla(datos) {
-    const tbody=document.getElementById('tabla_articulos').getElementsByTagName('tbody')[0];
-    datos.forEach(item=>{
-        const fila=tbody.insertRow(); fila.className='fade-in-row';
-        // Col 0: ID (oculta)
-        fila.insertCell(0).textContent=item.id;
-        // Col 1: Artículo
-        const tdArt=fila.insertCell(1); tdArt.textContent=item.articulo; tdArt.setAttribute('data-label','Artículo');
-        // Col 2: Cantidad — con controles inline
-        const tdC=fila.insertCell(2); tdC.setAttribute('data-label','Cant.');
+    const tbody = document.getElementById('tabla_articulos').getElementsByTagName('tbody')[0];
+    datos.forEach(item => {
         const cantidadEsNumero = !isNaN(parseInt(item.cantidad)) && item.cantidad !== '-';
+        const stockMax = item.stock !== undefined ? parseInt(item.stock) : Infinity;
+
+        // ── DETECTAR DUPLICADO (solo artículos con ID real y cantidad numérica) ──
+        if (item.id !== '0' && item.id !== 0 && cantidadEsNumero) {
+            const filas = tbody.querySelectorAll('tr');
+            let duplicado = null;
+            filas.forEach(f => {
+                if (f.cells[0].textContent == item.id) duplicado = f;
+            });
+            if (duplicado) {
+                const qtyEl = duplicado.cells[2].querySelector('.qty-inline-val');
+                const precioUnit = parseFloat(duplicado.cells[3].textContent) || null;
+                const stockGuardado = parseInt(duplicado.dataset.stock) || Infinity;
+                if (qtyEl) {
+                    const actual = parseInt(qtyEl.textContent);
+                    const nueva = actual + parseInt(item.cantidad);
+                    if (nueva > stockGuardado) {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Stock insuficiente',
+                            html: `Solo hay <b>${stockGuardado}</b> unidades disponibles.<br>Ya tienes <b>${actual}</b> en el detalle.`,
+                            timer: 2500,
+                            showConfirmButton: false
+                        });
+                        return;
+                    }
+                    qtyEl.textContent = nueva;
+                    recalcularFila(duplicado, precioUnit);
+                    // Animación flash para indicar que se actualizó
+                    duplicado.style.transition = 'background .2s';
+                    duplicado.style.background = '#e8f5e9';
+                    setTimeout(() => { duplicado.style.background = ''; }, 600);
+                    showNotification && showNotification("success");
+                }
+                return; // No insertar nueva fila
+            }
+        }
+
+        // ── INSERTAR NUEVA FILA ──
+        const fila = tbody.insertRow();
+        fila.className = 'fade-in-row';
+        fila.dataset.stock = stockMax; // Guardar stock máximo
+
+        fila.insertCell(0).textContent = item.id;
+
+        const tdArt = fila.insertCell(1);
+        tdArt.textContent = item.articulo;
+        tdArt.setAttribute('data-label', 'Artículo');
+
+        const tdC = fila.insertCell(2);
+        tdC.setAttribute('data-label', 'Cant.');
+
         if (cantidadEsNumero) {
             const cantInit = parseInt(item.cantidad);
             const precioUnit = parseFloat(item.precio_unitario) || null;
-            tdC.innerHTML=`<div class="qty-inline">
+
+            tdC.innerHTML = `<div class="qty-inline">
                 <button class="qty-inline-btn qty-inline-minus" title="Restar">−</button>
                 <span class="qty-inline-val">${cantInit}</span>
                 <button class="qty-inline-btn qty-inline-plus" title="Sumar">+</button>
             </div>`;
-            const btnMinus=tdC.querySelector('.qty-inline-minus');
-            const btnPlus=tdC.querySelector('.qty-inline-plus');
-            const valEl=tdC.querySelector('.qty-inline-val');
-            btnMinus.addEventListener('click',()=>{
-                let v=parseInt(valEl.textContent);
-                if(v>1){ valEl.textContent=v-1; recalcularFila(fila, precioUnit); }
+
+            const btnMinus = tdC.querySelector('.qty-inline-minus');
+            const btnPlus  = tdC.querySelector('.qty-inline-plus');
+            const valEl    = tdC.querySelector('.qty-inline-val');
+
+            btnMinus.addEventListener('click', () => {
+                let v = parseInt(valEl.textContent);
+                if (v > 1) { valEl.textContent = v - 1; recalcularFila(fila, precioUnit); }
             });
-            btnPlus.addEventListener('click',()=>{
-                let v=parseInt(valEl.textContent);
-                valEl.textContent=v+1; recalcularFila(fila, precioUnit);
+
+            btnPlus.addEventListener('click', () => {
+                let v = parseInt(valEl.textContent);
+                const stockActual = parseInt(fila.dataset.stock) || Infinity;
+                if (v >= stockActual) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Stock máximo alcanzado',
+                        text: `Solo hay ${stockActual} unidades disponibles.`,
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                    return;
+                }
+                valEl.textContent = v + 1;
+                recalcularFila(fila, precioUnit);
             });
         } else {
             tdC.textContent = item.cantidad;
         }
-        // Col 3: Precio unitario
-        const tdP=fila.insertCell(3); tdP.textContent=item.precio_unitario; tdP.setAttribute('data-label','P. Unit.');
-        // Col 4: Subtotal
-        const tdS=fila.insertCell(4); tdS.className='col-subtotal'; tdS.textContent='S/ '+parseFloat(item.subtotal).toFixed(2); tdS.setAttribute('data-label','Subtotal');
-        // Col 5: Acciones
-        const tdA=fila.insertCell(5); tdA.setAttribute('data-label','Acc.'); tdA.style.textAlign='center';
-        const btn=document.createElement('button'); btn.className='btn-eliminar-fila'; btn.innerHTML='<i class="fas fa-trash-alt"></i>';
-        btn.onclick=()=>{Swal.fire({title:'¿Eliminar?',icon:'warning',showCancelButton:true,confirmButtonColor:'#dc3545',cancelButtonColor:'#6c757d',confirmButtonText:'Sí',cancelButtonText:'Cancelar'}).then(r=>{if(r.isConfirmed){fila.remove();calcularTotales();showNotification&&showNotification("success");}});};
+
+        const tdP = fila.insertCell(3); tdP.textContent = item.precio_unitario; tdP.setAttribute('data-label', 'P. Unit.');
+        const tdS = fila.insertCell(4); tdS.className = 'col-subtotal'; tdS.textContent = 'S/ ' + parseFloat(item.subtotal).toFixed(2); tdS.setAttribute('data-label', 'Subtotal');
+
+        const tdA = fila.insertCell(5); tdA.setAttribute('data-label', 'Acc.'); tdA.style.textAlign = 'center';
+        const btn = document.createElement('button'); btn.className = 'btn-eliminar-fila'; btn.innerHTML = '<i class="fas fa-trash-alt"></i>';
+        btn.onclick = () => {
+            Swal.fire({ title: '¿Eliminar?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#dc3545', cancelButtonColor: '#6c757d', confirmButtonText: 'Sí', cancelButtonText: 'Cancelar' })
+                .then(r => { if (r.isConfirmed) { fila.remove(); calcularTotales(); showNotification && showNotification("success"); } });
+        };
         tdA.appendChild(btn);
-        // Col 6: ID_MOV (oculta)
-        fila.insertCell(6).textContent=item.idmovimiento;
-        // Col 7: NOTA (oculta)
-        fila.insertCell(7).textContent=item.nota||'';
+
+        fila.insertCell(6).textContent = item.idmovimiento;
+        fila.insertCell(7).textContent = item.nota || '';
     });
     calcularTotales();
 }
