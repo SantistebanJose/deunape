@@ -1,4 +1,5 @@
 <?php
+ob_start();
 include("bd.php");
 
 if (isset($_POST["accion"])) {
