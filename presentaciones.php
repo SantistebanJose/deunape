@@ -149,7 +149,7 @@ if (!$sucursal_id) {
 
     function cargarPresentaciones() {
         $.ajax({
-            url: 'logica/clssPresentaciones.php',
+            url: 'logica/clssPresentacion.php',
             type: 'POST',
             data: {
                 accion: 'LISTAR',
@@ -241,7 +241,7 @@ if (!$sucursal_id) {
         $('#modalTitulo').html('<i class="fas fa-edit"></i> Editar Presentación');
         
         $.ajax({
-            url: 'logica/clssPresentaciones.php',
+            url: 'logica/clssPresentacion.php',
             type: 'POST',
             data: {
                 accion: 'OBTENER',
@@ -298,7 +298,7 @@ if (!$sucursal_id) {
         }
         
         $.ajax({
-            url: 'logica/clssPresentaciones.php',
+            url: 'logica/clssPresentacion.php',
             type: 'POST',
             data: datos,
             dataType: 'json',
@@ -337,7 +337,7 @@ if (!$sucursal_id) {
         }).then(function(result) {
             if (result.isConfirmed) {
                 $.ajax({
-                    url: 'logica/clssPresentaciones.php',
+                    url: 'logica/clssPresentacion.php',
                     type: 'POST',
                     data: {
                         accion: 'ELIMINAR',
