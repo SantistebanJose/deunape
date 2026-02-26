@@ -2205,6 +2205,7 @@ $sucursal_id = $_SESSION["sucursal_id"];
        - INAFECTO           : sin IGV, suma a opInafectas
        - Artículo manual (id=0): se asume IGV 18%
        ============================================================ */
+       
     function calcularImpuestos() {
         const filas = Array.from(document.querySelectorAll('#tabla_articulos tbody tr'));
 
