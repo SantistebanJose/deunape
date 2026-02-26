@@ -6,6 +6,7 @@ if (isset($_POST["accion"])) {
     controladorPresentaciones($accion);
 }
 
+
 function controladorPresentaciones($accion) {
     switch ($accion) {
         case 'LISTAR':
