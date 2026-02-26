@@ -1134,13 +1134,158 @@ function limpiarVenta() {
     Swal.fire({title:'¿Limpiar lista?',text:'Se eliminarán todos los artículos.',icon:'warning',showCancelButton:true,confirmButtonColor:'#dc3545',cancelButtonColor:'#6c757d',confirmButtonText:'Sí, limpiar',cancelButtonText:'Cancelar'}).then(r=>{if(r.isConfirmed){document.querySelector('#tabla_articulos tbody').innerHTML='';calcularTotales();}});
 }
 
-function abrirModalPago() {
-    const total=document.getElementById('id_subtotal_general').value;
-    document.getElementById('montoTotal').value=total;
-    document.getElementById('idMontoVentaTitulo').textContent=total;
-    document.getElementById('montoTotalFinal').value='';
-    new bootstrap.Modal(document.getElementById('modalRealizarPago')).show();
-}
+    /* ============================================================
+       CALCULAR IMPUESTOS — función central
+       ============================================================
+       Reglas:
+       - IGV + PORCENTAJE  : precio_venta YA incluye IGV → base = subtotal / (1 + tasa)
+       - ICBPER + MONTO FIJO: S/ fijo por unidad (0.50 desde 2022), además el
+         producto también tributa IGV → descomponer subtotal y sumar ICBPER aparte
+       - EXONERADO          : sin IGV, suma a opExoneradas
+       - INAFECTO           : sin IGV, suma a opInafectas
+       - Artículo manual (id=0): se asume IGV 18%
+       ============================================================ */
+    function calcularImpuestos() {
+        const filas = Array.from(document.querySelectorAll('#tabla_articulos tbody tr'));
+
+        let opGravadas = 0; // Base imponible (sin IGV)
+        let montoIGV = 0; // IGV total
+        let opExoneradas = 0; // Exoneradas
+        let opInafectas = 0; // Inafectas
+        let montoICBPER = 0; // Bolsas plásticas
+
+        filas.forEach(fila => {
+            const qtyEl = fila.cells[2].querySelector('.qty-inline-val');
+            const cantRaw = qtyEl ? qtyEl.textContent : fila.cells[2].textContent;
+            const cantidad = parseFloat(cantRaw) || 0;
+            const subtotal = parseFloat((fila.cells[4].textContent || '').replace('S/ ', '')) || 0;
+            const impuesto = (fila.cells[8].textContent || 'IGV').toUpperCase().trim();
+            const modalidad = (fila.cells[9].textContent || 'PORCENTAJE').toUpperCase().trim();
+            const tasa = parseFloat(fila.cells[10].textContent) || 0.18;
+
+            if (impuesto === 'IGV') {
+                // precio_venta incluye IGV → descomponer
+                const base = subtotal / (1 + tasa);
+                opGravadas += base;
+                montoIGV += subtotal - base;
+
+            } else if (impuesto === 'ICBPER') {
+                // ICBPER es adicional al precio (monto fijo por unidad)
+                if (modalidad === 'MONTO FIJO') {
+                    montoICBPER += cantidad * tasa; // ej: 5 bolsas × 0.50 = 2.50
+                } else {
+                    montoICBPER += subtotal * tasa;
+                }
+                // Las bolsas también pagan IGV 18% sobre su precio
+                const base = subtotal / 1.18;
+                opGravadas += base;
+                montoIGV += subtotal - base;
+
+            } else if (impuesto === 'EXONERADO') {
+                opExoneradas += subtotal;
+
+            } else if (impuesto === 'INAFECTO') {
+                opInafectas += subtotal;
+
+            } else {
+                // Fallback: tratar como gravado IGV 18%
+                const base = subtotal / 1.18;
+                opGravadas += base;
+                montoIGV += subtotal - base;
+            }
+        });
+
+        const totalSinICBPER = opGravadas + montoIGV + opExoneradas + opInafectas;
+        const totalConICBPER = totalSinICBPER + montoICBPER;
+
+        return {
+            gravadas: opGravadas,
+            igv: montoIGV,
+            exoneradas: opExoneradas,
+            inafectas: opInafectas,
+            icbper: montoICBPER,
+            totalSinICBPER,
+            total: totalConICBPER
+        };
+    }
+
+    /* ── Desglose en panel derecho — siempre visible, 3 líneas fijas ── */
+    function actualizarDesgloseResumen() {
+        const cont = document.getElementById('contenidoImpuestosResumen');
+        const filas = document.querySelectorAll('#tabla_articulos tbody tr');
+
+        // Si no hay ítems, resetear a ceros
+        if (!filas.length) {
+            cont.innerHTML = `
+            <div class="imp-linea"><span class="imp-lbl">Op. Gravadas</span><span class="imp-val cero">S/ 0.00</span></div>
+            <div class="imp-linea"><span class="imp-lbl">Op. Exoneradas</span><span class="imp-val cero">S/ 0.00</span></div>
+            <div class="imp-linea"><span class="imp-lbl">Op. Inafectas</span><span class="imp-val cero">S/ 0.00</span></div>
+            <div class="imp-linea igv-line"><span class="imp-lbl">IGV (18%)</span><span class="imp-val cero">S/ 0.00</span></div>`;
+            return;
+        }
+
+        const imp = calcularImpuestos();
+
+        const fmtVal = (n) => n > 0 ?
+            `<span class="imp-val">S/ ${n.toFixed(2)}</span>` :
+            `<span class="imp-val cero">S/ 0.00</span>`;
+
+        let html = `
+        <div class="imp-linea"><span class="imp-lbl">Op. Gravadas</span>${fmtVal(imp.gravadas)}</div>
+        <div class="imp-linea"><span class="imp-lbl">Op. Exoneradas</span>${fmtVal(imp.exoneradas)}</div>
+        <div class="imp-linea"><span class="imp-lbl">Op. Inafectas</span>${fmtVal(imp.inafectas)}</div>
+        <div class="imp-linea igv-line"><span class="imp-lbl">IGV (18%)</span>${fmtVal(imp.igv)}</div>`;
+
+        if (imp.icbper > 0)
+            html += `<div class="imp-linea icbper-line"><span class="imp-lbl">ICBPER (bolsas)</span><span class="imp-val">S/ ${imp.icbper.toFixed(2)}</span></div>`;
+
+        cont.innerHTML = html;
+    }
+
+    /* ── Desglose en modal de pago — siempre visible, 3 líneas fijas ── */
+    function mostrarImpuestosEnModal() {
+        const box = document.getElementById('impuestosModalBox');
+        const cont = document.getElementById('impuestosModalContenido');
+        const imp = calcularImpuestos();
+
+        const fmtLinea = (lbl, n, extraClass = '') =>
+            `<div class="linea ${extraClass}">
+            <span class="etiqueta">${lbl}</span>
+            <span class="monto${n === 0 ? ' text-muted fw-normal' : ''}">S/ ${n.toFixed(2)}</span>
+        </div>`;
+
+        let html = fmtLinea('Op. Gravadas', imp.gravadas);
+        html += fmtLinea('Op. Exoneradas', imp.exoneradas, 'exo');
+        html += fmtLinea('Op. Inafectas', imp.inafectas);
+        html += fmtLinea('IGV (18%)', imp.igv, 'igv');
+
+        if (imp.icbper > 0)
+            html += fmtLinea('ICBPER (bolsas plásticas)', imp.icbper, 'icbper');
+
+        html += `<div class="linea total-imp"><span class="etiqueta">TOTAL</span><span class="monto">S/ ${imp.total.toFixed(2)}</span></div>`;
+
+        cont.innerHTML = html;
+        box.style.display = 'block';
+    }
+
+    /* ============================================================
+       ABRIR MODAL PAGO
+       ============================================================ */
+    function abrirModalPago() {
+        // imp.total = subtotal artículos + ICBPER (si hay bolsas)
+        const imp = calcularImpuestos();
+        const totalReal = imp.total.toFixed(2);
+
+        // Actualizar también el hidden y el display del panel derecho
+        document.getElementById('id_subtotal_general').value = totalReal;
+        document.getElementById('id_subtotal_general_display').textContent = 'S/ ' + totalReal;
+
+        document.getElementById('montoTotal').value = totalReal;
+        document.getElementById('idMontoVentaTitulo').textContent = totalReal;
+        document.getElementById('montoTotalFinal').value = '';
+        mostrarImpuestosEnModal();
+        new bootstrap.Modal(document.getElementById('modalRealizarPago')).show();
+    }
 
 /* --- SOLO CORTE --- */
 function initSoloCorteModal() {
