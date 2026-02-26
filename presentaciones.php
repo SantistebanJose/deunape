@@ -324,8 +324,6 @@ if (!$sucursal_id) {
             }
         });
     }
-    
-
     function eliminarPresentacion(id) {
         Swal.fire({
             title: '¿Eliminar presentación?',
