@@ -312,6 +312,8 @@ $sucursal_id_usuario = $_SESSION['sucursal_id'];
 
 <div class="container-main">
     <!-- Header -->
+     <br>
+     <br>
     <div class="header-card">
         <h1><i class="fas fa-tags"></i> Generador de Etiquetas de Precios</h1>
         <p>Crea etiquetas profesionales para tus artículos y descárgalas en PDF</p>
@@ -393,21 +395,16 @@ $sucursal_id_usuario = $_SESSION['sucursal_id'];
     // Datos filtrados por sucursal desde la base de datos
     let articulosData = <?php 
         // Obtener artículos filtrados por sucursal
-        $articulos = listarArticuloSinview();
+        $articulos = listarArticuloSinview($sucursal_id_usuario);
         $datosParaJS = [];
         
         foreach ($articulos as $art) {
-            // Filtrar por sucursal_id y precio de venta mayor a 0
-            if (isset($art['sucursal_id']) && 
-                $art['sucursal_id'] == $sucursal_id_usuario && 
-                floatval($art['precio_venta']) > 0) {
-                
+            if (floatval($art['precio_venta']) > 0) {
                 $datosParaJS[] = [
                     'codigo' => 'ART-' . str_pad($art['articulo_id'], 4, '0', STR_PAD_LEFT),
                     'nombre' => $art['articulo'],
                     'precio' => floatval($art['precio_venta']),
                     'categoria' => $art['categoria'] ?? 'Sin categoría',
-                    'sucursal_id' => $art['sucursal_id']
                 ];
             }
         }

@@ -7,7 +7,6 @@ $sucursal_id = $_SESSION["sucursal_id"];
         max-height: 200px;
         overflow-y: auto;
         z-index: 1050;
-        /* Para asegurar que esté sobre otros elementos */
     }
 
     #sugerencias .list-group-item {
@@ -24,34 +23,16 @@ $sucursal_id = $_SESSION["sucursal_id"];
         margin-top: 5px;
     }
 
-
-
-    /* Asegura que el contenido del modal no se desborde */
     .modal-content {
         padding: 15px;
-        /* Espaciado dentro del modal para que el contenido no esté pegado a los bordes */
     }
 
     .dataTable {
         overflow-x: auto;
-        /* Para permitir desplazamiento horizontal si es necesario */
     }
 </style>
-<div
-    class="container">
-
-
+<div class="container">
     <div class="page-inner">
-        <!-- 
-        <a
-            name=""
-            id=""
-            class="btn btn-success btn-round"
-            onclick='abriModalRegistroCompra()'
-            role="button">Nueva Compra <i class="fas fa-plus"> </i></a>
-        <br>
-        <br>    
-        -->
         <div class="card" id="card-compras">
             <div class="card-body" id="card-body-compras">
                 <ul class="nav nav-pills nav-secondary nav-pills-no-bd" id="pills-tab-without-border" role="tablist">
@@ -64,7 +45,6 @@ $sucursal_id = $_SESSION["sucursal_id"];
                     <li class="nav-item">
                         <a class="nav-link" id="pills-tipo-articulo-tab" data-bs-toggle="pill" href="#pills-tipo-articulo" role="tab" aria-controls="pills-tipo-articulo" aria-selected="false"><i class="fas fa-cogs"></i> Tipo de Articulo</a>
                     </li>
-
                     <li class="nav-item">
                         <a class="nav-link" id="pills-escala-articulo-tab" data-bs-toggle="pill" href="#pills-escala-articulo" role="tab" aria-controls="pills-escala-articulo" aria-selected="false"><i class="fas fa-sort-amount-up"></i> Escala de Articulo</a>
                     </li>
@@ -73,68 +53,57 @@ $sucursal_id = $_SESSION["sucursal_id"];
                     </li>
                 </ul>
                 <div class="tab-content mt-2 mb-3" id="pills-without-border-tabContent">
+
+                    <!-- ===================== TAB SERVICIOS ===================== -->
                     <div class="tab-pane fade show active" id="pills-servicios" role="tabpanel" aria-labelledby="pills-servicios-tab">
                         <div class="card text-start">
                             <div class="card-body">
                                 <div class="d-flex align-items-center justify-content-between">
                                     <h4 class="card-title"><i class="fas fa-cubes"></i> Servicios del Negocio</h4>
-
                                     <button class="btn btn-success rounded-5" id="btnAgregarServicio"> <i class="fas fa-plus-circle"> </i> Agregar Servicio </button>
                                 </div>
                                 <hr>
-                                <div
-                                    class="row justify-content-center align-items-center md-2">
-
+                                <div class="row justify-content-center align-items-center md-2">
                                     <div class="col-sm-12">
                                         <div class="table-responsive">
-                                            <table
-                                                id="multi-filter-select"
-                                                class="display table table-striped table-hover">
+                                            <table id="multi-filter-select" class="display table table-striped table-hover">
                                                 <thead>
                                                     <tr>
                                                         <th>ID</th>
                                                         <th>Servicio</th>
-                                                        <th>Tamaños </th>
+                                                        <th>Tamaños</th>
                                                         <th>Accion</th>
                                                     </tr>
                                                 </thead>
-
                                                 <tbody>
-
                                                     <?php
                                                     foreach (listarMovimientos($sucursal_id) as $datosTipo) {
                                                         $datos = json_encode($datosTipo);
-
-
                                                     ?>
                                                         <tr>
                                                             <td><?php echo $datosTipo["id"] ?></td>
                                                             <td><?php echo $datosTipo["descripcion"] ?></td>
-                                                            <td><?php echo $datosTipo["medidas"] ?></td>
+                                                            <td><?php echo !empty($datosTipo["medidas"]) ? $datosTipo["medidas"] : '-'; ?></td>
                                                             <td>
                                                                 <div class="mt-2 text-center">
-                                                                    <!-- Botón de Editar (con ícono amarillo) -->
-                                                                    <a name="edit" id="edit" class="btn btn-warning btn-round ml-2"
+                                                                    <a name="edit" class="btn btn-warning btn-round ml-2"
                                                                         onclick='fn_editar_servicio(<?php echo $datos; ?>)' role="button">
                                                                         <i class="fa fa-edit"></i>
                                                                     </a>
-
-
                                                                 </div>
                                                             </td>
                                                         </tr>
-                                                    <?php
-                                                    }
-                                                    ?>
+                                                    <?php } ?>
                                                 </tbody>
                                             </table>
                                         </div>
-
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
+
+                    <!-- ===================== TAB CATEGORIA ===================== -->
                     <div class="tab-pane fade" id="pills-categoria-articulo" role="tabpanel" aria-labelledby="pills-categoria-articulo-tab">
                         <div class="card text-start">
                             <div class="card-body">
@@ -143,14 +112,10 @@ $sucursal_id = $_SESSION["sucursal_id"];
                                     <button class="btn btn-success rounded-5" id="btnAgregarCategoria"> <i class="fas fa-plus-circle"> </i> Agregar Categoria</button>
                                 </div>
                                 <hr>
-                                <div
-                                    class="row justify-content-center align-items-center md-2">
-
+                                <div class="row justify-content-center align-items-center md-2">
                                     <div class="col-sm-12">
                                         <div class="table-responsive">
-                                            <table
-                                                id="multi-filter-select2"
-                                                class="display table table-striped table-hover">
+                                            <table id="multi-filter-select2" class="display table table-striped table-hover">
                                                 <thead>
                                                     <tr>
                                                         <th>ID</th>
@@ -159,14 +124,10 @@ $sucursal_id = $_SESSION["sucursal_id"];
                                                         <th>Accion</th>
                                                     </tr>
                                                 </thead>
-
                                                 <tbody>
-
                                                     <?php
                                                     foreach (listarCategoriaArticuloMantenimiento($sucursal_id) as $datosCategoria) {
                                                         $datosCategoriaJSON = json_encode($datosCategoria);
-
-
                                                     ?>
                                                         <tr>
                                                             <td><?php echo $datosCategoria["id"] ?></td>
@@ -174,22 +135,17 @@ $sucursal_id = $_SESSION["sucursal_id"];
                                                             <td><?php echo $datosCategoria["descripcion"] ?></td>
                                                             <td>
                                                                 <div class="mt-2 text-center">
-                                                                    <!-- Botón de Editar (con ícono amarillo) -->
-                                                                    <a name="edit" id="edit" class="btn btn-warning btn-round ml-2"
+                                                                    <a class="btn btn-warning btn-round ml-2"
                                                                         onclick='fn_editar_categoria(<?php echo $datosCategoriaJSON; ?>)' role="button">
                                                                         <i class="fa fa-edit"></i>
                                                                     </a>
-
-                                                                    <!-- Botón de Activar/Bloquear -->
                                                                     <?php if (is_null($datosCategoria["deleted_at"])) { ?>
-                                                                        <!-- Botón para bloquear -->
-                                                                        <a name="block" id="block" class="btn btn-dark btn-round ml-2"
+                                                                        <a class="btn btn-dark btn-round ml-2"
                                                                             onclick='fn_bloquear_categoria(<?php echo $datosCategoria["id"]; ?>)' role="button">
                                                                             <i class="fa fa-lock"></i>
                                                                         </a>
                                                                     <?php } else { ?>
-                                                                        <!-- Botón para activar -->
-                                                                        <a name="activate" id="activate" class="btn btn-secondary btn-round ml-2"
+                                                                        <a class="btn btn-secondary btn-round ml-2"
                                                                             onclick='fn_desbloquear_categoria(<?php echo $datosCategoria["id"]; ?>)' role="button">
                                                                             <i class="fa fa-unlock"></i>
                                                                         </a>
@@ -197,18 +153,17 @@ $sucursal_id = $_SESSION["sucursal_id"];
                                                                 </div>
                                                             </td>
                                                         </tr>
-                                                    <?php
-                                                    }
-                                                    ?>
+                                                    <?php } ?>
                                                 </tbody>
                                             </table>
                                         </div>
-
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
+
+                    <!-- ===================== TAB TIPO ===================== -->
                     <div class="tab-pane fade" id="pills-tipo-articulo" role="tabpanel" aria-labelledby="pills-tipo-articulo-tab">
                         <div class="card text-start">
                             <div class="card-body">
@@ -217,14 +172,10 @@ $sucursal_id = $_SESSION["sucursal_id"];
                                     <button class="btn btn-success rounded-5" id="btnAgregarTipo"> <i class="fas fa-plus-circle"> </i> Agregar Tipo </button>
                                 </div>
                                 <hr>
-                                <div
-                                    class="row justify-content-center align-items-center md-2">
-
+                                <div class="row justify-content-center align-items-center md-2">
                                     <div class="col-sm-12">
                                         <div class="table-responsive">
-                                            <table
-                                                id="multi-filter-select3"
-                                                class="display table table-striped table-hover">
+                                            <table id="multi-filter-select3" class="display table table-striped table-hover">
                                                 <thead>
                                                     <tr>
                                                         <th>ID</th>
@@ -233,9 +184,7 @@ $sucursal_id = $_SESSION["sucursal_id"];
                                                         <th>Accion</th>
                                                     </tr>
                                                 </thead>
-
                                                 <tbody>
-
                                                     <?php
                                                     foreach (listarTipoArticuloMantenimiento($sucursal_id) as $datosTipo) {
                                                         $datosTipoJSON = json_encode($datosTipo);
@@ -246,22 +195,17 @@ $sucursal_id = $_SESSION["sucursal_id"];
                                                             <td><?php echo $datosTipo["descripcion"] ?? '-'; ?></td>
                                                             <td>
                                                                 <div class="mt-2 text-center">
-                                                                    <!-- Botón de Editar (con ícono amarillo) -->
-                                                                    <a name="edit" id="edit" class="btn btn-warning btn-round ml-2"
+                                                                    <a class="btn btn-warning btn-round ml-2"
                                                                         onclick='fn_editar_tipo(<?php echo $datosTipoJSON; ?>)' role="button">
                                                                         <i class="fa fa-edit"></i>
                                                                     </a>
-
-                                                                    <!-- Botón de Activar/Bloquear -->
                                                                     <?php if (is_null($datosTipo["deleted_at"])) { ?>
-                                                                        <!-- Botón para bloquear -->
-                                                                        <a name="block" id="block" class="btn btn-dark btn-round ml-2"
+                                                                        <a class="btn btn-dark btn-round ml-2"
                                                                             onclick='fn_bloquear_tipo(<?php echo $datosTipo["id"]; ?>)' role="button">
                                                                             <i class="fa fa-lock"></i>
                                                                         </a>
                                                                     <?php } else { ?>
-                                                                        <!-- Botón para activar -->
-                                                                        <a name="activate" id="activate" class="btn btn-secondary btn-round ml-2"
+                                                                        <a class="btn btn-secondary btn-round ml-2"
                                                                             onclick='fn_desbloquear_tipo(<?php echo $datosTipo["id"]; ?>)' role="button">
                                                                             <i class="fa fa-unlock"></i>
                                                                         </a>
@@ -269,35 +213,29 @@ $sucursal_id = $_SESSION["sucursal_id"];
                                                                 </div>
                                                             </td>
                                                         </tr>
-                                                    <?php
-                                                    }
-                                                    ?>
+                                                    <?php } ?>
                                                 </tbody>
                                             </table>
                                         </div>
-
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
+
+                    <!-- ===================== TAB ESCALA ===================== -->
                     <div class="tab-pane fade" id="pills-escala-articulo" role="tabpanel" aria-labelledby="pills-escala-articulo-tab">
                         <div class="card text-start">
-
                             <div class="card-body">
                                 <div class="d-flex align-items-center justify-content-between">
                                     <h4 class="card-title"><i class="fas fa-sort-amount-up"></i> Escala de Articulo</h4>
                                     <button class="btn btn-success rounded-5" id="btnAgregarEscala"><i class="fas fa-plus-circle"> </i> Agregar Escala </button>
                                 </div>
                                 <hr>
-                                <div
-                                    class="row justify-content-center align-items-center md-2">
-
+                                <div class="row justify-content-center align-items-center md-2">
                                     <div class="col-sm-12">
                                         <div class="table-responsive">
-                                            <table
-                                                id="multi-filter-select4"
-                                                class="display table table-striped table-hover">
+                                            <table id="multi-filter-select4" class="display table table-striped table-hover">
                                                 <thead>
                                                     <tr>
                                                         <th>ID</th>
@@ -306,14 +244,10 @@ $sucursal_id = $_SESSION["sucursal_id"];
                                                         <th>Accion</th>
                                                     </tr>
                                                 </thead>
-
                                                 <tbody>
-
                                                     <?php
                                                     foreach (listarEscalaArticuloMantenimiento($sucursal_id) as $datosEscala) {
                                                         $datosEscalaJSON = json_encode($datosEscala);
-
-
                                                     ?>
                                                         <tr>
                                                             <td><?php echo $datosEscala["id"] ?></td>
@@ -321,22 +255,17 @@ $sucursal_id = $_SESSION["sucursal_id"];
                                                             <td><?php echo $datosEscala["descripcion"] ?? '-'; ?></td>
                                                             <td>
                                                                 <div class="mt-2 text-center">
-                                                                    <!-- Botón de Editar (con ícono amarillo) -->
-                                                                    <a name="edit" id="edit" class="btn btn-warning btn-round ml-2"
+                                                                    <a class="btn btn-warning btn-round ml-2"
                                                                         onclick='fn_editar_escala(<?php echo $datosEscalaJSON; ?>)' role="button">
                                                                         <i class="fa fa-edit"></i>
                                                                     </a>
-
-                                                                    <!-- Botón de Activar/Bloquear -->
                                                                     <?php if (is_null($datosEscala["deleted_at"])) { ?>
-                                                                        <!-- Botón para bloquear -->
-                                                                        <a name="block" id="block" class="btn btn-dark btn-round ml-2"
+                                                                        <a class="btn btn-dark btn-round ml-2"
                                                                             onclick='fn_bloquear_escala(<?php echo $datosEscala["id"]; ?>)' role="button">
                                                                             <i class="fa fa-lock"></i>
                                                                         </a>
                                                                     <?php } else { ?>
-                                                                        <!-- Botón para activar -->
-                                                                        <a name="activate" id="activate" class="btn btn-secondary btn-round ml-2"
+                                                                        <a class="btn btn-secondary btn-round ml-2"
                                                                             onclick='fn_desbloquear_escala(<?php echo $datosEscala["id"]; ?>)' role="button">
                                                                             <i class="fa fa-unlock"></i>
                                                                         </a>
@@ -344,18 +273,17 @@ $sucursal_id = $_SESSION["sucursal_id"];
                                                                 </div>
                                                             </td>
                                                         </tr>
-                                                    <?php
-                                                    }
-                                                    ?>
+                                                    <?php } ?>
                                                 </tbody>
                                             </table>
                                         </div>
-
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
+
+                    <!-- ===================== TAB DIMENSION ===================== -->
                     <div class="tab-pane fade" id="pills-dimension-articulo" role="tabpanel" aria-labelledby="pills-dimension-articulo-tab">
                         <div class="card text-start">
                             <div class="card-body">
@@ -364,14 +292,10 @@ $sucursal_id = $_SESSION["sucursal_id"];
                                     <button class="btn btn-success rounded-5" id="btnAgregarDimension"> <i class="fas fa-plus-circle"> </i> Agregar Dimensión</button>
                                 </div>
                                 <hr>
-                                <div
-                                    class="row justify-content-center align-items-center md-2">
-
+                                <div class="row justify-content-center align-items-center md-2">
                                     <div class="col-sm-12">
                                         <div class="table-responsive">
-                                            <table
-                                                id="multi-filter-select5"
-                                                class="display table table-striped table-hover">
+                                            <table id="multi-filter-select5" class="display table table-striped table-hover">
                                                 <thead>
                                                     <tr>
                                                         <th>ID</th>
@@ -380,14 +304,10 @@ $sucursal_id = $_SESSION["sucursal_id"];
                                                         <th>Accion</th>
                                                     </tr>
                                                 </thead>
-
                                                 <tbody>
-
                                                     <?php
                                                     foreach (listarDimensionArticuloMantenimiento($sucursal_id) as $datosDimension) {
                                                         $datosDimensionJSON = json_encode($datosDimension);
-
-
                                                     ?>
                                                         <tr>
                                                             <td><?php echo $datosDimension["id"] ?></td>
@@ -395,22 +315,17 @@ $sucursal_id = $_SESSION["sucursal_id"];
                                                             <td><?php echo $datosDimension["descripcion"] ?? '-'; ?></td>
                                                             <td>
                                                                 <div class="mt-2 text-center">
-                                                                    <!-- Botón de Editar (con ícono amarillo) -->
-                                                                    <a name="edit" id="edit" class="btn btn-warning btn-round ml-2"
+                                                                    <a class="btn btn-warning btn-round ml-2"
                                                                         onclick='fn_editar_dimension(<?php echo $datosDimensionJSON; ?>)' role="button">
                                                                         <i class="fa fa-edit"></i>
                                                                     </a>
-
-                                                                    <!-- Botón de Activar/Bloquear -->
                                                                     <?php if (is_null($datosDimension["deleted_at"])) { ?>
-                                                                        <!-- Botón para bloquear -->
-                                                                        <a name="block" id="block" class="btn btn-dark btn-round ml-2"
+                                                                        <a class="btn btn-dark btn-round ml-2"
                                                                             onclick='fn_bloquear_dimension(<?php echo $datosDimension["id"]; ?>)' role="button">
                                                                             <i class="fa fa-lock"></i>
                                                                         </a>
                                                                     <?php } else { ?>
-                                                                        <!-- Botón para activar -->
-                                                                        <a name="activate" id="activate" class="btn btn-secondary btn-round ml-2"
+                                                                        <a class="btn btn-secondary btn-round ml-2"
                                                                             onclick='fn_desbloquear_dimension(<?php echo $datosDimension["id"]; ?>)' role="button">
                                                                             <i class="fa fa-unlock"></i>
                                                                         </a>
@@ -418,1075 +333,37 @@ $sucursal_id = $_SESSION["sucursal_id"];
                                                                 </div>
                                                             </td>
                                                         </tr>
-                                                    <?php
-                                                    }
-                                                    ?>
+                                                    <?php } ?>
                                                 </tbody>
                                             </table>
                                         </div>
-
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
+
                 </div>
             </div>
         </div>
-
-
     </div>
 </div>
 
+<!-- Modal Genérico -->
 <div class="modal fade" id="modalGenerico" tabindex="-1" data-bs-backdrop="static" aria-labelledby="modalArticuloLabel" aria-hidden="true">
-
     <div class="modal-dialog modal-dialog-centered modal-dialog-custom" role="document">
-
-
-        <div class="modal-content" id="contenidoGenerico">
-        </div>
+        <div class="modal-content" id="contenidoGenerico"></div>
     </div>
 </div>
 
-
-
-
-<!-- Incluir el CSS de DataTables -->
+<!-- CSS DataTables y SweetAlert2 -->
 <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.12.1/css/jquery.dataTables.min.css">
-<!-- SweetAlert2 CSS -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.1/dist/sweetalert2.min.css">
 
-<!-- SweetAlert2 JS -->
+<!-- JS -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.1/dist/sweetalert2.min.js"></script>
-
-
-<!-- Incluir jQuery -->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<!-- Incluir el JS de DataTables -->
 <script src="https://cdn.datatables.net/1.12.1/js/jquery.dataTables.min.js"></script>
-
-
-<script>
-    /*
-    window.onload = function() {
-        const activeTab = localStorage.getItem('activeTab');
-        if (activeTab) {
-            const tab = document.getElementById(activeTab);
-            if (tab) {
-                // Si existe, lo activamos
-                const bootstrapTab = new bootstrap.Tab(tab);
-                bootstrapTab.show();
-            }
-        }
-    };
-
-    // Guardar el "pill" seleccionado en localStorage
-    const pills = document.querySelectorAll('.nav-link');
-    pills.forEach(pill => {
-        pill.addEventListener('click', function() {
-            const activeTabId = this.id;
-            localStorage.setItem('activeTab', activeTabId);
-        });
-    });
-    */
-</script>
-<script>
-    $(document).ready(function() {
-        // Inicialización de DataTables en español
-        $("#basic-datatables").DataTable({
-            language: {
-                "sProcessing": "Procesando...",
-                "sLengthMenu": "Mostrar _MENU_ registros",
-                "sZeroRecords": "No se encontraron resultados",
-                "sEmptyTable": "Ningún dato disponible en esta tabla",
-                "sInfo": "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
-                "sInfoEmpty": "Mostrando registros del 0 al 0 de un total de 0 registros",
-                "sInfoFiltered": "(filtrado de un total de _MAX_ registros)",
-                "sInfoPostFix": "",
-                "sSearch": "Buscar:",
-                "sUrl": "",
-                "sInfoThousands": ",",
-                "sLoadingRecords": "Cargando...",
-                "oPaginate": {
-                    "sFirst": "Primero",
-                    "sPrevious": "Anterior",
-                    "sNext": "Siguiente",
-                    "sLast": "Último"
-                },
-                "oAria": {
-                    "sSortAscending": ": Activar para ordenar la columna de manera ascendente",
-                    "sSortDescending": ": Activar para ordenar la columna de manera descendente"
-                }
-            }
-        });
-
-        $("#multi-filter-select").DataTable({
-            pageLength: 5,
-            language: {
-                "sProcessing": "Procesando...",
-                "sLengthMenu": "Mostrar _MENU_ registros",
-                "sZeroRecords": "No se encontraron resultados",
-                "sEmptyTable": "Ningún dato disponible en esta tabla",
-                "sInfo": "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
-                "sInfoEmpty": "Mostrando registros del 0 al 0 de un total de 0 registros",
-                "sInfoFiltered": "(filtrado de un total de _MAX_ registros)",
-                "sSearch": "Buscar:",
-                "sUrl": "",
-                "sInfoThousands": ",",
-                "sLoadingRecords": "Cargando...",
-                "oPaginate": {
-                    "sFirst": "Primero",
-                    "sPrevious": "Anterior",
-                    "sNext": "Siguiente",
-                    "sLast": "Último"
-                },
-                "oAria": {
-                    "sSortAscending": ": Activar para ordenar la columna de manera ascendente",
-                    "sSortDescending": ": Activar para ordenar la columna de manera descendente"
-                }
-            },
-            initComplete: function() {
-                this.api()
-                    .columns()
-                    .every(function() {
-                        var column = this;
-                        var select = $('<select class="form-select"><option value=""></option></select>')
-                            .appendTo($(column.footer()).empty())
-                            .on("change", function() {
-                                var val = $.fn.dataTable.util.escapeRegex($(this).val());
-                                column.search(val ? "^" + val + "$" : "", true, false).draw();
-                            });
-
-                        column.data().unique().sort().each(function(d, j) {
-                            select.append('<option value="' + d + '">' + d + "</option>");
-                        });
-                    });
-            }
-        });
-
-
-
-        $("#multi-filter-select2").DataTable({
-            pageLength: 5,
-            language: {
-                "sProcessing": "Procesando...",
-                "sLengthMenu": "Mostrar _MENU_ registros",
-                "sZeroRecords": "No se encontraron resultados",
-                "sEmptyTable": "Ningún dato disponible en esta tabla",
-                "sInfo": "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
-                "sInfoEmpty": "Mostrando registros del 0 al 0 de un total de 0 registros",
-                "sInfoFiltered": "(filtrado de un total de _MAX_ registros)",
-                "sSearch": "Buscar:",
-                "sUrl": "",
-                "sInfoThousands": ",",
-                "sLoadingRecords": "Cargando...",
-                "oPaginate": {
-                    "sFirst": "Primero",
-                    "sPrevious": "Anterior",
-                    "sNext": "Siguiente",
-                    "sLast": "Último"
-                },
-                "oAria": {
-                    "sSortAscending": ": Activar para ordenar la columna de manera ascendente",
-                    "sSortDescending": ": Activar para ordenar la columna de manera descendente"
-                }
-            },
-            initComplete: function() {
-                this.api()
-                    .columns()
-                    .every(function() {
-                        var column = this;
-                        var select = $('<select class="form-select"><option value=""></option></select>')
-                            .appendTo($(column.footer()).empty())
-                            .on("change", function() {
-                                var val = $.fn.dataTable.util.escapeRegex($(this).val());
-                                column.search(val ? "^" + val + "$" : "", true, false).draw();
-                            });
-
-                        column.data().unique().sort().each(function(d, j) {
-                            select.append('<option value="' + d + '">' + d + "</option>");
-                        });
-                    });
-            }
-        });
-
-        $("#multi-filter-select3").DataTable({
-            pageLength: 5,
-            language: {
-                "sProcessing": "Procesando...",
-                "sLengthMenu": "Mostrar _MENU_ registros",
-                "sZeroRecords": "No se encontraron resultados",
-                "sEmptyTable": "Ningún dato disponible en esta tabla",
-                "sInfo": "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
-                "sInfoEmpty": "Mostrando registros del 0 al 0 de un total de 0 registros",
-                "sInfoFiltered": "(filtrado de un total de _MAX_ registros)",
-                "sSearch": "Buscar:",
-                "sUrl": "",
-                "sInfoThousands": ",",
-                "sLoadingRecords": "Cargando...",
-                "oPaginate": {
-                    "sFirst": "Primero",
-                    "sPrevious": "Anterior",
-                    "sNext": "Siguiente",
-                    "sLast": "Último"
-                },
-                "oAria": {
-                    "sSortAscending": ": Activar para ordenar la columna de manera ascendente",
-                    "sSortDescending": ": Activar para ordenar la columna de manera descendente"
-                }
-            },
-            initComplete: function() {
-                this.api()
-                    .columns()
-                    .every(function() {
-                        var column = this;
-                        var select = $('<select class="form-select"><option value=""></option></select>')
-                            .appendTo($(column.footer()).empty())
-                            .on("change", function() {
-                                var val = $.fn.dataTable.util.escapeRegex($(this).val());
-                                column.search(val ? "^" + val + "$" : "", true, false).draw();
-                            });
-
-                        column.data().unique().sort().each(function(d, j) {
-                            select.append('<option value="' + d + '">' + d + "</option>");
-                        });
-                    });
-            }
-        });
-        $("#multi-filter-select4").DataTable({
-            pageLength: 5,
-            language: {
-                "sProcessing": "Procesando...",
-                "sLengthMenu": "Mostrar _MENU_ registros",
-                "sZeroRecords": "No se encontraron resultados",
-                "sEmptyTable": "Ningún dato disponible en esta tabla",
-                "sInfo": "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
-                "sInfoEmpty": "Mostrando registros del 0 al 0 de un total de 0 registros",
-                "sInfoFiltered": "(filtrado de un total de _MAX_ registros)",
-                "sSearch": "Buscar:",
-                "sUrl": "",
-                "sInfoThousands": ",",
-                "sLoadingRecords": "Cargando...",
-                "oPaginate": {
-                    "sFirst": "Primero",
-                    "sPrevious": "Anterior",
-                    "sNext": "Siguiente",
-                    "sLast": "Último"
-                },
-                "oAria": {
-                    "sSortAscending": ": Activar para ordenar la columna de manera ascendente",
-                    "sSortDescending": ": Activar para ordenar la columna de manera descendente"
-                }
-            },
-            initComplete: function() {
-                this.api()
-                    .columns()
-                    .every(function() {
-                        var column = this;
-                        var select = $('<select class="form-select"><option value=""></option></select>')
-                            .appendTo($(column.footer()).empty())
-                            .on("change", function() {
-                                var val = $.fn.dataTable.util.escapeRegex($(this).val());
-                                column.search(val ? "^" + val + "$" : "", true, false).draw();
-                            });
-
-                        column.data().unique().sort().each(function(d, j) {
-                            select.append('<option value="' + d + '">' + d + "</option>");
-                        });
-                    });
-            }
-        });
-
-        // Agregar fila en español
-        $("#add-row").DataTable({
-            pageLength: 5,
-            language: {
-                "sProcessing": "Procesando...",
-                "sLengthMenu": "Mostrar _MENU_ registros",
-                "sZeroRecords": "No se encontraron resultados",
-                "sEmptyTable": "Ningún dato disponible en esta tabla",
-                "sInfo": "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
-                "sInfoEmpty": "Mostrando registros del 0 al 0 de un total de 0 registros",
-                "sInfoFiltered": "(filtrado de un total de _MAX_ registros)",
-                "sSearch": "Buscar:",
-                "sUrl": "",
-                "sInfoThousands": ",",
-                "sLoadingRecords": "Cargando...",
-                "oPaginate": {
-                    "sFirst": "Primero",
-                    "sPrevious": "Anterior",
-                    "sNext": "Siguiente",
-                    "sLast": "Último"
-                },
-                "oAria": {
-                    "sSortAscending": ": Activar para ordenar la columna de manera ascendente",
-                    "sSortDescending": ": Activar para ordenar la columna de manera descendente"
-                }
-            }
-        });
-
-        var action =
-            '<td> <div class="form-button-action"> <button type="button" data-bs-toggle="tooltip" title="" class="btn btn-link btn-primary btn-lg" data-original-title="Editar tarea"> <i class="fa fa-edit"></i> </button> <button type="button" data-bs-toggle="tooltip" title="" class="btn btn-link btn-danger" data-original-title="Eliminar"> <i class="fa fa-times"></i> </button> </div> </td>';
-
-        $("#addRowButton").click(function() {
-            $("#add-row")
-                .dataTable()
-                .fnAddData([
-                    $("#addName").val(),
-                    $("#addPosition").val(),
-                    $("#addOffice").val(),
-                    action,
-                ]);
-            $("#addRowModal").modal("hide");
-        });
-    });
-</script>
-
-<script>
-    document.getElementById("btnAgregarTipo").addEventListener("click", function() {
-        document.getElementById("contenidoGenerico").innerHTML = `
-            <button type="button" class="btn-close position-absolute top-0 end-0 m-2" data-bs-dismiss="modal" aria-label="Close"></button>
-            <div class="card-body">
-                <h4 class="card-title text-center" style="font-size: 28px;"><i class="fas fa-cogs"></i> Registro de Tipo</h4>
-            <div class="card-sub text-center">
-                Aquí podrás <strong>registrar</strong> los tipos de Artículos <strong>NUEVOS.</strong>
-            </div>
-            <div class="card-sub text-center">
-                Los campos con <span class="fw-bold text-danger">*</span> son obligatorios.
-            </div>
-            <div class="card text-start">
-
-                <div class="card-body">
-                    <div
-                        class="row justify-content-center align-items-center g-2">
-
-                        <div class="col-sm-12">
-                            <div class="mb-3">
-                                <label for="" class="form-label"><strong>Ingrese Nombre de Tipo <span class="fw-bold text-danger">*</span></strong> </label>
-                                <input
-                                    type="text"
-                                    class="form-control"
-                                    name="idRegistroNombreTipo"
-                                    id="idRegistroNombreTipo"
-                                    aria-describedby="helpId"
-                                    placeholder="Articulo 1" />
-                            </div>
-
-                        </div>
-
-                        <div class="col-sm-12">
-                            <div class="mb-3">
-                                <label for="" class="form-label"> <strong>Descripcion</strong></label>
-                                <textarea
-                                    type="text"
-                                    class="form-control"
-                                    name="idRegistroDescripcion"
-                                    id="idRegistroDescripcion"
-                                    > </textarea>
-                            </div>
-
-                        </div>
-                        <div class="text-center">
-                            <a
-                                name=""
-                                id="btnRegistrarTipo"
-                                class="btn btn-success btn-round"
-
-                                role="button">Registrar <i class="fas fa-check"> </i></a>
-                        </div>
-                    </div>
-                </div>
-
-
-            </div>
-            </div>
-                
-                
-                
-    
-        `;
-
-        const modal = new bootstrap.Modal(document.getElementById("modalGenerico"));
-        modal.show();
-
-        // Agregar evento de validación al botón "Registrar"
-
-        document.getElementById("btnRegistrarTipo").addEventListener("click", async function() {
-            if ((document.getElementById("idRegistroNombreTipo").value).length > 0) {
-                var jsDatos = {
-                    "nombre": document.getElementById("idRegistroNombreTipo").value,
-                    "descripcion": document.getElementById("idRegistroDescripcion").value,
-                    "sucursal_id": <?php echo $sucursal_id; ?>  // ← AGREGADO
-                };
-                console.log(jsDatos);
-
-                $.ajax({
-                    url: 'logica/clssMantenimiento.php',
-                    type: 'POST',
-                    data: {
-                        accion: 'REGISTAR_TIPO_ARTICULO',
-                        jsDatos: JSON.stringify(jsDatos)
-                    },
-                    success: function(response) {
-                        console.log("Respuesta del servidor : ", response);
-                        try {
-                            var result = JSON.parse(response);
-                            if (result.estado === true) {
-                                swal({
-                                    title: "Registrado con Exito!",
-                                    text: result.mensaje,
-                                    icon: "success",
-                                    buttons: false,
-                                    timer: 1500
-                                }).then(() => {
-                                    location.reload();
-                                });
-                            } else {
-                                swal("Error", result.mensaje, {
-                                    icon: "error",
-                                    buttons: {
-                                        confirm: {
-                                            className: "btn btn-danger",
-                                        },
-                                    },
-                                });
-                            }
-                        } catch (e) {
-                            console.log("Error al parsear el JSON: ", e);
-                            swal("Error", "No se pudo procesar la respuesta del servidor.", {
-                                icon: "error",
-                                buttons: {
-                                    confirm: {
-                                        className: "btn btn-danger",
-                                    },
-                                },
-                            });
-                        }
-                    },
-                    error: function(xhr, status, error) {
-                        console.log("Error: " + error);
-                        swal("Error", "Hubo un problema con la solicitud.", {
-                            icon: "error",
-                            buttons: {
-                                confirm: {
-                                    className: "btn btn-danger",
-                                },
-                            },
-                        });
-                    }
-                });
-            } else {
-                swal("Ups!, Debes de ingresar el nombre del Tipo 😩", {
-                    icon: "error",
-                    buttons: {
-                        confirm: {
-                            className: "btn btn-danger",
-                        },
-                    },
-                });
-            }
-        });
-
-    document.getElementById("btnAgregarCategoria").addEventListener("click", function() {
-        document.getElementById("contenidoGenerico").innerHTML = `
-                    <button type="button" class="btn-close position-absolute top-0 end-0 m-2" data-bs-dismiss="modal" aria-label="Close"></button>
-                    <div class="card-body">
-                        <h4 class="card-title text-center" style="font-size: 28px;"><i class="fas fa-tag"></i> Registro de Categoria</h4>
-                    <div class="card-sub text-center">
-                        Aquí podrás <strong>registrar</strong> los tipos de Artículos <strong>NUEVOS.</strong>
-                    </div>
-                    <div class="card-sub text-center">
-                        Los campos con <span class="fw-bold text-danger">*</span> son obligatorios.
-                    </div>
-                    <div class="card text-start">
-
-                        <div class="card-body">
-                            <div
-                                class="row justify-content-center align-items-center g-2">
-
-                                <div class="col-sm-12">
-                                    <div class="mb-3">
-                                        <label for="" class="form-label"><strong>Ingrese Nombre de Categoria <span class="fw-bold text-danger">*</span></strong></label>
-                                        <input
-                                            type="text"
-                                            class="form-control"
-                                            name="idRegistroNombreTipo"
-                                            id="idRegistroNombreTipo"
-                                            aria-describedby="helpId"
-                                            placeholder="Articulo 1" />
-                                    </div>
-
-                                </div>
-
-                                <div class="col-sm-12">
-                                    <div class="mb-3">
-                                        <label for="" class="form-label"> <strong>Descripcion</strong></label>
-                                        <textarea
-                                            type="text"
-                                            class="form-control"
-                                            name="idRegistroDescripcion"
-                                            id="idRegistroDescripcion"
-                                            > </textarea>
-                                    </div>
-
-                                </div>
-                                <div class="text-center">
-                                    <a
-                                        name=""
-                                        id="btnRegistrarCategoria"
-                                        class="btn btn-success btn-round"
-
-                                        role="button">Registrar <i class="fas fa-check"> </i></a>
-                                </div>
-                            </div>
-                        </div>
-
-
-                    </div>
-                    </div>
-                        
-                        
-                        
-            
-                `;
-
-        const modal = new bootstrap.Modal(document.getElementById("modalGenerico"));
-        modal.show();
-
-        // Agregar evento de validación al botón "Registrar"
-
-        document.getElementById("btnRegistrarCategoria").addEventListener("click", async function() {
-            if ((document.getElementById("idRegistroNombreTipo").value).length > 0) {
-                var jsDatos = {
-                    "nombre": document.getElementById("idRegistroNombreTipo").value,
-                    "descripcion": document.getElementById("idRegistroDescripcion").value,
-                    "sucursal_id": <?php echo $sucursal_id; ?>  // ← AGREGADO
-                };
-                console.log(jsDatos);
-
-                $.ajax({
-                    url: 'logica/clssMantenimiento.php',
-                    type: 'POST',
-                    data: {
-                        accion: 'REGISTAR_CATEGORIA_ARTICULO',
-                        jsDatos: JSON.stringify(jsDatos)
-                    },
-                    success: function(response) {
-                        console.log("Respuesta del servidor : ", response);
-                        try {
-                            var result = JSON.parse(response);
-                            if (result.estado === true) {
-                                swal({
-                                    title: "Registrado con Exito!",
-                                    text: result.mensaje,
-                                    icon: "success",
-                                    buttons: false,
-                                    timer: 1500
-                                }).then(() => {
-                                    location.reload();
-                                });
-                            } else {
-                                swal("Error", result.mensaje, {
-                                    icon: "error",
-                                    buttons: {
-                                        confirm: {
-                                            className: "btn btn-danger",
-                                        },
-                                    },
-                                });
-                            }
-                        } catch (e) {
-                            console.log("Error al parsear el JSON: ", e);
-                            swal("Error", "No se pudo procesar la respuesta del servidor.", {
-                                icon: "error",
-                                buttons: {
-                                    confirm: {
-                                        className: "btn btn-danger",
-                                    },
-                                },
-                            });
-                        }
-                    },
-                    error: function(xhr, status, error) {
-                        console.log("Error: " + error);
-                        swal("Error", "Hubo un problema con la solicitud.", {
-                            icon: "error",
-                            buttons: {
-                                confirm: {
-                                    className: "btn btn-danger",
-                                },
-                            },
-                        });
-                    }
-                });
-            } else {
-                swal("Ups!, Debes de ingresar el nombre del Tipo 😩", {
-                    icon: "error",
-                    buttons: {
-                        confirm: {
-                            className: "btn btn-danger",
-                        },
-                    },
-                });
-            }
-        });
-
-    document.getElementById("btnAgregarEscala").addEventListener("click", function() {
-        document.getElementById("contenidoGenerico").innerHTML = `
-                    <button type="button" class="btn-close position-absolute top-0 end-0 m-2" data-bs-dismiss="modal" aria-label="Close"></button>
-                    <div class="card-body">
-                        <h4 class="card-title text-center" style="font-size: 28px;"><i class="fas fa-sort"></i> Registro de Escala</h4>
-                    <div class="card-sub text-center">
-                        Aquí podrás <strong>registrar</strong> las escalas de Artículos <strong>NUEVOS.</strong>
-                    </div>
-                    <div class="card-sub text-center">
-                        Los campos con <span class="fw-bold text-danger">*</span> son obligatorios.
-                    </div>
-                    <div class="card text-start">
-
-                        <div class="card-body">
-                            <div
-                                class="row justify-content-center align-items-center g-2">
-
-                                <div class="col-sm-12">
-                                    <div class="mb-3">
-                                        <label for="" class="form-label"><strong>Ingrese Nombre de Escala <span class="fw-bold text-danger">*</span> </strong></label>
-                                        <input
-                                            type="text"
-                                            class="form-control"
-                                            name="idRegistroNombreTipo"
-                                            id="idRegistroNombreTipo"
-                                            aria-describedby="helpId"
-                                            placeholder="Articulo 1" />
-                                    </div>
-
-                                </div>
-
-                                <div class="col-sm-12">
-                                    <div class="mb-3">
-                                        <label for="" class="form-label"> <strong>Descripcion</strong></label>
-                                        <textarea
-                                            type="text"
-                                            class="form-control"
-                                            name="idRegistroDescripcion"
-                                            id="idRegistroDescripcion"
-                                            > </textarea>
-                                    </div>
-
-                                </div>
-                                <div class="text-center">
-                                    <a
-                                        name=""
-                                        id="btnRegistrarEscala"
-                                        class="btn btn-success btn-round"
-
-                                        role="button">Registrar <i class="fas fa-check"> </i></a>
-                                </div>
-                            </div>
-                        </div>
-
-
-                    </div>
-                    </div>
-                        
-                        
-                        
-            
-                `;
-
-        const modal = new bootstrap.Modal(document.getElementById("modalGenerico"));
-        modal.show();
-
-        // Agregar evento de validación al botón "Registrar"
-
-        document.getElementById("btnRegistrarEscala").addEventListener("click", async function() {
-            if ((document.getElementById("idRegistroNombreTipo").value).length > 0) {
-                var jsDatos = {
-                    "nombre": document.getElementById("idRegistroNombreTipo").value,
-                    "descripcion": document.getElementById("idRegistroDescripcion").value,
-                    "sucursal_id": <?php echo $sucursal_id; ?>  // ← AGREGADO
-                };
-                console.log(jsDatos);
-
-                $.ajax({
-                    url: 'logica/clssMantenimiento.php',
-                    type: 'POST',
-                    data: {
-                        accion: 'REGISTAR_ESCALA_ARTICULO',
-                        jsDatos: JSON.stringify(jsDatos)
-                    },
-                    success: function(response) {
-                        console.log("Respuesta del servidor : ", response);
-                        try {
-                            var result = JSON.parse(response);
-                            if (result.estado === true) {
-                                swal({
-                                    title: "Registrado con Exito!",
-                                    text: result.mensaje,
-                                    icon: "success",
-                                    buttons: false,
-                                    timer: 1500
-                                }).then(() => {
-                                    location.reload();
-                                });
-                            } else {
-                                swal("Error", result.mensaje, {
-                                    icon: "error",
-                                    buttons: {
-                                        confirm: {
-                                            className: "btn btn-danger",
-                                        },
-                                    },
-                                });
-                            }
-                        } catch (e) {
-                            console.log("Error al parsear el JSON: ", e);
-                            swal("Error", "No se pudo procesar la respuesta del servidor.", {
-                                icon: "error",
-                                buttons: {
-                                    confirm: {
-                                            className: "btn btn-danger",
-                                        },
-                                    },
-                                });
-                        }
-                    },
-                    error: function(xhr, status, error) {
-                        console.log("Error: " + error);
-                        swal("Error", "Hubo un problema con la solicitud.", {
-                            icon: "error",
-                            buttons: {
-                                confirm: {
-                                    className: "btn btn-danger",
-                                },
-                            },
-                        });
-                    }
-                });
-            } else {
-                swal("Ups!, Debes de ingresar el nombre del Tipo 😩", {
-                    icon: "error",
-                    buttons: {
-                        confirm: {
-                            className: "btn btn-danger",
-                        },
-                    },
-                });
-            }
-        });
-
-    document.getElementById("btnAgregarServicio").addEventListener("click", function() {
-        document.getElementById("contenidoGenerico").innerHTML = `
-        <button type="button" class="btn-close position-absolute top-0 end-0 m-2" data-bs-dismiss="modal" aria-label="Close"></button>
-        <div class="card-body">
-            <h4 class="card-title text-center" style="font-size: 28px;"><i class="fas fa-ruler"></i> Registrar Servicios</h4>
-            <div class="card-sub text-center">
-                Aquí podrás <strong>registrar</strong> los nuevos <strong>SERVICIOS de tu negocio.</strong>
-            </div>
-            <div class="card-sub text-center">
-                Los campos con <span class="fw-bold text-danger">*</span> son obligatorios.
-            </div>
-            <div class="card text-start">
-                <div class="card-body">
-                    <div class="row justify-content-center align-items-center g-2">
-                        <div class="col-sm-12">
-                            <div class="mb-3">
-                                <label for="" class="form-label"><strong>Descripción <span class="fw-bold text-danger">*</span> </strong></label>
-                                <textarea
-                                    class="form-control"
-                                    name="idRegistroDescripcion"
-                                    id="idRegistroDescripcion"></textarea>
-                            </div>
-                        </div>
-
-                        <div class="col-sm-12">
-                            <div class="mb-3">
-                                <label for="" class="form-label"><strong>Medidas (Selecciona las que apliquen) <span class="fw-bold text-danger">*</span></strong></label>
-                                <div class="selectgroup selectgroup-pills" id="medidasSeleccion">
-                                    <label class="selectgroup-item">
-                                        <input type="checkbox" value="A0" class="selectgroup-input" />
-                                        <span class="selectgroup-button">A0</span>
-                                    </label>
-                                    <label class="selectgroup-item">
-                                        <input type="checkbox" value="A1" class="selectgroup-input" />
-                                        <span class="selectgroup-button">A1</span>
-                                    </label>
-                                    <label class="selectgroup-item">
-                                        <input type="checkbox" value="A2" class="selectgroup-input" />
-                                        <span class="selectgroup-button">A2</span>
-                                    </label>
-                                    <label class="selectgroup-item">
-                                        <input type="checkbox" value="A3" class="selectgroup-input" />
-                                        <span class="selectgroup-button">A3</span>
-                                    </label>
-                                    <label class="selectgroup-item">
-                                        <input type="checkbox" value="A4" class="selectgroup-input" />
-                                        <span class="selectgroup-button">A4</span>
-                                    </label>
-                                    <label class="selectgroup-item">
-                                        <input type="checkbox" value="A5" class="selectgroup-input" />
-                                        <span class="selectgroup-button">A5</span>
-                                    </label>
-                                    <label class="selectgroup-item">
-                                        <input type="checkbox" value="A6" class="selectgroup-input" />
-                                        <span class="selectgroup-button">A6</span>
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="text-center">
-                            <a
-                                name=""
-                                id="btnRegistrarTipo"
-                                class="btn btn-success btn-round"
-                                role="button">Registrar <i class="fas fa-check"> </i></a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>`;
-
-        const modal = new bootstrap.Modal(document.getElementById("modalGenerico"));
-        modal.show();
-
-        // Agregar evento de validación al botón "Registrar"
-        document.getElementById("btnRegistrarTipo").addEventListener("click", async function() {
-            const descripcion = document.getElementById("idRegistroDescripcion").value;
-
-            let medidasArray = [];
-            const checkboxes = document.querySelectorAll("#medidasSeleccion input[type='checkbox']:checked");
-            checkboxes.forEach(function(checkbox) {
-                medidasArray.push(checkbox.value);
-            });
-
-            if (descripcion.length > 0 && medidasArray.length > 0) {
-                var jsDatos = {
-                    "descripcion": descripcion,
-                    "medidas": medidasArray,
-                    "sucursal_id": <?php echo $sucursal_id; ?>  // ← AGREGADO
-                };
-                console.log(jsDatos);
-
-                $.ajax({
-                    url: 'logica/clssInsertPA.php',
-                    type: 'POST',
-                    data: {
-                        accion: 'INSERT_SERVICIOS',
-                        jsDatos: JSON.stringify(jsDatos)
-                    },
-                    success: function(response) {
-                        console.log("Respuesta del servidor: ", response);
-                        try {
-                            var result = JSON.parse(response);
-                            if (result.estado === true) {
-                                swal({
-                                    title: "Registrado con Éxito!",
-                                    text: result.mensaje,
-                                    icon: "success",
-                                    buttons: false,
-                                    timer: 1500
-                                }).then(() => {
-                                    location.reload();
-                                });
-                            } else {
-                                swal("Error", result.mensaje, {
-                                    icon: "error",
-                                    buttons: {
-                                        confirm: {
-                                            className: "btn btn-danger",
-                                        },
-                                    },
-                                });
-                            }
-                        } catch (e) {
-                            console.log("Error al parsear el JSON: ", e);
-                            swal("Error", "No se pudo procesar la respuesta del servidor.", {
-                                icon: "error",
-                                buttons: {
-                                    confirm: {
-                                        className: "btn btn-danger",
-                                    },
-                                },
-                            });
-                        }
-                    },
-                    error: function(xhr, status, error) {
-                        console.log("Error: " + error);
-                        swal("Error", "Hubo un problema con la solicitud.", {
-                            icon: "error",
-                            buttons: {
-                                confirm: {
-                                    className: "btn btn-danger",
-                                },
-                            },
-                        });
-                    }
-                });
-            } else {
-                swal("Ups!, Debes ingresar tanto la descripción como seleccionar al menos una medida 😩", {
-                    icon: "error",
-                    buttons: {
-                        confirm: {
-                            className: "btn btn-danger",
-                        },
-                    },
-                });
-            }
-        });
-
-    document.getElementById("btnAgregarDimension").addEventListener("click", function() {
-        document.getElementById("contenidoGenerico").innerHTML = `
-                    <button type="button" class="btn-close position-absolute top-0 end-0 m-2" data-bs-dismiss="modal" aria-label="Close"></button>
-                    <div class="card-body">
-                        <h4 class="card-title text-center" style="font-size: 28px;"><i class="fas fa-ruler"></i> Registro de Dimensión</h4>
-                    <div class="card-sub text-center">
-                        Aquí podrás <strong>registrar</strong> las dimensiones de Artículos <strong>NUEVOS.</strong>
-                    </div>
-                    <div class="card-sub text-center">
-                        Los campos con <span class="fw-bold text-danger">*</span> son obligatorios.
-                    </div>
-                    <div class="card text-start">
-
-                        <div class="card-body">
-                            <div
-                                class="row justify-content-center align-items-center g-2">
-
-                                <div class="col-sm-12">
-                                    <div class="mb-3">
-                                        <label for="" class="form-label"><strong>Ingrese Nombre de Dimensión <span class="fw-bold text-danger">*</span> </strong></label>
-                                        <input
-                                            type="text"
-                                            class="form-control"
-                                            name="idRegistroNombreTipo"
-                                            id="idRegistroNombreTipo"
-                                            aria-describedby="helpId"
-                                            placeholder="Articulo 1" />
-                                    </div>
-
-                                </div>
-
-                                <div class="col-sm-12">
-                                    <div class="mb-3">
-                                        <label for="" class="form-label"> <strong>Descripcion</strong></label>
-                                        <textarea
-                                            type="text"
-                                            class="form-control"
-                                            name="idRegistroDescripcion"
-                                            id="idRegistroDescripcion"
-                                            > </textarea>
-                                    </div>
-
-                                </div>
-                                <div class="text-center">
-                                    <a
-                                        name=""
-                                        id="btnRegistrarTipo"
-                                        class="btn btn-success btn-round"
-
-                                        role="button">Registrar <i class="fas fa-check"> </i></a>
-                                </div>
-                            </div>
-                        </div>
-
-
-                    </div>
-                    </div>
-                        
-                        
-                        
-            
-                `;
-
-        const modal = new bootstrap.Modal(document.getElementById("modalGenerico"));
-        modal.show();
-
-        // Agregar evento de validación al botón "Registrar"
-
-        document.getElementById("btnRegistrarTipo").addEventListener("click", async function() {
-            if ((document.getElementById("idRegistroNombreTipo").value).length > 0) {
-
-                var jsDatos = {
-                    "nombre": document.getElementById("idRegistroNombreTipo").value,
-                    "descripcion": document.getElementById("idRegistroDescripcion").value
-                };
-                console.log(jsDatos);
-
-                $.ajax({
-                    url: 'logica/clssMantenimiento.php',
-                    type: 'POST',
-                    data: {
-                        accion: 'REGISTAR_DIMENSION_ARTICULO',
-                        jsDatos: JSON.stringify(jsDatos)
-                    },
-                    success: function(response) {
-                        console.log("Respuesta del servidor : ", response);
-                        try {
-                            var result = JSON.parse(response);
-                            if (result.estado === true) {
-                                swal({
-                                    title: "Registrado con Exito!",
-                                    text: result.mensaje,
-                                    icon: "success",
-                                    buttons: false,
-                                    timer: 1500
-                                }).then(() => {
-                                    location.reload();
-
-                                });;
-                            } else {
-                                swal("Error", result.mensaje, {
-                                    icon: "error",
-                                    buttons: {
-                                        confirm: {
-                                            className: "btn btn-danger",
-                                        },
-                                    },
-                                });
-                            }
-                        } catch (e) {
-                            console.log("Error al parsear el JSON: ", e);
-                            swal("Error", "No se pudo procesar la respuesta del servidor.", {
-                                icon: "error",
-                                buttons: {
-                                    confirm: {
-                                        className: "btn btn-danger",
-                                    },
-                                },
-                            });
-                        }
-                    },
-                    error: function(xhr, status, error) {
-                        console.log("Error: " + error);
-                        swal("Error", "Hubo un problema con la solicitud.", {
-                            icon: "error",
-                            buttons: {
-                                confirm: {
-                                    className: "btn btn-danger",
-                                },
-                            },
-                        });
-                    }
-                });
-
-
-            } else {
-                swal("Ups!, Debes de ingresar el nombre del Tipo 😩", {
-                    icon: "error",
-                    buttons: {
-                        confirm: {
-                            className: "btn btn-danger",
-                        },
-                    },
-                });
-            }
-
-
-        });
-
-    });
-</script>
 
 <script>
 // ============================================
@@ -1494,266 +371,139 @@ $sucursal_id = $_SESSION["sucursal_id"];
 // ============================================
 const SUCURSAL_ID = <?php echo $sucursal_id; ?>;
 
-// ============================================
-// INICIALIZACIÓN AL CARGAR LA PÁGINA
-// ============================================
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('Página cargada, inicializando eventos...');
-    console.log('Sucursal ID:', SUCURSAL_ID);
-    
-    // Inicializar todos los botones
-    inicializarEventos();
+// Configuración de idioma compartida para DataTables
+const dtLang = {
+    "sProcessing": "Procesando...",
+    "sLengthMenu": "Mostrar _MENU_ registros",
+    "sZeroRecords": "No se encontraron resultados",
+    "sEmptyTable": "Ningún dato disponible en esta tabla",
+    "sInfo": "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
+    "sInfoEmpty": "Mostrando registros del 0 al 0 de un total de 0 registros",
+    "sInfoFiltered": "(filtrado de un total de _MAX_ registros)",
+    "sSearch": "Buscar:",
+    "sLoadingRecords": "Cargando...",
+    "oPaginate": { "sFirst": "Primero", "sPrevious": "Anterior", "sNext": "Siguiente", "sLast": "Último" }
+};
+
+// Inicialización de DataTables
+$(document).ready(function() {
+    ["#multi-filter-select", "#multi-filter-select2", "#multi-filter-select3", "#multi-filter-select4", "#multi-filter-select5"].forEach(function(id) {
+        $(id).DataTable({
+            pageLength: 5,
+            language: dtLang,
+            initComplete: function() {
+                this.api().columns().every(function() {
+                    var column = this;
+                    var select = $('<select class="form-select"><option value=""></option></select>')
+                        .appendTo($(column.footer()).empty())
+                        .on("change", function() {
+                            var val = $.fn.dataTable.util.escapeRegex($(this).val());
+                            column.search(val ? "^" + val + "$" : "", true, false).draw();
+                        });
+                    column.data().unique().sort().each(function(d) {
+                        select.append('<option value="' + d + '">' + d + "</option>");
+                    });
+                });
+            }
+        });
+    });
 });
 
 // ============================================
-// FUNCIÓN PARA INICIALIZAR TODOS LOS EVENTOS
+// HELPER: HTML de checkboxes de medidas
 // ============================================
-function inicializarEventos() {
-    // Botón Agregar Tipo
-    const btnTipo = document.getElementById("btnAgregarTipo");
-    if (btnTipo) {
-        btnTipo.addEventListener("click", abrirModalRegistroTipo);
-        console.log('Evento agregado a btnAgregarTipo');
-    }
-
-    // Botón Agregar Categoría
-    const btnCategoria = document.getElementById("btnAgregarCategoria");
-    if (btnCategoria) {
-        btnCategoria.addEventListener("click", abrirModalRegistroCategoria);
-        console.log('Evento agregado a btnAgregarCategoria');
-    }
-
-    // Botón Agregar Escala
-    const btnEscala = document.getElementById("btnAgregarEscala");
-    if (btnEscala) {
-        btnEscala.addEventListener("click", abrirModalRegistroEscala);
-        console.log('Evento agregado a btnAgregarEscala');
-    }
-
-    // Botón Agregar Servicio
-    const btnServicio = document.getElementById("btnAgregarServicio");
-    if (btnServicio) {
-        btnServicio.addEventListener("click", abrirModalRegistroServicio);
-        console.log('Evento agregado a btnAgregarServicio');
-    }
-
-    // Botón Agregar Dimensión
-    const btnDimension = document.getElementById("btnAgregarDimension");
-    if (btnDimension) {
-        btnDimension.addEventListener("click", abrirModalRegistroDimension);
-        console.log('Evento agregado a btnAgregarDimension');
-    }
+function getMedidasHTML(seleccionadas) {
+    const medidas = ['A0', 'A1', 'A2', 'A3', 'A4', 'A5', 'A6'];
+    return medidas.map(function(m) {
+        const checked = seleccionadas.includes(m) ? 'checked' : '';
+        return `
+            <label class="selectgroup-item">
+                <input type="checkbox" value="${m}" class="selectgroup-input medida-check" ${checked} />
+                <span class="selectgroup-button">${m}</span>
+            </label>`;
+    }).join('');
 }
 
 // ============================================
-// FUNCIONES PARA ABRIR MODALES
+// HELPER: Leer medidas seleccionadas del modal
 // ============================================
-
-function abrirModalRegistroTipo() {
-    console.log('Abriendo modal de tipo...');
-    document.getElementById("contenidoGenerico").innerHTML = `
-        <button type="button" class="btn-close position-absolute top-0 end-0 m-2" data-bs-dismiss="modal" aria-label="Close"></button>
-        <div class="card-body">
-            <h4 class="card-title text-center" style="font-size: 28px;"><i class="fas fa-cogs"></i> Registro de Tipo</h4>
-            <div class="card-sub text-center">
-                Aquí podrás <strong>registrar</strong> los tipos de Artículos <strong>NUEVOS.</strong>
-            </div>
-            <div class="card-sub text-center">
-                Los campos con <span class="fw-bold text-danger">*</span> son obligatorios.
-            </div>
-            <div class="card text-start">
-                <div class="card-body">
-                    <div class="row justify-content-center align-items-center g-2">
-                        <div class="col-sm-12">
-                            <div class="mb-3">
-                                <label for="idRegistroNombreTipo" class="form-label">
-                                    <strong>Ingrese Nombre de Tipo <span class="fw-bold text-danger">*</span></strong>
-                                </label>
-                                <input type="text" class="form-control" id="idRegistroNombreTipo" placeholder="Ejemplo: Material" />
-                            </div>
-                        </div>
-                        <div class="col-sm-12">
-                            <div class="mb-3">
-                                <label for="idRegistroDescripcionTipo" class="form-label">
-                                    <strong>Descripción</strong>
-                                </label>
-                                <textarea class="form-control" id="idRegistroDescripcionTipo"></textarea>
-                            </div>
-                        </div>
-                        <div class="text-center">
-                            <button id="btnRegistrarTipo" class="btn btn-success btn-round">
-                                Registrar <i class="fas fa-check"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    `;
-
-    const modal = new bootstrap.Modal(document.getElementById("modalGenerico"));
-    modal.show();
-
-    document.getElementById("btnRegistrarTipo").addEventListener("click", registrarTipo);
+function getMedidasSeleccionadas() {
+    return Array.from(document.querySelectorAll(".medida-check:checked")).map(el => el.value);
 }
 
-function abrirModalRegistroCategoria() {
-    console.log('Abriendo modal de categoría...');
-    document.getElementById("contenidoGenerico").innerHTML = `
-        <button type="button" class="btn-close position-absolute top-0 end-0 m-2" data-bs-dismiss="modal" aria-label="Close"></button>
-        <div class="card-body">
-            <h4 class="card-title text-center" style="font-size: 28px;"><i class="fas fa-tag"></i> Registro de Categoría</h4>
-            <div class="card-sub text-center">
-                Aquí podrás <strong>registrar</strong> las categorías de Artículos <strong>NUEVOS.</strong>
-            </div>
-            <div class="card-sub text-center">
-                Los campos con <span class="fw-bold text-danger">*</span> son obligatorios.
-            </div>
-            <div class="card text-start">
-                <div class="card-body">
-                    <div class="row justify-content-center align-items-center g-2">
-                        <div class="col-sm-12">
-                            <div class="mb-3">
-                                <label for="idRegistroNombreCategoria" class="form-label">
-                                    <strong>Ingrese Nombre de Categoría <span class="fw-bold text-danger">*</span></strong>
-                                </label>
-                                <input type="text" class="form-control" id="idRegistroNombreCategoria" placeholder="Ejemplo: Papelería" />
-                            </div>
-                        </div>
-                        <div class="col-sm-12">
-                            <div class="mb-3">
-                                <label for="idRegistroDescripcionCategoria" class="form-label">
-                                    <strong>Descripción</strong>
-                                </label>
-                                <textarea class="form-control" id="idRegistroDescripcionCategoria"></textarea>
-                            </div>
-                        </div>
-                        <div class="text-center">
-                            <button id="btnRegistrarCategoria" class="btn btn-success btn-round">
-                                Registrar <i class="fas fa-check"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    `;
-
-    const modal = new bootstrap.Modal(document.getElementById("modalGenerico"));
-    modal.show();
-
-    document.getElementById("btnRegistrarCategoria").addEventListener("click", registrarCategoria);
+// ============================================
+// HELPER: AJAX genérico
+// ============================================
+function enviarAjax(url, accion, jsDatos, onSuccess) {
+    $.ajax({
+        url: url,
+        type: 'POST',
+        data: { accion: accion, jsDatos: JSON.stringify(jsDatos) },
+        success: function(response) {
+            try {
+                const result = JSON.parse(response);
+                if (result.estado === true) {
+                    Swal.fire({ title: "¡Éxito!", text: result.mensaje, icon: "success", timer: 1500, showConfirmButton: false })
+                        .then(() => location.reload());
+                } else {
+                    Swal.fire({ title: "Error", text: result.mensaje, icon: "error" });
+                }
+            } catch(e) {
+                Swal.fire({ title: "Error", text: "No se pudo procesar la respuesta del servidor.", icon: "error" });
+            }
+        },
+        error: function() {
+            Swal.fire({ title: "Error", text: "Hubo un problema con la solicitud.", icon: "error" });
+        }
+    });
 }
 
-function abrirModalRegistroEscala() {
-    console.log('Abriendo modal de escala...');
-    document.getElementById("contenidoGenerico").innerHTML = `
-        <button type="button" class="btn-close position-absolute top-0 end-0 m-2" data-bs-dismiss="modal" aria-label="Close"></button>
-        <div class="card-body">
-            <h4 class="card-title text-center" style="font-size: 28px;"><i class="fas fa-sort-amount-up"></i> Registro de Escala</h4>
-            <div class="card-sub text-center">
-                Aquí podrás <strong>registrar</strong> las escalas de Artículos <strong>NUEVOS.</strong>
-            </div>
-            <div class="card-sub text-center">
-                Los campos con <span class="fw-bold text-danger">*</span> son obligatorios.
-            </div>
-            <div class="card text-start">
-                <div class="card-body">
-                    <div class="row justify-content-center align-items-center g-2">
-                        <div class="col-sm-12">
-                            <div class="mb-3">
-                                <label for="idRegistroNombreEscala" class="form-label">
-                                    <strong>Ingrese Nombre de Escala <span class="fw-bold text-danger">*</span></strong>
-                                </label>
-                                <input type="text" class="form-control" id="idRegistroNombreEscala" placeholder="Ejemplo: Grande" />
-                            </div>
-                        </div>
-                        <div class="col-sm-12">
-                            <div class="mb-3">
-                                <label for="idRegistroDescripcionEscala" class="form-label">
-                                    <strong>Descripción</strong>
-                                </label>
-                                <textarea class="form-control" id="idRegistroDescripcionEscala"></textarea>
-                            </div>
-                        </div>
-                        <div class="text-center">
-                            <button id="btnRegistrarEscala" class="btn btn-success btn-round">
-                                Registrar <i class="fas fa-check"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    `;
-
-    const modal = new bootstrap.Modal(document.getElementById("modalGenerico"));
-    modal.show();
-
-    document.getElementById("btnRegistrarEscala").addEventListener("click", registrarEscala);
+// ============================================
+// HELPER: Mostrar modal genérico
+// ============================================
+function mostrarModal(html) {
+    document.getElementById("contenidoGenerico").innerHTML = html;
+    new bootstrap.Modal(document.getElementById("modalGenerico")).show();
 }
 
+// ============================================
+// INICIALIZACIÓN DE EVENTOS
+// ============================================
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById("btnAgregarServicio").addEventListener("click", abrirModalRegistroServicio);
+    document.getElementById("btnAgregarCategoria").addEventListener("click", abrirModalRegistroCategoria);
+    document.getElementById("btnAgregarTipo").addEventListener("click", abrirModalRegistroTipo);
+    document.getElementById("btnAgregarEscala").addEventListener("click", abrirModalRegistroEscala);
+    document.getElementById("btnAgregarDimension").addEventListener("click", abrirModalRegistroDimension);
+});
+
+// ============================================
+// MODAL REGISTRAR SERVICIO (medidas opcionales)
+// ============================================
 function abrirModalRegistroServicio() {
-    console.log('Abriendo modal de servicio...');
-    document.getElementById("contenidoGenerico").innerHTML = `
+    mostrarModal(`
         <button type="button" class="btn-close position-absolute top-0 end-0 m-2" data-bs-dismiss="modal" aria-label="Close"></button>
         <div class="card-body">
-            <h4 class="card-title text-center" style="font-size: 28px;"><i class="fas fa-cubes"></i> Registrar Servicio</h4>
-            <div class="card-sub text-center">
-                Aquí podrás <strong>registrar</strong> los nuevos <strong>SERVICIOS de tu negocio.</strong>
-            </div>
-            <div class="card-sub text-center">
+            <h4 class="card-title text-center" style="font-size:28px;"><i class="fas fa-cubes"></i> Registrar Servicio</h4>
+            <div class="card-sub text-center mb-2">
                 Los campos con <span class="fw-bold text-danger">*</span> son obligatorios.
             </div>
             <div class="card text-start">
                 <div class="card-body">
-                    <div class="row justify-content-center align-items-center g-2">
+                    <div class="row g-2">
                         <div class="col-sm-12">
-                            <div class="mb-3">
-                                <label for="idRegistroDescripcionServicio" class="form-label">
-                                    <strong>Descripción <span class="fw-bold text-danger">*</span></strong>
-                                </label>
-                                <textarea class="form-control" id="idRegistroDescripcionServicio" placeholder="Ejemplo: Impresión a color"></textarea>
-                            </div>
+                            <label class="form-label"><strong>Descripción <span class="fw-bold text-danger">*</span></strong></label>
+                            <textarea class="form-control" id="svcDescripcion" placeholder="Ej: Costura, Remalle, Trabajos académicos..."></textarea>
                         </div>
                         <div class="col-sm-12">
-                            <div class="mb-3">
-                                <label for="medidasSeleccion" class="form-label">
-                                    <strong>Medidas (Selecciona las que apliquen) <span class="fw-bold text-danger">*</span></strong>
-                                </label>
-                                <div class="selectgroup selectgroup-pills" id="medidasSeleccion">
-                                    <label class="selectgroup-item">
-                                        <input type="checkbox" value="A0" class="selectgroup-input" />
-                                        <span class="selectgroup-button">A0</span>
-                                    </label>
-                                    <label class="selectgroup-item">
-                                        <input type="checkbox" value="A1" class="selectgroup-input" />
-                                        <span class="selectgroup-button">A1</span>
-                                    </label>
-                                    <label class="selectgroup-item">
-                                        <input type="checkbox" value="A2" class="selectgroup-input" />
-                                        <span class="selectgroup-button">A2</span>
-                                    </label>
-                                    <label class="selectgroup-item">
-                                        <input type="checkbox" value="A3" class="selectgroup-input" />
-                                        <span class="selectgroup-button">A3</span>
-                                    </label>
-                                    <label class="selectgroup-item">
-                                        <input type="checkbox" value="A4" class="selectgroup-input" />
-                                        <span class="selectgroup-button">A4</span>
-                                    </label>
-                                    <label class="selectgroup-item">
-                                        <input type="checkbox" value="A5" class="selectgroup-input" />
-                                        <span class="selectgroup-button">A5</span>
-                                    </label>
-                                    <label class="selectgroup-item">
-                                        <input type="checkbox" value="A6" class="selectgroup-input" />
-                                        <span class="selectgroup-button">A6</span>
-                                    </label>
-                                </div>
+                            <label class="form-label">
+                                <strong>Medidas <span class="text-muted fw-normal">(Opcional — selecciona solo si aplica)</span></strong>
+                            </label>
+                            <div class="selectgroup selectgroup-pills" id="medidasSeleccion">
+                                ${getMedidasHTML([])}
                             </div>
                         </div>
-                        <div class="text-center">
+                        <div class="col-12 text-center mt-2">
                             <button id="btnRegistrarServicio" class="btn btn-success btn-round">
                                 Registrar <i class="fas fa-check"></i>
                             </button>
@@ -1762,1230 +512,352 @@ function abrirModalRegistroServicio() {
                 </div>
             </div>
         </div>
-    `;
+    `);
 
-    const modal = new bootstrap.Modal(document.getElementById("modalGenerico"));
-    modal.show();
-
-    document.getElementById("btnRegistrarServicio").addEventListener("click", registrarServicio);
+    document.getElementById("btnRegistrarServicio").addEventListener("click", function() {
+        const descripcion = document.getElementById("svcDescripcion").value.trim();
+        if (!descripcion) {
+            Swal.fire({ title: "¡Ups!", text: "Debes ingresar la descripción del servicio.", icon: "warning" });
+            return;
+        }
+        enviarAjax('logica/clssMantenimiento.php', 'INSERT_SERVICIOS', {
+            descripcion: descripcion,
+            medidas: getMedidasSeleccionadas(), // puede ser [] si no se seleccionó ninguna
+            sucursal_id: SUCURSAL_ID
+        });
+    });
 }
 
-function abrirModalRegistroDimension() {
-    console.log('Abriendo modal de dimensión...');
-    document.getElementById("contenidoGenerico").innerHTML = `
+// ============================================
+// MODAL EDITAR SERVICIO (medidas opcionales)
+// ============================================
+function fn_editar_servicio(datosServicio) {
+    // Convertir medidas de string PostgreSQL "{A3,A4}" a array JS
+    let medidasArray = [];
+    if (typeof datosServicio.medidas === 'string' && datosServicio.medidas.length > 0) {
+        medidasArray = datosServicio.medidas.replace(/[{}]/g, '').split(',').filter(Boolean);
+    } else if (Array.isArray(datosServicio.medidas)) {
+        medidasArray = datosServicio.medidas;
+    }
+
+    mostrarModal(`
         <button type="button" class="btn-close position-absolute top-0 end-0 m-2" data-bs-dismiss="modal" aria-label="Close"></button>
         <div class="card-body">
-            <h4 class="card-title text-center" style="font-size: 28px;"><i class="fas fa-ruler"></i> Registro de Dimensión</h4>
-            <div class="card-sub text-center">
-                Aquí podrás <strong>registrar</strong> las dimensiones de Artículos <strong>NUEVOS.</strong>
-            </div>
-            <div class="card-sub text-center">
+            <h4 class="card-title text-center" style="font-size:28px;"><i class="fas fa-edit"></i> Editar Servicio</h4>
+            <div class="card-sub text-center mb-2">
                 Los campos con <span class="fw-bold text-danger">*</span> son obligatorios.
             </div>
             <div class="card text-start">
                 <div class="card-body">
-                    <div class="row justify-content-center align-items-center g-2">
+                    <div class="row g-2">
                         <div class="col-sm-12">
-                            <div class="mb-3">
-                                <label for="idRegistroNombreDimension" class="form-label">
-                                    <strong>Ingrese Nombre de Dimensión <span class="fw-bold text-danger">*</span></strong>
-                                </label>
-                                <input type="text" class="form-control" id="idRegistroNombreDimension" placeholder="Ejemplo: 21x29.7cm" />
-                            </div>
+                            <label class="form-label"><strong>Descripción <span class="fw-bold text-danger">*</span></strong></label>
+                            <textarea class="form-control" id="svcDescripcion">${datosServicio.descripcion || ''}</textarea>
                         </div>
                         <div class="col-sm-12">
-                            <div class="mb-3">
-                                <label for="idRegistroDescripcionDimension" class="form-label">
-                                    <strong>Descripción</strong>
-                                </label>
-                                <textarea class="form-control" id="idRegistroDescripcionDimension"></textarea>
+                            <label class="form-label">
+                                <strong>Medidas <span class="text-muted fw-normal">(Opcional — selecciona solo si aplica)</span></strong>
+                            </label>
+                            <div class="selectgroup selectgroup-pills" id="medidasSeleccion">
+                                ${getMedidasHTML(medidasArray)}
                             </div>
                         </div>
-                        <div class="text-center">
-                            <button id="btnRegistrarDimension" class="btn btn-success btn-round">
-                                Registrar <i class="fas fa-check"></i>
+                        <div class="col-12 text-center mt-2">
+                            <button id="btnEditarServicio" class="btn btn-success btn-round">
+                                Actualizar <i class="fas fa-check"></i>
                             </button>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    `;
-
-    const modal = new bootstrap.Modal(document.getElementById("modalGenerico"));
-    modal.show();
-
-    document.getElementById("btnRegistrarDimension").addEventListener("click", registrarDimension);
-}
-
-// ============================================
-// FUNCIONES DE REGISTRO
-// ============================================
-
-function registrarTipo() {
-    const nombre = document.getElementById("idRegistroNombreTipo").value.trim();
-    const descripcion = document.getElementById("idRegistroDescripcionTipo").value.trim();
-
-    if (nombre.length === 0) {
-        swal("¡Ups!", "Debes ingresar el nombre del Tipo", {
-            icon: "error",
-            buttons: { confirm: { className: "btn btn-danger" } }
-        });
-        return;
-    }
-
-    const jsDatos = {
-        "nombre": nombre,
-        "descripcion": descripcion,
-        "sucursal_id": SUCURSAL_ID
-    };
-
-    console.log("Enviando datos:", jsDatos);
-
-    $.ajax({
-        url: 'logica/clssMantenimiento.php',
-        type: 'POST',
-        data: {
-            accion: 'REGISTAR_TIPO_ARTICULO',
-            jsDatos: JSON.stringify(jsDatos)
-        },
-        success: function(response) {
-            console.log("Respuesta del servidor:", response);
-            try {
-                const result = JSON.parse(response);
-                if (result.estado === true) {
-                    swal({
-                        title: "¡Registrado con Éxito!",
-                        text: result.mensaje,
-                        icon: "success",
-                        buttons: false,
-                        timer: 1500
-                    }).then(() => {
-                        location.reload();
-                    });
-                } else {
-                    swal("Error", result.mensaje, {
-                        icon: "error",
-                        buttons: { confirm: { className: "btn btn-danger" } }
-                    });
-                }
-            } catch (e) {
-                console.log("Error al parsear JSON:", e);
-                console.log("Respuesta cruda:", response);
-                swal("Error", "No se pudo procesar la respuesta del servidor.", {
-                    icon: "error",
-                    buttons: { confirm: { className: "btn btn-danger" } }
-                });
-            }
-        },
-        error: function(xhr, status, error) {
-            console.log("Error:", error);
-            swal("Error", "Hubo un problema con la solicitud.", {
-                icon: "error",
-                buttons: { confirm: { className: "btn btn-danger" } }
-            });
-        }
-    });
-}
-
-function registrarCategoria() {
-    const nombre = document.getElementById("idRegistroNombreCategoria").value.trim();
-    const descripcion = document.getElementById("idRegistroDescripcionCategoria").value.trim();
-
-    if (nombre.length === 0) {
-        swal("¡Ups!", "Debes ingresar el nombre de la Categoría", {
-            icon: "error",
-            buttons: { confirm: { className: "btn btn-danger" } }
-        });
-        return;
-    }
-
-    const jsDatos = {
-        "nombre": nombre,
-        "descripcion": descripcion,
-        "sucursal_id": SUCURSAL_ID
-    };
-
-    console.log("Enviando datos:", jsDatos);
-
-    $.ajax({
-        url: 'logica/clssMantenimiento.php',
-        type: 'POST',
-        data: {
-            accion: 'REGISTAR_CATEGORIA_ARTICULO',
-            jsDatos: JSON.stringify(jsDatos)
-        },
-        success: function(response) {
-            console.log("Respuesta del servidor:", response);
-            try {
-                const result = JSON.parse(response);
-                if (result.estado === true) {
-                    swal({
-                        title: "¡Registrado con Éxito!",
-                        text: result.mensaje,
-                        icon: "success",
-                        buttons: false,
-                        timer: 1500
-                    }).then(() => {
-                        location.reload();
-                    });
-                } else {
-                    swal("Error", result.mensaje, {
-                        icon: "error",
-                        buttons: { confirm: { className: "btn btn-danger" } }
-                    });
-                }
-            } catch (e) {
-                console.log("Error al parsear JSON:", e);
-                swal("Error", "No se pudo procesar la respuesta del servidor.", {
-                    icon: "error",
-                    buttons: { confirm: { className: "btn btn-danger" } }
-                });
-            }
-        },
-        error: function(xhr, status, error) {
-            console.log("Error:", error);
-            swal("Error", "Hubo un problema con la solicitud.", {
-                icon: "error",
-                buttons: { confirm: { className: "btn btn-danger" } }
-            });
-        }
-    });
-}
-
-function registrarEscala() {
-    const nombre = document.getElementById("idRegistroNombreEscala").value.trim();
-    const descripcion = document.getElementById("idRegistroDescripcionEscala").value.trim();
-
-    if (nombre.length === 0) {
-        swal("¡Ups!", "Debes ingresar el nombre de la Escala", {
-            icon: "error",
-            buttons: { confirm: { className: "btn btn-danger" } }
-        });
-        return;
-    }
-
-    const jsDatos = {
-        "nombre": nombre,
-        "descripcion": descripcion,
-        "sucursal_id": SUCURSAL_ID
-    };
-
-    console.log("Enviando datos:", jsDatos);
-
-    $.ajax({
-        url: 'logica/clssMantenimiento.php',
-        type: 'POST',
-        data: {
-            accion: 'REGISTAR_ESCALA_ARTICULO',
-            jsDatos: JSON.stringify(jsDatos)
-        },
-        success: function(response) {
-            console.log("Respuesta del servidor:", response);
-            try {
-                const result = JSON.parse(response);
-                if (result.estado === true) {
-                    swal({
-                        title: "¡Registrado con Éxito!",
-                        text: result.mensaje,
-                        icon: "success",
-                        buttons: false,
-                        timer: 1500
-                    }).then(() => {
-                        location.reload();
-                    });
-                } else {
-                    swal("Error", result.mensaje, {
-                        icon: "error",
-                        buttons: { confirm: { className: "btn btn-danger" } }
-                    });
-                }
-            } catch (e) {
-                console.log("Error al parsear JSON:", e);
-                swal("Error", "No se pudo procesar la respuesta del servidor.", {
-                    icon: "error",
-                    buttons: { confirm: { className: "btn btn-danger" } }
-                });
-            }
-        },
-        error: function(xhr, status, error) {
-            console.log("Error:", error);
-            swal("Error", "Hubo un problema con la solicitud.", {
-                icon: "error",
-                buttons: { confirm: { className: "btn btn-danger" } }
-            });
-        }
-    });
-}
-
-function registrarServicio() {
-    const descripcion = document.getElementById("idRegistroDescripcionServicio").value.trim();
-    let medidasArray = [];
-    
-    const checkboxes = document.querySelectorAll("#medidasSeleccion input[type='checkbox']:checked");
-    checkboxes.forEach(function(checkbox) {
-        medidasArray.push(checkbox.value);
-    });
-
-    if (descripcion.length === 0) {
-        swal("¡Ups!", "Debes ingresar la descripción del servicio", {
-            icon: "error",
-            buttons: { confirm: { className: "btn btn-danger" } }
-        });
-        return;
-    }
-
-    if (medidasArray.length === 0) {
-        swal("¡Ups!", "Debes seleccionar al menos una medida", {
-            icon: "error",
-            buttons: { confirm: { className: "btn btn-danger" } }
-        });
-        return;
-    }
-
-    const jsDatos = {
-        "descripcion": descripcion,
-        "medidas": medidasArray,
-        "sucursal_id": SUCURSAL_ID
-    };
-
-    console.log("Enviando datos:", jsDatos);
-
-    $.ajax({
-        url: 'logica/clssMantenimiento.php',
-        type: 'POST',
-        data: {
-            accion: 'INSERT_SERVICIOS',
-            jsDatos: JSON.stringify(jsDatos)
-        },
-        success: function(response) {
-            console.log("Respuesta del servidor:", response);
-            try {
-                const result = JSON.parse(response);
-                if (result.estado === true) {
-                    swal({
-                        title: "¡Registrado con Éxito!",
-                        text: result.mensaje,
-                        icon: "success",
-                        buttons: false,
-                        timer: 1500
-                    }).then(() => {
-                        location.reload();
-                    });
-                } else {
-                    swal("Error", result.mensaje, {
-                        icon: "error",
-                        buttons: { confirm: { className: "btn btn-danger" } }
-                    });
-                }
-            } catch (e) {
-                console.log("Error al parsear JSON:", e);
-                swal("Error", "No se pudo procesar la respuesta del servidor.", {
-                    icon: "error",
-                    buttons: { confirm: { className: "btn btn-danger" } }
-                });
-            }
-        },
-        error: function(xhr, status, error) {
-            console.log("Error:", error);
-            swal("Error", "Hubo un problema con la solicitud.", {
-                icon: "error",
-                buttons: { confirm: { className: "btn btn-danger" } }
-            });
-        }
-    });
-}
-
-function registrarDimension() {
-    const nombre = document.getElementById("idRegistroNombreDimension").value.trim();
-    const descripcion = document.getElementById("idRegistroDescripcionDimension").value.trim();
-
-    if (nombre.length === 0) {
-        swal("¡Ups!", "Debes ingresar el nombre de la Dimensión", {
-            icon: "error",
-            buttons: { confirm: { className: "btn btn-danger" } }
-        });
-        return;
-    }
-
-    const jsDatos = {
-        "nombre": nombre,
-        "descripcion": descripcion,
-        "sucursal_id": SUCURSAL_ID
-    };
-
-    console.log("Enviando datos:", jsDatos);
-
-    $.ajax({
-        url: 'logica/clssMantenimiento.php',
-        type: 'POST',
-        data: {
-            accion: 'REGISTAR_DIMENSION_ARTICULO',
-            jsDatos: JSON.stringify(jsDatos)
-        },
-        success: function(response) {
-            console.log("Respuesta del servidor:", response);
-            try {
-                const result = JSON.parse(response);
-                if (result.estado === true) {
-                    swal({
-                        title: "¡Registrado con Éxito!",
-                        text: result.mensaje,
-                        icon: "success",
-                        buttons: false,
-                        timer: 1500
-                    }).then(() => {
-                        location.reload();
-                    });
-                } else {
-                    swal("Error", result.mensaje, {
-                        icon: "error",
-                        buttons: { confirm: { className: "btn btn-danger" } }
-                    });
-                }
-            } catch (e) {
-                console.log("Error al parsear JSON:", e);
-                swal("Error", "No se pudo procesar la respuesta del servidor.", {
-                    icon: "error",
-                    buttons: { confirm: { className: "btn btn-danger" } }
-                });
-            }
-        },
-        error: function(xhr, status, error) {
-            console.log("Error:", error);
-            swal("Error", "Hubo un problema con la solicitud.", {
-                icon: "error",
-                buttons: { confirm: { className: "btn btn-danger" } }
-            });
-        }
-    });
-}
-
-// ============================================
-// FUNCIONES DE EDICIÓN
-// ============================================
-
-function fn_editar_servicio(datosServicio) {
-    console.log('Editando servicio:', datosServicio);
-    
-    // Convertir medidas de string a array si es necesario
-    let medidasArray = [];
-    if (typeof datosServicio.medidas === 'string') {
-        medidasArray = datosServicio.medidas.split(',');
-    } else if (Array.isArray(datosServicio.medidas)) {
-        medidasArray = datosServicio.medidas;
-    }
-    
-    document.getElementById("contenidoGenerico").innerHTML = `
-        <button type="button" class="btn-close position-absolute top-0 end-0 m-2" data-bs-dismiss="modal" aria-label="Close"></button>
-        <div class="card-body">
-            <h4 class="card-title text-center" style="font-size: 28px;"><i class="fas fa-cogs"></i> Editar Servicio</h4>
-            <div class="card-sub text-center">
-                Aquí podrás <strong>editar</strong> los servicios <strong>existentes.</strong>
-            </div>
-            <div class="card-sub text-center">
-                Los campos con <span class="fw-bold text-danger">*</span> son obligatorios.
-            </div>
-            <div class="card text-start">
-                <div class="card-body">
-                    <div class="row justify-content-center align-items-center g-2">
-                        <div class="col-sm-12">
-                            <div class="mb-3">
-                                <label for="" class="form-label"><strong>Descripción</strong></label>
-                                <textarea class="form-control" id="idEditarDescripcion">${datosServicio.descripcion}</textarea>
-                            </div>
-                        </div>
-                        <div class="col-sm-12">
-                            <div class="mb-3">
-                                <label for="" class="form-label"><strong>Seleccione Medidas</strong></label>
-                                <div class="selectgroup selectgroup-pills" id="medidasSeleccionadas">
-                                    ${['A0', 'A1', 'A2', 'A3', 'A4', 'A5', 'A6'].map(function (medida) {
-                                        const isChecked = medidasArray.includes(medida) ? 'checked' : '';
-                                        return `
-                                            <label class="selectgroup-item">
-                                                <input type="checkbox" name="medidas" value="${medida}" class="selectgroup-input" ${isChecked} />
-                                                <span class="selectgroup-button">${medida}</span>
-                                            </label>
-                                        `;
-                                    }).join('')}
-                                </div>
-                            </div>
-                        </div>
-                        <div class="text-center">
-                            <a id="btnEditarServicio" class="btn btn-success btn-round" role="button">Actualizar <i class="fas fa-check"></i></a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    `;
-
-    const modal = new bootstrap.Modal(document.getElementById("modalGenerico"));
-    modal.show();
+    `);
 
     document.getElementById("btnEditarServicio").addEventListener("click", function() {
-        const descripcionServicio = document.getElementById("idEditarDescripcion").value;
-        const medidasSeleccionadas = Array.from(document.querySelectorAll('input[name="medidas"]:checked')).map(input => input.value);
-
-        if (descripcionServicio.length > 0) {
-            const jsDatos = {
-                "id": datosServicio.id,
-                "descripcion": descripcionServicio,
-                "medidas": medidasSeleccionadas,
-                "sucursal_id": SUCURSAL_ID
-            };
-
-            console.log(jsDatos);
-
-            $.ajax({
-                url: 'logica/clssMantenimiento.php',
-                type: 'POST',
-                data: {
-                    accion: 'EDITAR_SERVICIO',
-                    jsDatos: JSON.stringify(jsDatos)
-                },
-                success: function(response) {
-                    console.log("Respuesta del servidor:", response);
-                    try {
-                        const result = JSON.parse(response);
-                        if (result.estado === true) {
-                            swal({
-                                title: "¡Actualizado con Éxito!",
-                                text: result.mensaje,
-                                icon: "success",
-                                buttons: false,
-                                timer: 1500
-                            }).then(() => {
-                                location.reload();
-                            });
-                        } else {
-                            swal("Error", result.mensaje, {
-                                icon: "error",
-                                buttons: { confirm: { className: "btn btn-danger" } }
-                            });
-                        }
-                    } catch (e) {
-                        console.log("Error al parsear JSON:", e);
-                        swal("Error", "No se pudo procesar la respuesta del servidor.", {
-                            icon: "error",
-                            buttons: { confirm: { className: "btn btn-danger" } }
-                        });
-                    }
-                },
-                error: function(xhr, status, error) {
-                    console.log("Error:", error);
-                    swal("Error", "Hubo un problema con la solicitud.", {
-                        icon: "error",
-                        buttons: { confirm: { className: "btn btn-danger" } }
-                    });
-                }
-            });
-        } else {
-            swal("¡Ups!", "Debes ingresar la descripción del servicio", {
-                icon: "error",
-                buttons: { confirm: { className: "btn btn-danger" } }
-            });
+        const descripcion = document.getElementById("svcDescripcion").value.trim();
+        if (!descripcion) {
+            Swal.fire({ title: "¡Ups!", text: "Debes ingresar la descripción del servicio.", icon: "warning" });
+            return;
         }
+        enviarAjax('logica/clssMantenimiento.php', 'EDITAR_SERVICIO', {
+            id: datosServicio.id,
+            descripcion: descripcion,
+            medidas: getMedidasSeleccionadas(), // puede ser [] si no se seleccionó ninguna
+            sucursal_id: SUCURSAL_ID
+        });
+    });
+}
+
+// ============================================
+// MODALES PARA TIPO, CATEGORIA, ESCALA, DIMENSION
+// ============================================
+function abrirModalRegistroTipo() {
+    mostrarModal(`
+        <button type="button" class="btn-close position-absolute top-0 end-0 m-2" data-bs-dismiss="modal" aria-label="Close"></button>
+        <div class="card-body">
+            <h4 class="card-title text-center" style="font-size:28px;"><i class="fas fa-cogs"></i> Registro de Tipo</h4>
+            <div class="card text-start"><div class="card-body"><div class="row g-2">
+                <div class="col-sm-12">
+                    <label class="form-label"><strong>Nombre <span class="fw-bold text-danger">*</span></strong></label>
+                    <input type="text" class="form-control" id="tipoNombre" placeholder="Ej: Material" />
+                </div>
+                <div class="col-sm-12">
+                    <label class="form-label"><strong>Descripción</strong></label>
+                    <textarea class="form-control" id="tipoDescripcion"></textarea>
+                </div>
+                <div class="col-12 text-center mt-2">
+                    <button id="btnRegistrarTipo" class="btn btn-success btn-round">Registrar <i class="fas fa-check"></i></button>
+                </div>
+            </div></div></div>
+        </div>
+    `);
+    document.getElementById("btnRegistrarTipo").addEventListener("click", function() {
+        const nombre = document.getElementById("tipoNombre").value.trim();
+        if (!nombre) { Swal.fire({ title: "¡Ups!", text: "Debes ingresar el nombre del Tipo.", icon: "warning" }); return; }
+        enviarAjax('logica/clssMantenimiento.php', 'REGISTAR_TIPO_ARTICULO', {
+            nombre, descripcion: document.getElementById("tipoDescripcion").value.trim(), sucursal_id: SUCURSAL_ID
+        });
     });
 }
 
 function fn_editar_tipo(datosTipo) {
-    console.log('Editando tipo:', datosTipo);
-    
-    document.getElementById("contenidoGenerico").innerHTML = `
+    mostrarModal(`
         <button type="button" class="btn-close position-absolute top-0 end-0 m-2" data-bs-dismiss="modal" aria-label="Close"></button>
         <div class="card-body">
-            <h4 class="card-title text-center" style="font-size: 28px;"><i class="fas fa-cogs"></i> Editar Tipo</h4>
-            <div class="card-sub text-center">
-                Aquí podrás <strong>editar</strong> los tipos de Artículos.
-            </div>
-            <div class="card-sub text-center">
-                Los campos con <span class="fw-bold text-danger">*</span> son obligatorios.
-            </div>
-            <div class="card text-start">
-                <div class="card-body">
-                    <div class="row justify-content-center align-items-center g-2">
-                        <div class="col-sm-12">
-                            <div class="mb-3">
-                                <label for="" class="form-label"><strong>Ingrese Nombre de Tipo <span class="fw-bold text-danger">*</span></strong></label>
-                                <input type="text" class="form-control" id="idEditarNombreTipo" value="${datosTipo.abreviatura}" placeholder="Articulo 1" />
-                            </div>
-                        </div>
-                        <div class="col-sm-12">
-                            <div class="mb-3">
-                                <label for="" class="form-label"><strong>Descripción</strong></label>
-                                <textarea class="form-control" id="idEditarDescripcion">${datosTipo.descripcion || ''}</textarea>
-                            </div>
-                        </div>
-                        <div class="text-center">
-                            <a id="btnEditarTipo" class="btn btn-success btn-round" role="button">Actualizar <i class="fas fa-check"></i></a>
-                        </div>
-                    </div>
+            <h4 class="card-title text-center" style="font-size:28px;"><i class="fas fa-cogs"></i> Editar Tipo</h4>
+            <div class="card text-start"><div class="card-body"><div class="row g-2">
+                <div class="col-sm-12">
+                    <label class="form-label"><strong>Nombre <span class="fw-bold text-danger">*</span></strong></label>
+                    <input type="text" class="form-control" id="tipoNombre" value="${datosTipo.abreviatura || ''}" />
                 </div>
-            </div>
+                <div class="col-sm-12">
+                    <label class="form-label"><strong>Descripción</strong></label>
+                    <textarea class="form-control" id="tipoDescripcion">${datosTipo.descripcion || ''}</textarea>
+                </div>
+                <div class="col-12 text-center mt-2">
+                    <button id="btnEditarTipo" class="btn btn-success btn-round">Actualizar <i class="fas fa-check"></i></button>
+                </div>
+            </div></div></div>
         </div>
-    `;
-
-    const modal = new bootstrap.Modal(document.getElementById("modalGenerico"));
-    modal.show();
-
+    `);
     document.getElementById("btnEditarTipo").addEventListener("click", function() {
-        if (document.getElementById("idEditarNombreTipo").value.length > 0) {
-            const jsDatos = {
-                "id": datosTipo.id,
-                "nombre": document.getElementById("idEditarNombreTipo").value,
-                "descripcion": document.getElementById("idEditarDescripcion").value
-            };
-            
-            console.log(jsDatos);
+        const nombre = document.getElementById("tipoNombre").value.trim();
+        if (!nombre) { Swal.fire({ title: "¡Ups!", text: "Debes ingresar el nombre del Tipo.", icon: "warning" }); return; }
+        enviarAjax('logica/clssMantenimiento.php', 'EDITAR_TIPO_ARTICULO', {
+            id: datosTipo.id, nombre, descripcion: document.getElementById("tipoDescripcion").value.trim()
+        });
+    });
+}
 
-            $.ajax({
-                url: 'logica/clssMantenimiento.php',
-                type: 'POST',
-                data: {
-                    accion: 'EDITAR_TIPO_ARTICULO',
-                    jsDatos: JSON.stringify(jsDatos)
-                },
-                success: function(response) {
-                    console.log("Respuesta del servidor:", response);
-                    try {
-                        const result = JSON.parse(response);
-                        if (result.estado === true) {
-                            swal({
-                                title: "¡Actualizado con Éxito!",
-                                text: result.mensaje,
-                                icon: "success",
-                                buttons: false,
-                                timer: 1500
-                            }).then(() => {
-                                location.reload();
-                            });
-                        } else {
-                            swal("Error", result.mensaje, {
-                                icon: "error",
-                                buttons: { confirm: { className: "btn btn-danger" } }
-                            });
-                        }
-                    } catch (e) {
-                        console.log("Error al parsear JSON:", e);
-                        swal("Error", "No se pudo procesar la respuesta del servidor.", {
-                            icon: "error",
-                            buttons: { confirm: { className: "btn btn-danger" } }
-                        });
-                    }
-                },
-                error: function(xhr, status, error) {
-                    console.log("Error:", error);
-                    swal("Error", "Hubo un problema con la solicitud.", {
-                        icon: "error",
-                        buttons: { confirm: { className: "btn btn-danger" } }
-                    });
-                }
-            });
-        } else {
-            swal("¡Ups!", "Debes ingresar el nombre del Tipo", {
-                icon: "error",
-                buttons: { confirm: { className: "btn btn-danger" } }
-            });
-        }
+function abrirModalRegistroCategoria() {
+    mostrarModal(`
+        <button type="button" class="btn-close position-absolute top-0 end-0 m-2" data-bs-dismiss="modal" aria-label="Close"></button>
+        <div class="card-body">
+            <h4 class="card-title text-center" style="font-size:28px;"><i class="fas fa-tag"></i> Registro de Categoría</h4>
+            <div class="card text-start"><div class="card-body"><div class="row g-2">
+                <div class="col-sm-12">
+                    <label class="form-label"><strong>Nombre <span class="fw-bold text-danger">*</span></strong></label>
+                    <input type="text" class="form-control" id="catNombre" placeholder="Ej: Papelería" />
+                </div>
+                <div class="col-sm-12">
+                    <label class="form-label"><strong>Descripción</strong></label>
+                    <textarea class="form-control" id="catDescripcion"></textarea>
+                </div>
+                <div class="col-12 text-center mt-2">
+                    <button id="btnRegistrarCategoria" class="btn btn-success btn-round">Registrar <i class="fas fa-check"></i></button>
+                </div>
+            </div></div></div>
+        </div>
+    `);
+    document.getElementById("btnRegistrarCategoria").addEventListener("click", function() {
+        const nombre = document.getElementById("catNombre").value.trim();
+        if (!nombre) { Swal.fire({ title: "¡Ups!", text: "Debes ingresar el nombre de la Categoría.", icon: "warning" }); return; }
+        enviarAjax('logica/clssMantenimiento.php', 'REGISTAR_CATEGORIA_ARTICULO', {
+            nombre, descripcion: document.getElementById("catDescripcion").value.trim(), sucursal_id: SUCURSAL_ID
+        });
     });
 }
 
 function fn_editar_categoria(datosCategoria) {
-    console.log('Editando categoría:', datosCategoria);
-    
-    document.getElementById("contenidoGenerico").innerHTML = `
+    mostrarModal(`
         <button type="button" class="btn-close position-absolute top-0 end-0 m-2" data-bs-dismiss="modal" aria-label="Close"></button>
         <div class="card-body">
-            <h4 class="card-title text-center" style="font-size: 28px;"><i class="fas fa-cogs"></i> Editar Categoría</h4>
-            <div class="card-sub text-center">
-                Aquí podrás <strong>editar</strong> las categorías de Artículos.
-            </div>
-            <div class="card-sub text-center">
-                Los campos con <span class="fw-bold text-danger">*</span> son obligatorios.
-            </div>
-            <div class="card text-start">
-                <div class="card-body">
-                    <div class="row justify-content-center align-items-center g-2">
-                        <div class="col-sm-12">
-                            <div class="mb-3">
-                                <label for="" class="form-label"><strong>Ingrese Nombre de Categoría <span class="fw-bold text-danger">*</span></strong></label>
-                                <input type="text" class="form-control" id="idEditarNombreCategoria" value="${datosCategoria.abreviatura}" placeholder="Categoría 1" />
-                            </div>
-                        </div>
-                        <div class="col-sm-12">
-                            <div class="mb-3">
-                                <label for="" class="form-label"><strong>Descripción</strong></label>
-                                <textarea class="form-control" id="idEditarDescripcion">${datosCategoria.descripcion || ''}</textarea>
-                            </div>
-                        </div>
-                        <div class="text-center">
-                            <a id="btnEditarCategoria" class="btn btn-success btn-round" role="button">Actualizar <i class="fas fa-check"></i></a>
-                        </div>
-                    </div>
+            <h4 class="card-title text-center" style="font-size:28px;"><i class="fas fa-tag"></i> Editar Categoría</h4>
+            <div class="card text-start"><div class="card-body"><div class="row g-2">
+                <div class="col-sm-12">
+                    <label class="form-label"><strong>Nombre <span class="fw-bold text-danger">*</span></strong></label>
+                    <input type="text" class="form-control" id="catNombre" value="${datosCategoria.abreviatura || ''}" />
                 </div>
-            </div>
+                <div class="col-sm-12">
+                    <label class="form-label"><strong>Descripción</strong></label>
+                    <textarea class="form-control" id="catDescripcion">${datosCategoria.descripcion || ''}</textarea>
+                </div>
+                <div class="col-12 text-center mt-2">
+                    <button id="btnEditarCategoria" class="btn btn-success btn-round">Actualizar <i class="fas fa-check"></i></button>
+                </div>
+            </div></div></div>
         </div>
-    `;
-
-    const modal = new bootstrap.Modal(document.getElementById("modalGenerico"));
-    modal.show();
-
+    `);
     document.getElementById("btnEditarCategoria").addEventListener("click", function() {
-        if (document.getElementById("idEditarNombreCategoria").value.length > 0) {
-            const jsDatos = {
-                "id": datosCategoria.id,
-                "nombre": document.getElementById("idEditarNombreCategoria").value,
-                "descripcion": document.getElementById("idEditarDescripcion").value
-            };
-            
-            console.log(jsDatos);
+        const nombre = document.getElementById("catNombre").value.trim();
+        if (!nombre) { Swal.fire({ title: "¡Ups!", text: "Debes ingresar el nombre de la Categoría.", icon: "warning" }); return; }
+        enviarAjax('logica/clssMantenimiento.php', 'EDITAR_CATEGORIA_ARTICULO', {
+            id: datosCategoria.id, nombre, descripcion: document.getElementById("catDescripcion").value.trim()
+        });
+    });
+}
 
-            $.ajax({
-                url: 'logica/clssMantenimiento.php',
-                type: 'POST',
-                data: {
-                    accion: 'EDITAR_CATEGORIA_ARTICULO',
-                    jsDatos: JSON.stringify(jsDatos)
-                },
-                success: function(response) {
-                    console.log("Respuesta del servidor:", response);
-                    try {
-                        const result = JSON.parse(response);
-                        if (result.estado === true) {
-                            swal({
-                                title: "¡Actualizado con Éxito!",
-                                text: result.mensaje,
-                                icon: "success",
-                                buttons: false,
-                                timer: 1500
-                            }).then(() => {
-                                location.reload();
-                            });
-                        } else {
-                            swal("Error", result.mensaje, {
-                                icon: "error",
-                                buttons: { confirm: { className: "btn btn-danger" } }
-                            });
-                        }
-                    } catch (e) {
-                        console.log("Error al parsear JSON:", e);
-                        swal("Error", "No se pudo procesar la respuesta del servidor.", {
-                            icon: "error",
-                            buttons: { confirm: { className: "btn btn-danger" } }
-                        });
-                    }
-                },
-                error: function(xhr, status, error) {
-                    console.log("Error:", error);
-                    swal("Error", "Hubo un problema con la solicitud.", {
-                        icon: "error",
-                        buttons: { confirm: { className: "btn btn-danger" } }
-                    });
-                }
-            });
-        } else {
-            swal("¡Ups!", "Debes ingresar el nombre de la Categoría", {
-                icon: "error",
-                buttons: { confirm: { className: "btn btn-danger" } }
-            });
-        }
+function abrirModalRegistroEscala() {
+    mostrarModal(`
+        <button type="button" class="btn-close position-absolute top-0 end-0 m-2" data-bs-dismiss="modal" aria-label="Close"></button>
+        <div class="card-body">
+            <h4 class="card-title text-center" style="font-size:28px;"><i class="fas fa-sort-amount-up"></i> Registro de Escala</h4>
+            <div class="card text-start"><div class="card-body"><div class="row g-2">
+                <div class="col-sm-12">
+                    <label class="form-label"><strong>Nombre <span class="fw-bold text-danger">*</span></strong></label>
+                    <input type="text" class="form-control" id="escNombre" placeholder="Ej: Grande" />
+                </div>
+                <div class="col-sm-12">
+                    <label class="form-label"><strong>Descripción</strong></label>
+                    <textarea class="form-control" id="escDescripcion"></textarea>
+                </div>
+                <div class="col-12 text-center mt-2">
+                    <button id="btnRegistrarEscala" class="btn btn-success btn-round">Registrar <i class="fas fa-check"></i></button>
+                </div>
+            </div></div></div>
+        </div>
+    `);
+    document.getElementById("btnRegistrarEscala").addEventListener("click", function() {
+        const nombre = document.getElementById("escNombre").value.trim();
+        if (!nombre) { Swal.fire({ title: "¡Ups!", text: "Debes ingresar el nombre de la Escala.", icon: "warning" }); return; }
+        enviarAjax('logica/clssMantenimiento.php', 'REGISTAR_ESCALA_ARTICULO', {
+            nombre, descripcion: document.getElementById("escDescripcion").value.trim(), sucursal_id: SUCURSAL_ID
+        });
     });
 }
 
 function fn_editar_escala(datosEscala) {
-    console.log('Editando escala:', datosEscala);
-    
-    document.getElementById("contenidoGenerico").innerHTML = `
+    mostrarModal(`
         <button type="button" class="btn-close position-absolute top-0 end-0 m-2" data-bs-dismiss="modal" aria-label="Close"></button>
         <div class="card-body">
-            <h4 class="card-title text-center" style="font-size: 28px;"><i class="fas fa-cogs"></i> Editar Escala</h4>
-            <div class="card-sub text-center">
-                Aquí podrás <strong>editar</strong> las escalas de Artículos.
-            </div>
-            <div class="card-sub text-center">
-                Los campos con <span class="fw-bold text-danger">*</span> son obligatorios.
-            </div>
-            <div class="card text-start">
-                <div class="card-body">
-                    <div class="row justify-content-center align-items-center g-2">
-                        <div class="col-sm-12">
-                            <div class="mb-3">
-                                <label for="" class="form-label"><strong>Ingrese Nombre de Escala <span class="fw-bold text-danger">*</span></strong></label>
-                                <input type="text" class="form-control" id="idEditarNombreEscala" value="${datosEscala.abreviatura}" placeholder="Escala 1" />
-                            </div>
-                        </div>
-                        <div class="col-sm-12">
-                            <div class="mb-3">
-                                <label for="" class="form-label"><strong>Descripción</strong></label>
-                                <textarea class="form-control" id="idEditarDescripcion">${datosEscala.descripcion || ''}</textarea>
-                            </div>
-                        </div>
-                        <div class="text-center">
-                            <a id="btnEditarEscala" class="btn btn-success btn-round" role="button">Actualizar <i class="fas fa-check"></i></a>
-                        </div>
-                    </div>
+            <h4 class="card-title text-center" style="font-size:28px;"><i class="fas fa-sort-amount-up"></i> Editar Escala</h4>
+            <div class="card text-start"><div class="card-body"><div class="row g-2">
+                <div class="col-sm-12">
+                    <label class="form-label"><strong>Nombre <span class="fw-bold text-danger">*</span></strong></label>
+                    <input type="text" class="form-control" id="escNombre" value="${datosEscala.abreviatura || ''}" />
                 </div>
-            </div>
+                <div class="col-sm-12">
+                    <label class="form-label"><strong>Descripción</strong></label>
+                    <textarea class="form-control" id="escDescripcion">${datosEscala.descripcion || ''}</textarea>
+                </div>
+                <div class="col-12 text-center mt-2">
+                    <button id="btnEditarEscala" class="btn btn-success btn-round">Actualizar <i class="fas fa-check"></i></button>
+                </div>
+            </div></div></div>
         </div>
-    `;
-
-    const modal = new bootstrap.Modal(document.getElementById("modalGenerico"));
-    modal.show();
-
+    `);
     document.getElementById("btnEditarEscala").addEventListener("click", function() {
-        if (document.getElementById("idEditarNombreEscala").value.length > 0) {
-            const jsDatos = {
-                "id": datosEscala.id,
-                "nombre": document.getElementById("idEditarNombreEscala").value,
-                "descripcion": document.getElementById("idEditarDescripcion").value
-            };
-            
-            console.log(jsDatos);
+        const nombre = document.getElementById("escNombre").value.trim();
+        if (!nombre) { Swal.fire({ title: "¡Ups!", text: "Debes ingresar el nombre de la Escala.", icon: "warning" }); return; }
+        enviarAjax('logica/clssMantenimiento.php', 'EDITAR_ESCALA_ARTICULO', {
+            id: datosEscala.id, nombre, descripcion: document.getElementById("escDescripcion").value.trim()
+        });
+    });
+}
 
-            $.ajax({
-                url: 'logica/clssMantenimiento.php',
-                type: 'POST',
-                data: {
-                    accion: 'EDITAR_ESCALA_ARTICULO',
-                    jsDatos: JSON.stringify(jsDatos)
-                },
-                success: function(response) {
-                    console.log("Respuesta del servidor:", response);
-                    try {
-                        const result = JSON.parse(response);
-                        if (result.estado === true) {
-                            swal({
-                                title: "¡Actualizado con Éxito!",
-                                text: result.mensaje,
-                                icon: "success",
-                                buttons: false,
-                                timer: 1500
-                            }).then(() => {
-                                location.reload();
-                            });
-                        } else {
-                            swal("Error", result.mensaje, {
-                                icon: "error",
-                                buttons: { confirm: { className: "btn btn-danger" } }
-                            });
-                        }
-                    } catch (e) {
-                        console.log("Error al parsear JSON:", e);
-                        swal("Error", "No se pudo procesar la respuesta del servidor.", {
-                            icon: "error",
-                            buttons: { confirm: { className: "btn btn-danger" } }
-                        });
-                    }
-                },
-                error: function(xhr, status, error) {
-                    console.log("Error:", error);
-                    swal("Error", "Hubo un problema con la solicitud.", {
-                        icon: "error",
-                        buttons: { confirm: { className: "btn btn-danger" } }
-                    });
-                }
-            });
-        } else {
-            swal("¡Ups!", "Debes ingresar el nombre de la Escala", {
-                icon: "error",
-                buttons: { confirm: { className: "btn btn-danger" } }
-            });
-        }
+function abrirModalRegistroDimension() {
+    mostrarModal(`
+        <button type="button" class="btn-close position-absolute top-0 end-0 m-2" data-bs-dismiss="modal" aria-label="Close"></button>
+        <div class="card-body">
+            <h4 class="card-title text-center" style="font-size:28px;"><i class="fas fa-ruler"></i> Registro de Dimensión</h4>
+            <div class="card text-start"><div class="card-body"><div class="row g-2">
+                <div class="col-sm-12">
+                    <label class="form-label"><strong>Nombre <span class="fw-bold text-danger">*</span></strong></label>
+                    <input type="text" class="form-control" id="dimNombre" placeholder="Ej: 21x29.7cm" />
+                </div>
+                <div class="col-sm-12">
+                    <label class="form-label"><strong>Descripción</strong></label>
+                    <textarea class="form-control" id="dimDescripcion"></textarea>
+                </div>
+                <div class="col-12 text-center mt-2">
+                    <button id="btnRegistrarDimension" class="btn btn-success btn-round">Registrar <i class="fas fa-check"></i></button>
+                </div>
+            </div></div></div>
+        </div>
+    `);
+    document.getElementById("btnRegistrarDimension").addEventListener("click", function() {
+        const nombre = document.getElementById("dimNombre").value.trim();
+        if (!nombre) { Swal.fire({ title: "¡Ups!", text: "Debes ingresar el nombre de la Dimensión.", icon: "warning" }); return; }
+        enviarAjax('logica/clssMantenimiento.php', 'REGISTAR_DIMENSION_ARTICULO', {
+            nombre, descripcion: document.getElementById("dimDescripcion").value.trim(), sucursal_id: SUCURSAL_ID
+        });
     });
 }
 
 function fn_editar_dimension(datosDimension) {
-    console.log('Editando dimensión:', datosDimension);
-    
-    document.getElementById("contenidoGenerico").innerHTML = `
+    mostrarModal(`
         <button type="button" class="btn-close position-absolute top-0 end-0 m-2" data-bs-dismiss="modal" aria-label="Close"></button>
         <div class="card-body">
-            <h4 class="card-title text-center" style="font-size: 28px;"><i class="fas fa-cogs"></i> Editar Dimensión</h4>
-            <div class="card-sub text-center">
-                Aquí podrás <strong>editar</strong> las dimensiones de Artículos.
-            </div>
-            <div class="card-sub text-center">
-                Los campos con <span class="fw-bold text-danger">*</span> son obligatorios.
-            </div>
-            <div class="card text-start">
-                <div class="card-body">
-                    <div class="row justify-content-center align-items-center g-2">
-                        <div class="col-sm-12">
-                            <div class="mb-3">
-                                <label for="" class="form-label"><strong>Ingrese Nombre de Dimensión <span class="fw-bold text-danger">*</span></strong></label>
-                                <input type="text" class="form-control" id="idEditarNombreDimension" value="${datosDimension.medida}" placeholder="Dimensión 1" />
-                            </div>
-                        </div>
-                        <div class="col-sm-12">
-                            <div class="mb-3">
-                                <label for="" class="form-label"><strong>Descripción</strong></label>
-                                <textarea class="form-control" id="idEditarDescripcion">${datosDimension.descripcion || ''}</textarea>
-                            </div>
-                        </div>
-                        <div class="text-center">
-                            <a id="btnEditarDimension" class="btn btn-success btn-round" role="button">Actualizar <i class="fas fa-check"></i></a>
-                        </div>
-                    </div>
+            <h4 class="card-title text-center" style="font-size:28px;"><i class="fas fa-ruler"></i> Editar Dimensión</h4>
+            <div class="card text-start"><div class="card-body"><div class="row g-2">
+                <div class="col-sm-12">
+                    <label class="form-label"><strong>Nombre <span class="fw-bold text-danger">*</span></strong></label>
+                    <input type="text" class="form-control" id="dimNombre" value="${datosDimension.medida || ''}" />
                 </div>
-            </div>
+                <div class="col-sm-12">
+                    <label class="form-label"><strong>Descripción</strong></label>
+                    <textarea class="form-control" id="dimDescripcion">${datosDimension.descripcion || ''}</textarea>
+                </div>
+                <div class="col-12 text-center mt-2">
+                    <button id="btnEditarDimension" class="btn btn-success btn-round">Actualizar <i class="fas fa-check"></i></button>
+                </div>
+            </div></div></div>
         </div>
-    `;
-
-    const modal = new bootstrap.Modal(document.getElementById("modalGenerico"));
-    modal.show();
-
+    `);
     document.getElementById("btnEditarDimension").addEventListener("click", function() {
-        if (document.getElementById("idEditarNombreDimension").value.length > 0) {
-            const jsDatos = {
-                "id": datosDimension.id,
-                "nombre": document.getElementById("idEditarNombreDimension").value,
-                "descripcion": document.getElementById("idEditarDescripcion").value
-            };
-            
-            console.log(jsDatos);
-
-            $.ajax({
-                url: 'logica/clssMantenimiento.php',
-                type: 'POST',
-                data: {
-                    accion: 'EDITAR_DIMENSION_ARTICULO',
-                    jsDatos: JSON.stringify(jsDatos)
-                },
-                success: function(response) {
-                    console.log("Respuesta del servidor:", response);
-                    try {
-                        const result = JSON.parse(response);
-                        if (result.estado === true) {
-                            swal({
-                                title: "¡Actualizado con Éxito!",
-                                text: result.mensaje,
-                                icon: "success",
-                                buttons: false,
-                                timer: 1500
-                            }).then(() => {
-                                location.reload();
-                            });
-                        } else {
-                            swal("Error", result.mensaje, {
-                                icon: "error",
-                                buttons: { confirm: { className: "btn btn-danger" } }
-                            });
-                        }
-                    } catch (e) {
-                        console.log("Error al parsear JSON:", e);
-                        swal("Error", "No se pudo procesar la respuesta del servidor.", {
-                            icon: "error",
-                            buttons: { confirm: { className: "btn btn-danger" } }
-                        });
-                    }
-                },
-                error: function(xhr, status, error) {
-                    console.log("Error:", error);
-                    swal("Error", "Hubo un problema con la solicitud.", {
-                        icon: "error",
-                        buttons: { confirm: { className: "btn btn-danger" } }
-                    });
-                }
-            });
-        } else {
-            swal("¡Ups!", "Debes ingresar el nombre de la Dimensión", {
-                icon: "error",
-                buttons: { confirm: { className: "btn btn-danger" } }
-            });
-        }
+        const nombre = document.getElementById("dimNombre").value.trim();
+        if (!nombre) { Swal.fire({ title: "¡Ups!", text: "Debes ingresar el nombre de la Dimensión.", icon: "warning" }); return; }
+        enviarAjax('logica/clssMantenimiento.php', 'EDITAR_DIMENSION_ARTICULO', {
+            id: datosDimension.id, nombre, descripcion: document.getElementById("dimDescripcion").value.trim()
+        });
     });
 }
 
 // ============================================
-// FUNCIONES PARA BLOQUEAR/DESBLOQUEAR
+// BLOQUEAR / DESBLOQUEAR
 // ============================================
-
-function fn_bloquear_tipo(id) {
-    swal({
-        title: "¿Estás seguro?",
-        text: "Se bloqueará este tipo de artículo",
-        icon: "warning",
-        buttons: {
-            cancel: {
-                text: "Cancelar",
-                visible: true,
-                className: "btn btn-secondary"
-            },
-            confirm: {
-                text: "Sí, bloquear",
-                className: "btn btn-danger"
+function toggleEstado(tabla, accionBloquear, accionDesbloquear, accion, id) {
+    if (accion === 'bloquear') {
+        Swal.fire({
+            title: "¿Estás seguro?",
+            text: `Se bloqueará este registro.`,
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "Sí, bloquear",
+            cancelButtonText: "Cancelar",
+            confirmButtonColor: "#d33"
+        }).then(result => {
+            if (result.isConfirmed) {
+                $.post('logica/clssMantenimiento.php', { accion: accionBloquear, id: id }, function() {
+                    Swal.fire("¡Bloqueado!", "", "success").then(() => location.reload());
+                });
             }
-        }
-    }).then((willDelete) => {
-        if (willDelete) {
-            $.ajax({
-                url: 'logica/clssMantenimiento.php',
-                type: 'POST',
-                data: {
-                    accion: 'BLOQUEAR_TIPO',
-                    id: id
-                },
-                success: function(response) {
-                    swal("¡Bloqueado!", "El tipo ha sido bloqueado.", "success").then(() => {
-                        location.reload();
-                    });
-                },
-                error: function() {
-                    swal("Error", "No se pudo bloquear el tipo.", "error");
-                }
-            });
-        }
-    });
+        });
+    } else {
+        $.post('logica/clssMantenimiento.php', { accion: accionDesbloquear, id: id }, function() {
+            Swal.fire("¡Desbloqueado!", "", "success").then(() => location.reload());
+        });
+    }
 }
 
-function fn_desbloquear_tipo(id) {
-    $.ajax({
-        url: 'logica/clssMantenimiento.php',
-        type: 'POST',
-        data: {
-            accion: 'DESBLOQUEAR_TIPO',
-            id: id
-        },
-        success: function(response) {
-            swal("¡Desbloqueado!", "El tipo ha sido desbloqueado.", "success").then(() => {
-                location.reload();
-            });
-        },
-        error: function() {
-            swal("Error", "No se pudo desbloquear el tipo.", "error");
-        }
-    });
-}
-
-function fn_bloquear_categoria(id) {
-    swal({
-        title: "¿Estás seguro?",
-        text: "Se bloqueará esta categoría",
-        icon: "warning",
-        buttons: {
-            cancel: {
-                text: "Cancelar",
-                visible: true,
-                className: "btn btn-secondary"
-            },
-            confirm: {
-                text: "Sí, bloquear",
-                className: "btn btn-danger"
-            }
-        }
-    }).then((willDelete) => {
-        if (willDelete) {
-            $.ajax({
-                url: 'logica/clssMantenimiento.php',
-                type: 'POST',
-                data: {
-                    accion: 'BLOQUEAR_CATEGORIA',
-                    id: id
-                },
-                success: function(response) {
-                    swal("¡Bloqueado!", "La categoría ha sido bloqueada.", "success").then(() => {
-                        location.reload();
-                    });
-                },
-                error: function() {
-                    swal("Error", "No se pudo bloquear la categoría.", "error");
-                }
-            });
-        }
-    });
-}
-
-function fn_desbloquear_categoria(id) {
-    $.ajax({
-        url: 'logica/clssMantenimiento.php',
-        type: 'POST',
-        data: {
-            accion: 'DESBLOQUEAR_CATEGORIA',
-            id: id
-        },
-        success: function(response) {
-            swal("¡Desbloqueado!", "La categoría ha sido desbloqueada.", "success").then(() => {
-                location.reload();
-            });
-        },
-        error: function() {
-            swal("Error", "No se pudo desbloquear la categoría.", "error");
-        }
-    });
-}
-
-function fn_bloquear_escala(id) {
-    swal({
-        title: "¿Estás seguro?",
-        text: "Se bloqueará esta escala",
-        icon: "warning",
-        buttons: {
-            cancel: {
-                text: "Cancelar",
-                visible: true,
-                className: "btn btn-secondary"
-            },
-            confirm: {
-                text: "Sí, bloquear",
-                className: "btn btn-danger"
-            }
-        }
-    }).then((willDelete) => {
-        if (willDelete) {
-            $.ajax({
-                url: 'logica/clssMantenimiento.php',
-                type: 'POST',
-                data: {
-                    accion: 'BLOQUEAR_ESCALA',
-                    id: id
-                },
-                success: function(response) {
-                    swal("¡Bloqueado!", "La escala ha sido bloqueada.", "success").then(() => {
-                        location.reload();
-                    });
-                },
-                error: function() {
-                    swal("Error", "No se pudo bloquear la escala.", "error");
-                }
-            });
-        }
-    });
-}
-
-function fn_desbloquear_escala(id) {
-    $.ajax({
-        url: 'logica/clssMantenimiento.php',
-        type: 'POST',
-        data: {
-            accion: 'DESBLOQUEAR_ESCALA',
-            id: id
-        },
-        success: function(response) {
-            swal("¡Desbloqueado!", "La escala ha sido desbloqueada.", "success").then(() => {
-                location.reload();
-            });
-        },
-        error: function() {
-            swal("Error", "No se pudo desbloquear la escala.", "error");
-        }
-    });
-}
-
-function fn_bloquear_servicio(id) {
-    swal({
-        title: "¿Estás seguro?",
-        text: "Se bloqueará este servicio",
-        icon: "warning",
-        buttons: {
-            cancel: {
-                text: "Cancelar",
-                visible: true,
-                className: "btn btn-secondary"
-            },
-            confirm: {
-                text: "Sí, bloquear",
-                className: "btn btn-danger"
-            }
-        }
-    }).then((willDelete) => {
-        if (willDelete) {
-            $.ajax({
-                url: 'logica/clssMantenimiento.php',
-                type: 'POST',
-                data: {
-                    accion: 'BLOQUEAR_SERVICIO',
-                    id: id
-                },
-                success: function(response) {
-                    swal("¡Bloqueado!", "El servicio ha sido bloqueado.", "success").then(() => {
-                        location.reload();
-                    });
-                },
-                error: function() {
-                    swal("Error", "No se pudo bloquear el servicio.", "error");
-                }
-            });
-        }
-    });
-}
-
-function fn_desbloquear_servicio(id) {
-    $.ajax({
-        url: 'logica/clssMantenimiento.php',
-        type: 'POST',
-        data: {
-            accion: 'DESBLOQUEAR_SERVICIO',
-            id: id
-        },
-        success: function(response) {
-            swal("¡Desbloqueado!", "El servicio ha sido desbloqueado.", "success").then(() => {
-                location.reload();
-            });
-        },
-        error: function() {
-            swal("Error", "No se pudo desbloquear el servicio.", "error");
-        }
-    });
-}
-
-function fn_bloquear_dimension(id) {
-    swal({
-        title: "¿Estás seguro?",
-        text: "Se bloqueará esta dimensión",
-        icon: "warning",
-        buttons: {
-            cancel: {
-                text: "Cancelar",
-                visible: true,
-                className: "btn btn-secondary"
-            },
-            confirm: {
-                text: "Sí, bloquear",
-                className: "btn btn-danger"
-            }
-        }
-    }).then((willDelete) => {
-        if (willDelete) {
-            $.ajax({
-                url: 'logica/clssMantenimiento.php',
-                type: 'POST',
-                data: {
-                    accion: 'BLOQUEAR_DIMENSION',
-                    id: id
-                },
-                success: function(response) {
-                    swal("¡Bloqueado!", "La dimensión ha sido bloqueada.", "success").then(() => {
-                        location.reload();
-                    });
-                },
-                error: function() {
-                    swal("Error", "No se pudo bloquear la dimensión.", "error");
-                }
-            });
-        }
-    });
-}
-
-function fn_desbloquear_dimension(id) {
-    $.ajax({
-        url: 'logica/clssMantenimiento.php',
-        type: 'POST',
-        data: {
-            accion: 'DESBLOQUEAR_DIMENSION',
-            id: id
-        },
-        success: function(response) {
-            swal("¡Desbloqueado!", "La dimensión ha sido desbloqueada.", "success").then(() => {
-                location.reload();
-            });
-        },
-        error: function() {
-            swal("Error", "No se pudo desbloquear la dimensión.", "error");
-        }
-    });
-}
+function fn_bloquear_tipo(id)         { toggleEstado('tipo', 'BLOQUEAR_TIPO', 'DESBLOQUEAR_TIPO', 'bloquear', id); }
+function fn_desbloquear_tipo(id)      { toggleEstado('tipo', 'BLOQUEAR_TIPO', 'DESBLOQUEAR_TIPO', 'desbloquear', id); }
+function fn_bloquear_categoria(id)    { toggleEstado('categoria', 'BLOQUEAR_CATEGORIA', 'DESBLOQUEAR_CATEGORIA', 'bloquear', id); }
+function fn_desbloquear_categoria(id) { toggleEstado('categoria', 'BLOQUEAR_CATEGORIA', 'DESBLOQUEAR_CATEGORIA', 'desbloquear', id); }
+function fn_bloquear_escala(id)       { toggleEstado('escala', 'BLOQUEAR_ESCALA', 'DESBLOQUEAR_ESCALA', 'bloquear', id); }
+function fn_desbloquear_escala(id)    { toggleEstado('escala', 'BLOQUEAR_ESCALA', 'DESBLOQUEAR_ESCALA', 'desbloquear', id); }
+function fn_bloquear_dimension(id)    { toggleEstado('dimension', 'BLOQUEAR_DIMENSION', 'DESBLOQUEAR_DIMENSION', 'bloquear', id); }
+function fn_desbloquear_dimension(id) { toggleEstado('dimension', 'BLOQUEAR_DIMENSION', 'DESBLOQUEAR_DIMENSION', 'desbloquear', id); }
 </script>
-<?php
-include("pie.php");
-?>
+
+<?php include("pie.php"); ?>
