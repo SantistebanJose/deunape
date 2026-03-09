@@ -932,13 +932,12 @@ class SunatComprobante
 
     private function _dosTime(int $timestamp): int
     {
-        $d = getdate($timestamp);
-        return (($d['year'] - 1980) << 25)
-             | ($d['mon']   << 21)
-             | ($d['mday']  << 16)
-             | ($d['hours'] << 11)
-             | ($d['minutes'] << 5)
-             | ($d['seconds'] >> 1);
+        return (((int)date('Y', $timestamp) - 1980) << 25)
+             | ((int)date('n', $timestamp) << 21)
+             | ((int)date('j', $timestamp) << 16)
+             | ((int)date('G', $timestamp) << 11)
+             | ((int)date('i', $timestamp) << 5)
+             | ((int)date('s', $timestamp) >> 1);
     }
 
     private function _extraerZip(string $rutaZip, string $destino): void
