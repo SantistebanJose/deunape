@@ -76,9 +76,15 @@ function fn_procesar_comprobante(string $jsDatos, string $modo): void
     $emisor = [
         'sucursal'         => $emisorRaw['sucursal_id'] ?? $emisorRaw['sucursal'] ?? '1',
         'certificado'      => basename($emisorRaw['direccion_firma_digital'] ?? '') ?: ($emisorRaw['certificado'] ?? (($emisorRaw['ruc'] ?? '') . 'Mp12.pfx')),
-        'pass_certificado' => $emisorRaw['contraseña_firma_digital']
-                           ?? $emisorRaw['pass_certificado']
-                           ?? $emisorRaw['clave_firma_digital']
+        'pass_certificado' => (function() use ($emisorRaw) {
+                               // Buscar la clave con ñ sin depender del encoding
+                               foreach ($emisorRaw as $k => $v) {
+                                   if (stripos($k, 'contrase') !== false && stripos($k, 'firma') !== false) return $v;
+                               }
+                               return $emisorRaw['pass_certificado']
+                                   ?? $emisorRaw['clave_firma_digital']
+                                   ?? '';
+                           })()
                            ?? '',
         'tipo_documento'   => $emisorRaw['tipo_documento']         ?? 6,
         'ruc'              => $emisorRaw['ruc']                    ?? '',
