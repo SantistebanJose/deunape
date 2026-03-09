@@ -13,6 +13,7 @@
 require_once dirname(__DIR__) . '/vendor/autoload.php';
 use RobRichards\XMLSecLibs\XMLSecurityDSig;
 use RobRichards\XMLSecLibs\XMLSecurityKey;
+use PhpZip\ZipFile;
 
 class SunatComprobante
 {
@@ -78,12 +79,9 @@ class SunatComprobante
             $nombrezip = $nombrexml . ".ZIP";
             $rutazip   = $carpetaxml . $nombrezip;
 
-            $zip = new ZipArchive();
-            if ($zip->open($rutazip, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
+            if (!$this->crearZip($rutazip, $rutaXML, $nombrexml . '.XML')) {
                 return ['estado' => false, 'mensaje' => 'No se pudo crear el archivo ZIP'];
             }
-            $zip->addFile($rutaXML, $nombrexml . '.XML');
-            $zip->close();
 
             // ── PASO 04/05: Enviar a SUNAT ────────────────────────────
             $resp = $this->enviarWS($rutazip, $emisor, $nombrezip);
@@ -99,10 +97,22 @@ class SunatComprobante
                     $cdr = base64_decode($appResp->nodeValue);
                     file_put_contents($carpetacdr . "R-" . $nombrezip, $cdr);
 
-                    $zipCdr = new ZipArchive();
-                    if ($zipCdr->open($carpetacdr . "R-" . $nombrezip) === true) {
-                        $zipCdr->extractTo($carpetacdr . 'R-' . $nombrexml);
-                        $zipCdr->close();
+                    // Extraer CDR zip
+                    if (class_exists('ZipArchive')) {
+                        $zipCdr = new ZipArchive();
+                        if ($zipCdr->open($carpetacdr . "R-" . $nombrezip) === true) {
+                            $zipCdr->extractTo($carpetacdr . 'R-' . $nombrexml);
+                            $zipCdr->close();
+                        }
+                    } else {
+                        // Fallback: extraer con proc_open
+                        $carpetaExtr = $carpetacdr . 'R-' . $nombrexml;
+                        if (!is_dir($carpetaExtr)) mkdir($carpetaExtr, 0777, true);
+                        $proc = proc_open(
+                            'unzip -o ' . escapeshellarg($carpetacdr . "R-" . $nombrezip) . ' -d ' . escapeshellarg($carpetaExtr),
+                            [['pipe','r'],['pipe','w'],['pipe','w']], $pipes
+                        );
+                        if (is_resource($proc)) proc_close($proc);
                     }
 
                     $msgSunat = $this->leerMensajeCDR($carpetacdr . 'R-' . $nombrexml);
@@ -799,6 +809,54 @@ class SunatComprobante
     // rechaza por defecto. Este método extrae clave+cert usando
     // openssl_x509_read y openssl_pkey_get_private directamente.
     // =========================================================
+    // =========================================================
+    // CREAR ZIP SIN EXTENSIÓN ZIPARCHIVE
+    // Implementación pura PHP compatible con cualquier servidor
+    // =========================================================
+    private function crearZip(string $rutaZip, string $rutaArchivo, string $nombreDentroZip): bool
+    {
+        // Usar ZipArchive si está disponible
+        if (class_exists('ZipArchive')) {
+            $zip = new ZipArchive();
+            if ($zip->open($rutaZip, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) return false;
+            $zip->addFile($rutaArchivo, $nombreDentroZip);
+            $zip->close();
+            return true;
+        }
+
+        // Fallback: crear ZIP manualmente (formato PKZIP)
+        $contenido = file_get_contents($rutaArchivo);
+        $nombre    = $nombreDentroZip;
+        $crc       = crc32($contenido);
+        $len       = strlen($contenido);
+        $time      = mktime();
+        $dostime   = (((date('Y',$time) - 1980) << 9) |
+                       (date('n',$time) << 5) |
+                        date('j',$time)) << 16 |
+                      ((date('G',$time) << 11) |
+                       (date('i',$time) << 5) |
+                       (int)(date('s',$time) / 2));
+
+        // Local file header
+        $lfh  = pack('VvvvVVVVvv', 0x04034b50, 20, 0, 0, $dostime, $crc, $len, $len, strlen($nombre), 0);
+        $lfh .= $nombre;
+        $lfh .= $contenido;
+
+        // Central directory header
+        $cdh  = pack('VvvvvVVVVvvvvvVV', 0x02014b50, 20, 20, 0, 0, $dostime, $crc, $len, $len, strlen($nombre), 0, 0, 0, 0, 0, 0);
+        $cdh .= $nombre;
+
+        $offset  = strlen($lfh) - $len;
+        $cdSize  = strlen($cdh);
+        $cdOffset= strlen($lfh);
+
+        // End of central directory
+        $eocd = pack('VvvvvVVv', 0x06054b50, 0, 0, 1, 1, $cdSize, $cdOffset, 0);
+
+        file_put_contents($rutaZip, $lfh . $cdh . $eocd);
+        return true;
+    }
+
     private function _leerPfxLegacy(string $pfx_data, string $pass, array &$certs): bool
     {
         // Guardar PFX en /tmp y llamar openssl vía proc_open si está disponible
