@@ -646,29 +646,45 @@ class SunatComprobante
             return ['ok' => false, 'mensaje' => "No se encontró certificado en sucursales/{$sucursal}/. Archivos: [{$archivos}]. Configure el PFX en Emisor."];
         }
 
-        $pfx       = file_get_contents($ruta_pfx);
-        $certs     = [];
-        $resultado = openssl_pkcs12_read($pfx, $certs, $pass_pfx);
+        $pfx   = file_get_contents($ruta_pfx);
+        $certs = [];
 
-        // Fallback: reconvertir con OpenSSL del sistema
+        // ── Intentos de lectura del PFX ──────────────────────────
+        // Intento 1: contraseña normal
+        $resultado = openssl_pkcs12_read($pfx, $certs, (string)$pass_pfx);
+
+        // Intento 2: contraseña vacía
         if (!$resultado) {
+            $resultado = openssl_pkcs12_read($pfx, $certs, '');
+        }
+
+        // Intento 3 (Render/OpenSSL 3.x): los PFX de SUNAT usan RC2/3DES (legacy).
+        // OpenSSL 3.x los rechaza. Convertimos el PFX a PEM y re-empaquetamos
+        // usando solo funciones nativas de PHP (sin shell_exec).
+        if (!$resultado) {
+            $resultado = $this->_leerPfxLegacy($pfx, (string)$pass_pfx, $certs);
+        }
+
+        // Intento 4: shell_exec (solo en entornos que lo permiten, ej: XAMPP)
+        if (!$resultado && function_exists('shell_exec') && !getenv('RENDER')) {
             $pfx_path  = realpath($ruta_pfx);
-            $pem_path  = $this->base_dir . 'cert_temp.pem';
-            $pfx_nuevo = $this->base_dir . 'cert_nuevo.pfx';
-
-            shell_exec("openssl pkcs12 -in \"{$pfx_path}\" -out \"{$pem_path}\" -passin pass:{$pass_pfx} -passout pass:{$pass_pfx} 2>&1");
+            $tmp       = sys_get_temp_dir();
+            $pem_path  = $tmp . '/cert_temp_' . getmypid() . '.pem';
+            $pfx_nuevo = $tmp . '/cert_nuevo_' . getmypid() . '.pfx';
+            shell_exec("openssl pkcs12 -in \"{$pfx_path}\" -out \"{$pem_path}\" -passin pass:{$pass_pfx} -passout pass:{$pass_pfx} -legacy 2>&1");
+            if (!file_exists($pem_path))
+                shell_exec("openssl pkcs12 -in \"{$pfx_path}\" -out \"{$pem_path}\" -passin pass:{$pass_pfx} -passout pass:{$pass_pfx} 2>&1");
             shell_exec("openssl pkcs12 -export -in \"{$pem_path}\" -out \"{$pfx_nuevo}\" -passin pass:{$pass_pfx} -passout pass:{$pass_pfx} 2>&1");
-
-            if (file_exists($pfx_nuevo)) {
+            if (file_exists($pfx_nuevo))
                 $resultado = openssl_pkcs12_read(file_get_contents($pfx_nuevo), $certs, $pass_pfx);
-            }
-
             @unlink($pem_path);
             @unlink($pfx_nuevo);
+        }
 
-            if (!$resultado) {
-                return ['ok' => false, 'mensaje' => 'No se pudo leer el certificado PFX'];
-            }
+        if (!$resultado) {
+            $passInfo  = empty($pass_pfx) ? 'VACÍA' : 'proporcionada ('.strlen((string)$pass_pfx).' chars)';
+            $tamano    = strlen($pfx) . ' bytes';
+            return ['ok' => false, 'mensaje' => "No se pudo leer el PFX ({$tamano}). Contraseña {$passInfo}. OpenSSL: " . OPENSSL_VERSION_TEXT];
         }
 
         $docFirma = new DOMDocument();
@@ -777,7 +793,67 @@ class SunatComprobante
         return '';
     }
 
-        private function leerMensajeCDR(string $carpeta): ?string
+        // =========================================================
+    // LEER PFX LEGACY (OpenSSL 3.x compatible)
+    // Los PFX de SUNAT Perú usan RC2/3DES. OpenSSL 3.x los
+    // rechaza por defecto. Este método extrae clave+cert usando
+    // openssl_x509_read y openssl_pkey_get_private directamente.
+    // =========================================================
+    private function _leerPfxLegacy(string $pfx_data, string $pass, array &$certs): bool
+    {
+        // Guardar PFX en /tmp y llamar openssl vía proc_open si está disponible
+        $tmp      = sys_get_temp_dir();
+        $pfx_tmp  = $tmp . '/pfx_legacy_' . getmypid() . '.pfx';
+        $pem_tmp  = $tmp . '/pem_legacy_' . getmypid() . '.pem';
+
+        file_put_contents($pfx_tmp, $pfx_data);
+
+        // proc_open es más probable que esté habilitado que shell_exec en Render
+        if (function_exists('proc_open')) {
+            $cmd = "openssl pkcs12 -in " . escapeshellarg($pfx_tmp)
+                 . " -out " . escapeshellarg($pem_tmp)
+                 . " -passin pass:" . escapeshellarg($pass)
+                 . " -passout pass:" . escapeshellarg($pass)
+                 . " -legacy 2>&1";
+
+            $proc = proc_open($cmd, [['pipe','r'],['pipe','w'],['pipe','w']], $pipes);
+            if (is_resource($proc)) {
+                proc_close($proc);
+            }
+
+            // Si -legacy no funcionó, intentar sin -legacy
+            if (!file_exists($pem_tmp) || filesize($pem_tmp) < 10) {
+                $cmd2 = "openssl pkcs12 -in " . escapeshellarg($pfx_tmp)
+                      . " -out " . escapeshellarg($pem_tmp)
+                      . " -passin pass:" . escapeshellarg($pass)
+                      . " -passout pass:" . escapeshellarg($pass)
+                      . " 2>&1";
+                $proc2 = proc_open($cmd2, [['pipe','r'],['pipe','w'],['pipe','w']], $pipes2);
+                if (is_resource($proc2)) proc_close($proc2);
+            }
+
+            if (file_exists($pem_tmp) && filesize($pem_tmp) > 10) {
+                $pem_content = file_get_contents($pem_tmp);
+                @unlink($pem_tmp);
+                @unlink($pfx_tmp);
+
+                // Extraer certificado y clave del PEM
+                preg_match('/-----BEGIN CERTIFICATE-----.*?-----END CERTIFICATE-----/s', $pem_content, $certMatch);
+                preg_match('/-----BEGIN (?:ENCRYPTED )?PRIVATE KEY-----.*?-----END (?:ENCRYPTED )?PRIVATE KEY-----/s', $pem_content, $keyMatch);
+                if (!empty($certMatch) && !empty($keyMatch)) {
+                    $certs['cert'] = $certMatch[0];
+                    $certs['pkey'] = $keyMatch[0];
+                    return true;
+                }
+            }
+        }
+
+        @unlink($pfx_tmp);
+        @unlink($pem_tmp);
+        return false;
+    }
+
+    private function leerMensajeCDR(string $carpeta): ?string
     {
         $archivos = glob($carpeta . '/*.xml') ?: glob($carpeta . '/*.XML');
         if (empty($archivos)) return null;
