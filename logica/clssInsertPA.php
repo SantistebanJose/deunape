@@ -1786,208 +1786,160 @@ function fnUpdateEmisor($jsDatos = null) {
     try {
         $conectar->beginTransaction();
 
-        // ✅ Si viene como parámetro JSON, decodificar
         if ($jsDatos !== null) {
             $data = json_decode($jsDatos, true);
         } else {
-            // ✅ Si viene directo de $_POST (con archivos)
             $data = $_POST;
         }
-        
-        // ✅ VALIDAR SUCURSAL_ID
+
         if (!isset($data['sucursal_id']) || empty($data['sucursal_id'])) {
-            echo json_encode([
-                'estado' => false, 
-                'mensaje' => 'Error: sucursal_id no proporcionado'
-            ]);
+            echo json_encode(['estado' => false, 'mensaje' => 'Error: sucursal_id no proporcionado']);
             return;
         }
-        
+
         $sucursal_id = $data['sucursal_id'];
-        
-        error_log("=== ACTUALIZAR EMISOR ===");
-        error_log("Sucursal ID: " . $sucursal_id);
-        
-        // ✅ CREAR DIRECTORIO PARA ESTA SUCURSAL
-        $base_dir = 'uploads/emisores/sucursal_' . $sucursal_id . '/';
+        $ambiente      = in_array($data['ambiente'] ?? '', ['beta', 'produccion'])
+                         ? $data['ambiente'] : 'beta';
+
+        // Series: validar formato BX99 / FX99 / EX99
+        $serie_boleta  = preg_match('/^[A-Z]{1}[0-9]{3}$/', $data['serie_boleta']  ?? '')
+                         ? strtoupper($data['serie_boleta'])  : 'B001';
+        $serie_factura = preg_match('/^[A-Z]{1}[0-9]{3}$/', $data['serie_factura'] ?? '')
+                         ? strtoupper($data['serie_factura']) : 'F001';
+
+        // ── Carpeta de la sucursal (donde clssSunat busca el PFX) ──
+        // ✅ CAMBIO: sucursales/{id}/ en lugar de uploads/emisores/sucursal_{id}/
+        $base_dir = dirname(__DIR__) . '/sucursales/' . $sucursal_id . '/';
         if (!is_dir($base_dir)) {
-            mkdir($base_dir, 0755, true);
-            error_log("✅ Directorio creado: " . $base_dir);
+            mkdir($base_dir,           0755, true);
+            mkdir($base_dir . 'xml/',  0755, true);
+            mkdir($base_dir . 'cdr/',  0755, true);
         }
-        
-        // ✅ MANEJAR SUBIDA DE ARCHIVOS
-        $ruta_logo = null;
+
+        $ruta_logo  = null;
         $ruta_firma = null;
-        
-        // ✅ PROCESAR LOGO
+
+        // ── Logo ──────────────────────────────────────────────────
         if (isset($_FILES['logo_sucursal']) && $_FILES['logo_sucursal']['error'] === UPLOAD_ERR_OK) {
-            $extension = strtolower(pathinfo($_FILES['logo_sucursal']['name'], PATHINFO_EXTENSION));
-            
-            // Validar extensión
-            $extensiones_permitidas = ['jpg', 'jpeg', 'png'];
-            if (!in_array($extension, $extensiones_permitidas)) {
-                throw new Exception('Solo se permiten archivos JPG, JPEG o PNG para el logo');
+            $ext = strtolower(pathinfo($_FILES['logo_sucursal']['name'], PATHINFO_EXTENSION));
+            if (!in_array($ext, ['jpg', 'jpeg', 'png'])) {
+                throw new Exception('Solo se permiten JPG, JPEG o PNG para el logo');
             }
-            
-            $nombre_archivo = 'logo_' . time() . '.' . $extension;
-            $ruta_logo = $base_dir . $nombre_archivo;
-            
-            if (!move_uploaded_file($_FILES['logo_sucursal']['tmp_name'], $ruta_logo)) {
+            $nombre   = 'logo_' . $sucursal_id . '.' . $ext;
+            $destino  = $base_dir . $nombre;
+            if (!move_uploaded_file($_FILES['logo_sucursal']['tmp_name'], $destino)) {
                 throw new Exception('Error al subir el logo');
             }
-            
-            error_log("✅ Logo guardado en: " . $ruta_logo);
+            // Ruta relativa desde la raíz del proyecto
+            $ruta_logo = 'sucursales/' . $sucursal_id . '/' . $nombre;
         } else {
-            // Mantener logo actual si existe
-            $ruta_logo = isset($data['ruta_logo_actual']) && !empty($data['ruta_logo_actual']) 
-                ? $data['ruta_logo_actual'] 
-                : null;
+            $ruta_logo = !empty($data['ruta_logo_actual']) ? $data['ruta_logo_actual'] : null;
         }
-        
-        // ✅ PROCESAR FIRMA DIGITAL
+
+        // ── Firma digital (PFX) ───────────────────────────────────
         if (isset($_FILES['firma_digital']) && $_FILES['firma_digital']['error'] === UPLOAD_ERR_OK) {
-            $extension = strtolower(pathinfo($_FILES['firma_digital']['name'], PATHINFO_EXTENSION));
-            
-            // Validar extensión
-            $extensiones_permitidas = ['pfx', 'p12'];
-            if (!in_array($extension, $extensiones_permitidas)) {
-                throw new Exception('Solo se permiten archivos PFX o P12 para el certificado digital');
+            $ext = strtolower(pathinfo($_FILES['firma_digital']['name'], PATHINFO_EXTENSION));
+            if (!in_array($ext, ['pfx', 'p12'])) {
+                throw new Exception('Solo se permiten PFX o P12 para el certificado digital');
             }
-            
-            $nombre_archivo = 'firma_' . time() . '.' . $extension;
-            $ruta_firma = $base_dir . $nombre_archivo;
-            
-            if (!move_uploaded_file($_FILES['firma_digital']['tmp_name'], $ruta_firma)) {
+            // ✅ Nombre estándar que clssSunat espera: {ruc}Mp12.{ext}
+            $nombre  = ($data['ruc'] ?? $sucursal_id) . 'Mp12.' . $ext;
+            $destino = $base_dir . $nombre;
+            if (!move_uploaded_file($_FILES['firma_digital']['tmp_name'], $destino)) {
                 throw new Exception('Error al subir el certificado digital');
             }
-            
-            error_log("✅ Certificado guardado en: " . $ruta_firma);
+            $ruta_firma = 'sucursales/' . $sucursal_id . '/' . $nombre;
         } else {
-            // Mantener certificado actual si existe
-            $ruta_firma = isset($data['ruta_firma_actual']) && !empty($data['ruta_firma_actual']) 
-                ? $data['ruta_firma_actual'] 
-                : null;
+            $ruta_firma = !empty($data['ruta_firma_actual']) ? $data['ruta_firma_actual'] : null;
         }
-        
-        // ✅ VERIFICAR SI YA EXISTE UN EMISOR PARA ESTA SUCURSAL
-        $sqlCheck = "SELECT COUNT(*) as total FROM emisor WHERE sucursal_id = :sucursal_id";
-        $stmtCheck = $conectar->prepare($sqlCheck);
+
+        // ── ¿Existe ya un emisor para esta sucursal? ──────────────
+        $stmtCheck = $conectar->prepare("SELECT COUNT(*) as total FROM emisor WHERE sucursal_id = :sucursal_id");
         $stmtCheck->bindParam(':sucursal_id', $sucursal_id, PDO::PARAM_INT);
         $stmtCheck->execute();
-        $existe = $stmtCheck->fetch(PDO::FETCH_ASSOC);
-        
-        if ($existe['total'] > 0) {
-            // ✅ ACTUALIZAR EMISOR EXISTENTE
-            $sql = "
-                UPDATE emisor SET 
-                    tipo_documento = :tipo_documento,
-                    ruc = :ruc,
-                    razon_social = :razon_social,
-                    nombre_comercial = :nombre_comercial,
-                    departamento = :departamento,
-                    provincia = :provincia,
-                    distrito = :distrito,
-                    direccion = :direccion,
-                    ubigeo = :ubigeo,
-                    usuario_sol = :usuario_sol,
-                    clave_sol = :clave_sol" .
-                    ($ruta_logo !== null ? ", ruta_logo = :ruta_logo" : "") .
-                    ($ruta_firma !== null ? ", direccion_firma_digital = :direccion_firma_digital" : "") .
-                    ", contraseña_firma_digital = :password_firma
-                WHERE sucursal_id = :sucursal_id
-            ";
-            
-            error_log("✏️ Actualizando emisor existente");
+        $existe = $stmtCheck->fetch(PDO::FETCH_ASSOC)['total'] > 0;
+
+        if ($existe) {
+            // UPDATE
+            $sql = "UPDATE emisor SET
+                        tipo_documento           = :tipo_documento,
+                        ruc                      = :ruc,
+                        razon_social             = :razon_social,
+                        nombre_comercial         = :nombre_comercial,
+                        departamento             = :departamento,
+                        provincia                = :provincia,
+                        distrito                 = :distrito,
+                        direccion                = :direccion,
+                        ubigeo                   = :ubigeo,
+                        usuario_sol              = :usuario_sol,
+                        clave_sol                = :clave_sol,
+                        contraseña_firma_digital = :password_firma,
+                        ambiente                 = :ambiente,
+                        serie_boleta             = :serie_boleta,
+                        serie_factura            = :serie_factura"
+                . ($ruta_logo  !== null ? ", ruta_logo               = :ruta_logo"               : "")
+                . ($ruta_firma !== null ? ", direccion_firma_digital = :direccion_firma_digital"  : "")
+                . " WHERE sucursal_id = :sucursal_id";
         } else {
-            // ✅ INSERTAR NUEVO EMISOR
-            $sql = "
-                INSERT INTO emisor (
-                    sucursal_id,
-                    tipo_documento,
-                    ruc,
-                    razon_social,
-                    nombre_comercial,
-                    departamento,
-                    provincia,
-                    distrito,
-                    direccion,
-                    ubigeo,
-                    usuario_sol,
-                    clave_sol,
-                    ruta_logo,
-                    direccion_firma_digital,
-                    contraseña_firma_digital
-                ) VALUES (
-                    :sucursal_id,
-                    :tipo_documento,
-                    :ruc,
-                    :razon_social,
-                    :nombre_comercial,
-                    :departamento,
-                    :provincia,
-                    :distrito,
-                    :direccion,
-                    :ubigeo,
-                    :usuario_sol,
-                    :clave_sol,
-                    :ruta_logo,
-                    :direccion_firma_digital,
-                    :password_firma
-                )
-            ";
-            
-            error_log("➕ Creando nuevo emisor");
+            // INSERT
+            $sql = "INSERT INTO emisor (
+                        sucursal_id, tipo_documento, ruc, razon_social, nombre_comercial,
+                        departamento, provincia, distrito, direccion, ubigeo,
+                        usuario_sol, clave_sol, contraseña_firma_digital, ambiente, serie_boleta, serie_factura,
+                        ruta_logo, direccion_firma_digital
+                    ) VALUES (
+                        :sucursal_id, :tipo_documento, :ruc, :razon_social, :nombre_comercial,
+                        :departamento, :provincia, :distrito, :direccion, :ubigeo,
+                        :usuario_sol, :clave_sol, :password_firma, :ambiente, :serie_boleta, :serie_factura,
+                        :ruta_logo, :direccion_firma_digital
+                    )";
+            // Para INSERT siempre necesitamos ambas columnas aunque sean NULL
+            if ($ruta_logo  === null) $ruta_logo  = '';
+            if ($ruta_firma === null) $ruta_firma = '';
         }
 
         $stmt = $conectar->prepare($sql);
-        
-        // ✅ BIND DE TODOS LOS PARÁMETROS
-        $stmt->bindParam(':sucursal_id', $sucursal_id, PDO::PARAM_INT);
-        $stmt->bindParam(':tipo_documento', $data["tipo_documento"]);
-        $stmt->bindParam(':ruc', $data["ruc"]);
-        $stmt->bindParam(':razon_social', $data["razon_social"]);
-        $stmt->bindParam(':nombre_comercial', $data["nombre_comercial"]);
-        $stmt->bindParam(':departamento', $data["departamento"]);
-        $stmt->bindParam(':provincia', $data["provincia"]);
-        $stmt->bindParam(':distrito', $data["distrito"]);
-        $stmt->bindParam(':direccion', $data["direccion"]);
-        $stmt->bindParam(':ubigeo', $data["ubigeo"]);
-        $stmt->bindParam(':usuario_sol', $data["usuario_sol"]);
-        $stmt->bindParam(':clave_sol', $data["clave_sol"]);
-        
-        if ($ruta_logo !== null) {
-            $stmt->bindParam(':ruta_logo', $ruta_logo);
-        }
-        if ($ruta_firma !== null) {
+        $stmt->bindParam(':sucursal_id',     $sucursal_id,            PDO::PARAM_INT);
+        $stmt->bindParam(':tipo_documento',  $data['tipo_documento']);
+        $stmt->bindParam(':ruc',             $data['ruc']);
+        $stmt->bindParam(':razon_social',    $data['razon_social']);
+        $stmt->bindParam(':nombre_comercial',$data['nombre_comercial']);
+        $stmt->bindParam(':departamento',    $data['departamento']);
+        $stmt->bindParam(':provincia',       $data['provincia']);
+        $stmt->bindParam(':distrito',        $data['distrito']);
+        $stmt->bindParam(':direccion',       $data['direccion']);
+        $stmt->bindParam(':ubigeo',          $data['ubigeo']);
+        $stmt->bindParam(':usuario_sol',     $data['usuario_sol']);
+        $stmt->bindParam(':clave_sol',       $data['clave_sol']);
+        $stmt->bindParam(':password_firma',  $data['password_firma']);
+        $stmt->bindParam(':ambiente',        $ambiente);
+        $stmt->bindParam(':serie_boleta',    $serie_boleta);
+        $stmt->bindParam(':serie_factura',   $serie_factura);
+
+        if ($existe) {
+            if ($ruta_logo  !== null) $stmt->bindParam(':ruta_logo',              $ruta_logo);
+            if ($ruta_firma !== null) $stmt->bindParam(':direccion_firma_digital', $ruta_firma);
+        } else {
+            $stmt->bindParam(':ruta_logo',              $ruta_logo);
             $stmt->bindParam(':direccion_firma_digital', $ruta_firma);
         }
-        
-        $stmt->bindParam(':password_firma', $data["password_firma"]);
 
         $stmt->execute();
-
         $conectar->commit();
-        
-        error_log("✅ Emisor guardado correctamente");
 
         echo json_encode([
-            'estado' => true, 
-            'mensaje' => 'Emisor actualizado correctamente para la sucursal #' . $sucursal_id,
-            'ruta_logo' => $ruta_logo,
-            'ruta_firma' => $ruta_firma
+            'estado'     => true,
+            'mensaje'    => 'Emisor ' . ($existe ? 'actualizado' : 'registrado') . ' correctamente — sucursal #' . $sucursal_id,
+            'ruta_logo'  => $ruta_logo,
+            'ruta_firma' => $ruta_firma,
+            'ambiente'     => $ambiente,
+            'serie_boleta' => $serie_boleta,
+            'serie_factura'=> $serie_factura,
         ]);
-        
+
     } catch (Exception $e) {
-        if ($conectar->inTransaction()) {
-            $conectar->rollBack();
-        }
-        
+        if ($conectar->inTransaction()) $conectar->rollBack();
         error_log("❌ Error en fnUpdateEmisor: " . $e->getMessage());
-        error_log("Stack trace: " . $e->getTraceAsString());
-
-        echo json_encode([
-            'estado' => false, 
-            'mensaje' => 'Error al actualizar emisor: ' . $e->getMessage()
-        ]);
+        echo json_encode(['estado' => false, 'mensaje' => 'Error al guardar emisor: ' . $e->getMessage()]);
     }
 }

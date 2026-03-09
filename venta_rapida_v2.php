@@ -2840,6 +2840,7 @@ $sucursal_id = $_SESSION["sucursal_id"];
                             })
                             .then(() => {
                                 //window.open(`ticket.php?id=${res.id_venta_generado}`, '_blank'); location.reload();
+                                fn_abrir_pdf(res.id_venta_generado);
                                 location.reload();
                                 console.log("Ubillus KCHUDO")
                             });
@@ -3177,6 +3178,11 @@ $sucursal_id = $_SESSION["sucursal_id"];
         });
     }
 
+    function fn_abrir_pdf(id_venta) {
+        fetch("ticket.php?accion=token&id=" + parseInt(id_venta))
+            .then(r => r.json())
+            .then(data => window.open(data.url, "_blank"));
+    }
     /* ============================================================
        INIT
        ============================================================ */

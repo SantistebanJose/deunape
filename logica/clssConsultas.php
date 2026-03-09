@@ -502,7 +502,151 @@ function listarVentasNoDeclaradas()
     ";
     return executeQuery($sql);
 }
-function listarVentasPagadasParaComprobantes(): array
+function listarVentasPagadasParaComprobantes($sucursal_id): array
+{
+    $query = "
+        SELECT 
+            v.id AS venta_id,
+            concat(SUBSTRING(v.tipo_comprobante,1,1),'001') AS serie,
+            v.id AS correlativo,
+            concat(SUBSTRING(v.tipo_comprobante,1,1),'001-', lpad(v.id::text, 6, '0')) AS serie_correltavio_referencial,
+            concat('P', LPAD(p.id::TEXT, 6, '0'), 'F', to_char(p.created_at::date, 'YYYYMMDD')) AS codigo_pago,
+
+            -- Tipo documento cliente
+            CASE
+                WHEN p1.tipo_persona = 'JURIDICA' AND v.js_detalles_receptor_factura IS NULL THEN '6'
+                WHEN p1.tipo_persona = 'NATURAL'  AND v.js_detalles_receptor_factura IS NULL THEN '1'
+                WHEN v.tipo_comprobante = 'FACTURA' AND v.js_detalles_receptor_factura IS NOT NULL THEN '6'
+                ELSE ''
+            END AS ca_cliente_tipo_documento_sunat,
+
+            p1.direccion AS ca_cliente_direccion_sunat,
+
+            -- Número documento cliente
+            CASE
+                WHEN p1.numero_documento = '999999999' THEN ''
+                WHEN v.tipo_comprobante = 'FACTURA' AND v.js_detalles_receptor_factura IS NOT NULL THEN v.js_detalles_receptor_factura->>'ruc'
+                ELSE p1.numero_documento
+            END AS ca_cliente_numero_documento_sunat,
+
+            -- Nombre cliente
+            CASE
+                WHEN v.tipo_comprobante = 'FACTURA' AND v.js_detalles_receptor_factura IS NOT NULL THEN v.js_detalles_receptor_factura->>'razon_social'
+                WHEN p1.tipo_persona = 'JURIDICA' THEN p1.razon_social
+                WHEN p1.tipo_persona = 'NATURAL'  THEN CONCAT(p1.nombres, ' ', p1.apellidos)
+                ELSE 'CLIENTE VARIOS'
+            END AS ca_cliente_cliente_sunat,
+
+            TO_CHAR(p.created_at, 'YYYY-MM-DD') AS fecha,
+            p.created_at::TIME AS hora,
+            TO_CHAR(p.created_at, 'HH12:MI:SS AM') AS hora_formateada,
+            p.monto_venta_original,
+            p.monto_venta_final,
+            v.tipo_comprobante,
+            (p.monto_venta_original - p.monto_venta_final) AS descuento,
+
+            -- ── DETALLE DE VENTA con impuesto dinámico por artículo ──────────
+            (
+                SELECT jsonb_agg(
+                    jsonb_build_object(
+                        'rel_venta_articulo_id',    rva.id,
+                        'venta_id',                 rva.venta_id,
+                        'articulo_id',              rva.articulo_id,
+                        'descripcion_movimiento',   m.descripcion,
+                        'descripcion_articulo', CASE 
+                            WHEN ar.dimension_id IS NOT NULL THEN CONCAT(ar.nombre, ' (', dim.medida, ')')
+                            WHEN ar.nombre IS NULL THEN m.descripcion
+                            ELSE ar.nombre 
+                        END,
+                        'cantidad_sunat', CASE 
+                            WHEN m.id = 1 THEN rva.cantidad
+                            ELSE 1
+                        END,
+                        'cantidad_real',            rva.cantidad,
+                        'precio_unitario_articulo',  rva.precio_unitario_articulo,
+                        'minutos',                  rva.minutos,
+                        'costo_por_minuto',         rva.costo_por_minuto,
+                        'pu_con_igv',               rva.sub_total,
+
+                        -- ── Impuesto dinámico ──────────────────────────────
+                        -- Si el artículo tiene impuesto asignado usa ese, sino asume IGV 18%
+                        'nombre_impuesto',  COALESCE(imp.nombre, 'IGV'),
+                        'porcentaje_div',   COALESCE(imp.porcentaje_div, 0.18),
+                        'porcentaje_num',   COALESCE(imp.porcentaje_num, 18),
+
+                        -- pu_sin_igv = sub_total / (1 + porcentaje_div)
+                        'pu_sin_igv',  (rva.sub_total / (1 + COALESCE(imp.porcentaje_div, 0.18))),
+
+                        -- IGV = sub_total - pu_sin_igv
+                        'IGV', (rva.sub_total - (rva.sub_total / (1 + COALESCE(imp.porcentaje_div, 0.18)))),
+
+                        -- tipo_impuesto para SUNAT: IGV | EXONERADO | INAFECTO
+                        'tipo_impuesto', CASE
+                            WHEN imp.nombre = 'EXONERADO' THEN 'EXONERADO'
+                            WHEN imp.nombre = 'INAFECTO'  THEN 'INAFECTO'
+                            WHEN imp.nombre = 'ICBPER'    THEN 'ICBPER'
+                            ELSE 'IGV'
+                        END,
+
+                        'unidad_medida',        'NIU',
+                        'codigo_igv', CASE
+                            WHEN imp.nombre = 'EXONERADO' THEN 9997
+                            WHEN imp.nombre = 'INAFECTO'  THEN 9998
+                            WHEN imp.nombre = 'ICBPER'    THEN 7152
+                            ELSE 1000
+                        END,
+                        'afecto_igv_sunat',     CASE WHEN COALESCE(imp.nombre,'IGV') IN ('EXONERADO','INAFECTO') THEN 'N' ELSE 'S' END,
+                        'codigo_afectacion',    CASE
+                                                    WHEN imp.nombre = 'EXONERADO' THEN 20
+                                                    WHEN imp.nombre = 'INAFECTO'  THEN 30
+                                                    ELSE 10
+                                                END,
+                        'valor_agregado',       CASE
+                                                    WHEN imp.nombre = 'EXONERADO' THEN 'VAT'
+                                                    WHEN imp.nombre = 'INAFECTO'  THEN 'FRE'
+                                                    ELSE 'VAT'
+                                                END,
+                        'factor_icbper',        COALESCE(CASE WHEN imp.nombre = 'ICBPER' THEN imp.porcentaje_num END, 0.30),
+                        'icbper',               CASE WHEN imp.nombre = 'ICBPER' THEN rva.sub_total * COALESCE(imp.porcentaje_num, 0.30) ELSE 0 END
+                    )
+                )
+                FROM rel_venta_articulo AS rva
+                JOIN  movimiento AS m   ON rva.movimiento_id = m.id 
+                LEFT JOIN articulo AS ar    ON rva.articulo_id = ar.id
+                LEFT JOIN dimension AS dim  ON ar.dimension_id = dim.id
+                -- ← JOIN clave: impuesto del artículo
+                LEFT JOIN impuesto AS imp   ON ar.impuesto_id = imp.id
+                WHERE rva.venta_id = p.id_venta
+            ) AS js_detalle_venta,
+
+            -- ── FORMAS DE PAGO ────────────────────────────────────────────────
+            (
+                SELECT json_agg(
+                    jsonb_build_object(
+                        'ID_DETALLE', dfp.id,
+                        'FORMA_PAGO', fp.nombre,
+                        'MONTO',      dfp.monto,
+                        'COLOR',      fp.color
+                    )
+                )
+                FROM detalle_forma_pago dfp
+                JOIN forma_pago fp ON dfp.id_forma_pago = fp.id
+                WHERE dfp.id_venta = p.id_venta
+            ) AS js_detalle_forma_pago
+
+        FROM pago p
+        JOIN venta v    ON p.id_venta = v.id AND v.tipo_comprobante IN ('BOLETA','FACTURA')
+        JOIN persona p1 ON p1.id = v.cliente_id
+        LEFT JOIN comprobante cb ON v.id = cb.venta_id
+        WHERE cb.venta_id IS NULL 
+          AND v.sucursal_id = :sucursal_id
+          AND p.created_at >= (CURRENT_TIMESTAMP - INTERVAL '2 days')
+        ORDER BY 1 DESC
+    ";
+
+    return executeQuery($query, ["sucursal_id" => $sucursal_id]);
+}
+function listarVentasPagadasParaComprobantes2($sucursal_id): array
 {
     $query = "
         SELECT 
@@ -599,16 +743,22 @@ function listarVentasPagadasParaComprobantes(): array
         JOIN persona p1 ON p1.id = v.cliente_id
         LEFT JOIN comprobante cb ON v.id = cb.venta_id
         WHERE cb.venta_id is null 
+        AND v.sucursal_id = :sucursal_id
         AND p.created_at >= (CURRENT_TIMESTAMP - INTERVAL '2 days')
         order by 1 desc
 
     ";
-    return executeQuery($query);
+    return executeQuery($query,params:["sucursal_id" => $sucursal_id]);
 }
-function listComprobantesDeclarados(): array
+function listComprobantesDeclarados($sucursal_id): array
 {
-    $query = "select * from comprobante where estado_envio = true order by 1";
-    return executeQuery($query);
+    $query = "
+    select * from comprobante c 
+    join emisor e ON c.ruc_emisor = e.ruc
+    where estado_envio = true 
+    AND sucursal_id = :sucursal_id order by 1
+    ";
+    return executeQuery($query,params:["sucursal_id"=>$sucursal_id]);
 }
 function listarFormaPago(): array
 {
@@ -645,23 +795,31 @@ function listarEmpleados(): array
     ";
     return executeQuery($query);
 }
-function fnListarEmisor()
+function fnListarEmisor($sucursal_id)
 {
     $sql = "
-        select * from emisor limit 1
+        SELECT * FROM emisor WHERE sucursal_id = :sucursal_id LIMIT 1
     ";
-    return executeQuery($sql);
+    return executeQuery($sql,params:["sucursal_id" => $sucursal_id]);
 }
-function fnSiguienteCorrelativo($tipo_comprobante)
+function fnSiguienteCorrelativo($tipo_comprobante, $sucursal_id, $serie)
 {
     $sql = "
-        select 
-        coalesce(max(correlativo),0)+1 as correlativo_siguiente,
-        LPAD((coalesce(max(correlativo),0)+1)::text,6,0::text) as correlativo_texto
-        from comprobante where tipo_comprobante=:tipo_comprobante AND estado_envio=true
-         and mensaje_sunat='Ok';;
+        SELECT 
+            COALESCE(MAX(c.correlativo), 0) + 1 AS correlativo_siguiente,
+            LPAD((COALESCE(MAX(c.correlativo), 0) + 1)::text, 8, '0') AS correlativo_texto
+        FROM comprobante c
+        JOIN emisor e ON c.ruc_emisor = e.ruc
+        WHERE c.tipo_comprobante = :tipo_comprobante
+          AND c.serie            = :serie
+          AND e.sucursal_id      = :sucursal_id
+          AND c.estado_envio     = true;
     ";
-    return executeQuery($sql, [":tipo_comprobante" => $tipo_comprobante]);
+    return executeQuery($sql, [
+        ":tipo_comprobante" => $tipo_comprobante,
+        ":serie"            => $serie,
+        ":sucursal_id"      => $sucursal_id,
+    ]);
 }
 function fnListForVentasDiarias($sucursal_id = null): array
 {
@@ -907,7 +1065,8 @@ function fnUltimaVentaPorIdVenta($id_venta): array
         )
         FROM with_detalle_pago wdf
         WHERE wdf.id_venta = v.id
-    )as js_detalle_forma_pago
+    )as js_detalle_forma_pago,
+    v.sucursal_id
     FROM venta AS v
     LEFT JOIN deuda AS du ON v.id=du.id_venta
     INNER JOIN usuario AS us ON v.usuario_id = us.id  
@@ -1873,7 +2032,7 @@ function fnListadoDeEmisor($sucursal_id = null)
 }
 
 
-function fnGenerarTicket($idVenta): void
+function fnGenerarTicketAntiguo($idVenta): void
 {
     $datosprueba = fnUltimaVentaPorIdVenta($idVenta)[0];
 
