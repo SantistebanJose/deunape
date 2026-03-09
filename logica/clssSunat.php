@@ -13,7 +13,6 @@
 require_once dirname(__DIR__) . '/vendor/autoload.php';
 use RobRichards\XMLSecLibs\XMLSecurityDSig;
 use RobRichards\XMLSecLibs\XMLSecurityKey;
-use PhpZip\ZipFile;
 
 class SunatComprobante
 {
@@ -855,6 +854,125 @@ class SunatComprobante
 
         file_put_contents($rutaZip, $lfh . $cdh . $eocd);
         return true;
+    }
+
+    // =========================================================
+    // ZIP PURO EN PHP (sin ext-zip)
+    // Crea un ZIP con un solo archivo, compatible con SUNAT
+    // =========================================================
+    private function _crearZip(string $rutaZip, string $rutaArchivo, string $nombreDentro): bool
+    {
+        if (class_exists('ZipArchive')) {
+            $zip = new ZipArchive();
+            if ($zip->open($rutaZip, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) return false;
+            $zip->addFile($rutaArchivo, $nombreDentro);
+            $zip->close();
+            return file_exists($rutaZip);
+        }
+
+        // ZIP manual puro PHP — no requiere ext-zip
+        $contenido  = file_get_contents($rutaArchivo);
+        $tamano     = strlen($contenido);
+        $crc        = crc32($contenido);
+        $nombre     = $nombreDentro;
+        $lenNombre  = strlen($nombre);
+        $timestamp  = $this->_dosTime(time());
+
+        // Local file header
+        $localHeader  = pack('V', 0x04034b50);     // signature
+        $localHeader .= pack('v', 20);             // version needed
+        $localHeader .= pack('v', 0);              // flags
+        $localHeader .= pack('v', 0);              // compression (store)
+        $localHeader .= pack('V', $timestamp);     // mod time/date
+        $localHeader .= pack('V', $crc);           // crc32
+        $localHeader .= pack('V', $tamano);        // compressed size
+        $localHeader .= pack('V', $tamano);        // uncompressed size
+        $localHeader .= pack('v', $lenNombre);     // filename length
+        $localHeader .= pack('v', 0);              // extra field length
+        $localHeader .= $nombre;
+        $localHeader .= $contenido;
+
+        $offsetCentral = strlen($localHeader) - $tamano - $lenNombre - 30;
+        $offsetCentral = 30 + $lenNombre + $tamano; // offset = tamaño del local header
+
+        // Central directory header
+        $centralHeader  = pack('V', 0x02014b50);   // signature
+        $centralHeader .= pack('v', 20);           // version made by
+        $centralHeader .= pack('v', 20);           // version needed
+        $centralHeader .= pack('v', 0);            // flags
+        $centralHeader .= pack('v', 0);            // compression
+        $centralHeader .= pack('V', $timestamp);   // mod time/date
+        $centralHeader .= pack('V', $crc);         // crc32
+        $centralHeader .= pack('V', $tamano);      // compressed size
+        $centralHeader .= pack('V', $tamano);      // uncompressed size
+        $centralHeader .= pack('v', $lenNombre);   // filename length
+        $centralHeader .= pack('v', 0);            // extra field length
+        $centralHeader .= pack('v', 0);            // comment length
+        $centralHeader .= pack('v', 0);            // disk number start
+        $centralHeader .= pack('v', 0);            // internal attributes
+        $centralHeader .= pack('V', 0);            // external attributes
+        $centralHeader .= pack('V', 0);            // offset local header
+        $centralHeader .= $nombre;
+
+        $centralSize = strlen($centralHeader);
+
+        // End of central directory
+        $endRecord  = pack('V', 0x06054b50);       // signature
+        $endRecord .= pack('v', 0);                // disk number
+        $endRecord .= pack('v', 0);                // disk with central dir
+        $endRecord .= pack('v', 1);                // entries on disk
+        $endRecord .= pack('v', 1);                // total entries
+        $endRecord .= pack('V', $centralSize);     // central dir size
+        $endRecord .= pack('V', 30 + $lenNombre + $tamano); // central dir offset
+        $endRecord .= pack('v', 0);                // comment length
+
+        $zip = $localHeader . $centralHeader . $endRecord;
+        return file_put_contents($rutaZip, $zip) !== false;
+    }
+
+    private function _dosTime(int $timestamp): int
+    {
+        $d = getdate($timestamp);
+        return (($d['year'] - 1980) << 25)
+             | ($d['mon']   << 21)
+             | ($d['mday']  << 16)
+             | ($d['hours'] << 11)
+             | ($d['minutes'] << 5)
+             | ($d['seconds'] >> 1);
+    }
+
+    private function _extraerZip(string $rutaZip, string $destino): void
+    {
+        if (!is_dir($destino)) mkdir($destino, 0777, true);
+
+        if (class_exists('ZipArchive')) {
+            $zip = new ZipArchive();
+            if ($zip->open($rutaZip) === true) {
+                $zip->extractTo($destino);
+                $zip->close();
+            }
+            return;
+        }
+
+        // Extracción manual pura PHP
+        $data   = file_get_contents($rutaZip);
+        $offset = 0;
+        while ($offset < strlen($data)) {
+            $sig = substr($data, $offset, 4);
+            if ($sig !== "\x50\x4b\x03\x04") break;
+
+            $lenNombre  = unpack('v', substr($data, $offset + 26, 2))[1];
+            $lenExtra   = unpack('v', substr($data, $offset + 28, 2))[1];
+            $tamano     = unpack('V', substr($data, $offset + 22, 4))[1];
+            $nombre     = substr($data, $offset + 30, $lenNombre);
+            $contenido  = substr($data, $offset + 30 + $lenNombre + $lenExtra, $tamano);
+
+            if ($nombre && substr($nombre, -1) !== '/') {
+                $ruta = $destino . '/' . basename($nombre);
+                file_put_contents($ruta, $contenido);
+            }
+            $offset += 30 + $lenNombre + $lenExtra + $tamano;
+        }
     }
 
     private function _leerPfxLegacy(string $pfx_data, string $pass, array &$certs): bool
