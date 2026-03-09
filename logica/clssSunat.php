@@ -41,9 +41,9 @@ class SunatComprobante
             $sucursal   = $emisor['sucursal'] ?? '1';
             $base       = $this->base_dir . "sucursales/{$sucursal}/";
 
-            // En producción (Render) el filesystem es de solo lectura.
-            // Usamos /tmp para escritura temporal de XML/ZIP/CDR.
-            $esRender   = !is_writable($base . 'xml/') && !is_writable($base);
+            // Render define la variable de entorno RENDER=true automáticamente.
+            // En XAMPP local usa las carpetas normales del proyecto.
+            $esRender   = getenv('RENDER') === 'true' || !is_writable(dirname($base));
             $carpetaxml = $esRender ? "/tmp/xml_{$sucursal}/" : $base . "xml/";
             $carpetacdr = $esRender ? "/tmp/cdr_{$sucursal}/" : $base . "cdr/";
 
