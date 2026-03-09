@@ -828,7 +828,7 @@ class SunatComprobante
         $nombre    = $nombreDentroZip;
         $crc       = crc32($contenido);
         $len       = strlen($contenido);
-        $time      = mktime();
+        $time      = time();
         $dostime   = (((date('Y',$time) - 1980) << 9) |
                        (date('n',$time) << 5) |
                         date('j',$time)) << 16 |
