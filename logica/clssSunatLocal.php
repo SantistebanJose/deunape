@@ -40,20 +40,14 @@ class SunatComprobante
             // ── Rutas dinámicas por sucursal ──────────────────────────
             $sucursal   = $emisor['sucursal'] ?? '1';
             $base       = $this->base_dir . "sucursales/{$sucursal}/";
-
-            // En producción (Render) el filesystem es de solo lectura.
-            // Usamos /tmp para escritura temporal de XML/ZIP/CDR.
-            $esRender   = !is_writable($base . 'xml/') && !is_writable($base);
-            $carpetaxml = $esRender ? "/tmp/xml_{$sucursal}/" : $base . "xml/";
-            $carpetacdr = $esRender ? "/tmp/cdr_{$sucursal}/" : $base . "cdr/";
+            $carpetaxml = $base . "xml/";
+            $carpetacdr = $base . "cdr/";
 
             if (!is_dir($carpetaxml)) mkdir($carpetaxml, 0777, true);
             if (!is_dir($carpetacdr)) mkdir($carpetacdr, 0777, true);
 
             $tipo      = $cabecera['tipo_comprobante']; // 01 | 03 | 07
             $nombrexml = $emisor['ruc'] . "-" . $tipo . "-" . $cabecera['serie'] . "-" . $cabecera['correlativo'];
-            // Guardar ruta real para que otros módulos puedan leer el XML
-            $this->ultima_ruta_xml = $carpetaxml;
             $rutaXML   = $carpetaxml . $nombrexml . '.XML';
 
             // ── PASO 01: Generar XML ──────────────────────────────────

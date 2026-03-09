@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Invoice xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2" xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2" xmlns:ccts="urn:un:unece:uncefact:documentation:2" xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:ext="urn:oasis:names:specification:ubl:schema:xsd:CommonExtensionComponents-2" xmlns:qdt="urn:oasis:names:specification:ubl:schema:xsd:QualifiedDatatypes-2" xmlns:udt="urn:un:unece:uncefact:data:specification:UnqualifiedDataTypesSchemaModule:2" xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2">
+    <ext:UBLExtensions>
+        <ext:UBLExtension><ext:ExtensionContent><ds:Signature>
+  <ds:SignedInfo><ds:CanonicalizationMethod Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#"/>
+    <ds:SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1"/>
+  <ds:Reference URI=""><ds:Transforms><ds:Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature"/></ds:Transforms><ds:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1"/><ds:DigestValue>qie6IJFhvWC/eIODv1U8u2159Ks=</ds:DigestValue></ds:Reference></ds:SignedInfo><ds:SignatureValue>h2W7z4LPONLlIm4np1P9jpOU65O40dpgIoCvKtDSJ9sQH5K+5Jb/881TbvQ9aTtVi5ZccI/SkUwh5Xv6KXjE/qlMBZmEprec6p2iyRbYFisfZSkpkJz8xKfcjuDKFrl3ncgSTzp7tEqm5JJdNmBj4izADqCatzKFW1bChD3JxMfwXUDUxqV0LeD9verzSBxHckrfpsV+LbP+5ztLRfqvpnMsCEEcX5Ab2C9sxMcpY+YPjO7EPDaWNhX0j++2QK2DbxQ/lmNbPsKmd79xA6Azcs4XTj160CUw0FjVDCyNtz6KITAoV37ofSGQWcTkZ6VItSssVlnDPfwehy5wTneJsg==</ds:SignatureValue>
+<ds:KeyInfo><ds:X509Data><ds:X509Certificate>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</ds:X509Certificate></ds:X509Data></ds:KeyInfo></ds:Signature></ext:ExtensionContent></ext:UBLExtension>
+    </ext:UBLExtensions>
+    <cbc:UBLVersionID>2.1</cbc:UBLVersionID>
+    <cbc:CustomizationID schemeAgencyName="PE:SUNAT">2.0</cbc:CustomizationID>
+    <cbc:ProfileID schemeName="Tipo de Operacion" schemeAgencyName="PE:SUNAT" schemeURI="urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo17">0101</cbc:ProfileID>
+    <cbc:ID>B001-00000006</cbc:ID>
+    <cbc:IssueDate>2026-03-08</cbc:IssueDate>
+    <cbc:IssueTime>21:12:35.335539</cbc:IssueTime>
+    <cbc:DueDate>2026-03-08</cbc:DueDate>
+    <cbc:InvoiceTypeCode listAgencyName="PE:SUNAT" listName="Tipo de Documento" listURI="urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo01" listID="0101" name="Tipo de Operacion">03</cbc:InvoiceTypeCode>
+    <cbc:DocumentCurrencyCode listID="ISO 4217 Alpha" listName="Currency" listAgencyName="United Nations Economic Commission for Europe">PEN</cbc:DocumentCurrencyCode>
+    <cbc:LineCountNumeric>1</cbc:LineCountNumeric>
+    <cac:Signature>
+        <cbc:ID>B001-00000006</cbc:ID>
+        <cac:SignatoryParty>
+            <cac:PartyIdentification>
+                <cbc:ID>10482424355</cbc:ID>
+            </cac:PartyIdentification>
+            <cac:PartyName>
+                <cbc:Name><![CDATA[LIBRERIA BAZAR RODRI]]></cbc:Name>
+            </cac:PartyName>
+        </cac:SignatoryParty>
+        <cac:DigitalSignatureAttachment>
+            <cac:ExternalReference>
+                <cbc:URI>#SignatureSP</cbc:URI>
+            </cac:ExternalReference>
+        </cac:DigitalSignatureAttachment>
+    </cac:Signature>
+    <cac:AccountingSupplierParty>
+        <cac:Party>
+            <cac:PartyIdentification>
+                <cbc:ID schemeID="6" schemeName="Documento de Identidad" schemeAgencyName="PE:SUNAT" schemeURI="urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo06">10482424355</cbc:ID>
+            </cac:PartyIdentification>
+            <cac:PartyName>
+                <cbc:Name><![CDATA[LIBRERIA BAZAR RODRI]]></cbc:Name>
+            </cac:PartyName>
+            <cac:PartyTaxScheme>
+                <cbc:RegistrationName><![CDATA[LIBRERIA BAZAR RODRI]]></cbc:RegistrationName>
+                <cbc:CompanyID schemeID="6" schemeName="SUNAT:Identificador de Documento de Identidad" schemeAgencyName="PE:SUNAT" schemeURI="urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo06">10482424355</cbc:CompanyID>
+                <cac:TaxScheme>
+                    <cbc:ID schemeID="6" schemeName="SUNAT:Identificador de Documento de Identidad" schemeAgencyName="PE:SUNAT" schemeURI="urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo06">10482424355</cbc:ID>
+                </cac:TaxScheme>
+            </cac:PartyTaxScheme>
+            <cac:PartyLegalEntity>
+                <cbc:RegistrationName><![CDATA[LIBRERIA BAZAR RODRI]]></cbc:RegistrationName>
+                <cac:RegistrationAddress>
+                    <cbc:ID schemeName="Ubigeos" schemeAgencyName="PE:INEI">140306</cbc:ID>
+                    <cbc:AddressTypeCode listAgencyName="PE:SUNAT" listName="Establecimientos anexos">0000</cbc:AddressTypeCode>
+                    <cbc:CityName><![CDATA[LAMBAYEQUE]]></cbc:CityName>
+                    <cbc:CountrySubentity><![CDATA[LAMBAYEQUE]]></cbc:CountrySubentity>
+                    <cbc:District><![CDATA[MORROPE]]></cbc:District>
+                    <cac:AddressLine>
+                        <cbc:Line><![CDATA[Ca. Calle #01, Caserio Tranca Sasape, Morrope, Lambayeque]]></cbc:Line>
+                    </cac:AddressLine>
+                    <cac:Country>
+                        <cbc:IdentificationCode listID="ISO 3166-1" listAgencyName="United Nations Economic Commission for Europe" listName="Country">PE</cbc:IdentificationCode>
+                    </cac:Country>
+                </cac:RegistrationAddress>
+            </cac:PartyLegalEntity>
+            <cac:Contact>
+                <cbc:Name><![CDATA[]]></cbc:Name>
+            </cac:Contact>
+        </cac:Party>
+    </cac:AccountingSupplierParty>
+    <cac:AccountingCustomerParty>
+        <cac:Party>
+            <cac:PartyIdentification>
+                <cbc:ID schemeID="1" schemeName="Documento de Identidad" schemeAgencyName="PE:SUNAT" schemeURI="urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo06"/>
+            </cac:PartyIdentification>
+            <cac:PartyName>
+                <cbc:Name><![CDATA[CLIENTE VARIOS]]></cbc:Name>
+            </cac:PartyName>
+            <cac:PartyTaxScheme>
+                <cbc:RegistrationName><![CDATA[CLIENTE VARIOS]]></cbc:RegistrationName>
+                <cbc:CompanyID schemeID="1" schemeName="SUNAT:Identificador de Documento de Identidad" schemeAgencyName="PE:SUNAT" schemeURI="urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo06"/>
+                <cac:TaxScheme>
+                    <cbc:ID schemeID="1" schemeName="SUNAT:Identificador de Documento de Identidad" schemeAgencyName="PE:SUNAT" schemeURI="urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo06"/>
+                </cac:TaxScheme>
+            </cac:PartyTaxScheme>
+            <cac:PartyLegalEntity>
+                <cbc:RegistrationName><![CDATA[CLIENTE VARIOS]]></cbc:RegistrationName>
+                <cac:RegistrationAddress>
+                    <cbc:ID schemeName="Ubigeos" schemeAgencyName="PE:INEI"/>
+                    <cbc:CityName><![CDATA[]]></cbc:CityName>
+                    <cbc:CountrySubentity><![CDATA[]]></cbc:CountrySubentity>
+                    <cbc:District><![CDATA[]]></cbc:District>
+                    <cac:AddressLine>
+                        <cbc:Line><![CDATA[]]></cbc:Line>
+                    </cac:AddressLine>
+                    <cac:Country>
+                        <cbc:IdentificationCode listID="ISO 3166-1" listAgencyName="United Nations Economic Commission for Europe" listName="Country"/>
+                    </cac:Country>
+                </cac:RegistrationAddress>
+            </cac:PartyLegalEntity>
+        </cac:Party>
+    </cac:AccountingCustomerParty>
+    <cac:TaxTotal>
+        <cbc:TaxAmount currencyID="PEN">3.05</cbc:TaxAmount>
+        <cac:TaxSubtotal>
+            <cbc:TaxableAmount currencyID="PEN">16.95</cbc:TaxableAmount>
+            <cbc:TaxAmount currencyID="PEN">3.05</cbc:TaxAmount>
+            <cac:TaxCategory>
+                <cbc:ID schemeID="UN/ECE 5305" schemeName="Tax Category Identifier" schemeAgencyName="United Nations Economic Commission for Europe">S</cbc:ID>
+                <cac:TaxScheme>
+                    <cbc:ID schemeID="UN/ECE 5153" schemeAgencyID="6">1000</cbc:ID>
+                    <cbc:Name>IGV</cbc:Name>
+                    <cbc:TaxTypeCode>VAT</cbc:TaxTypeCode>
+                </cac:TaxScheme>
+            </cac:TaxCategory>
+        </cac:TaxSubtotal>
+    </cac:TaxTotal>
+    <cac:LegalMonetaryTotal>
+        <cbc:LineExtensionAmount currencyID="PEN">16.95</cbc:LineExtensionAmount>
+        <cbc:TaxInclusiveAmount currencyID="PEN">20.00</cbc:TaxInclusiveAmount>
+        <cbc:PayableAmount currencyID="PEN">20.00</cbc:PayableAmount>
+    </cac:LegalMonetaryTotal>
+    <cac:InvoiceLine>
+        <cbc:ID>1</cbc:ID>
+        <cbc:InvoicedQuantity unitCode="NIU" unitCodeListID="UN/ECE rec 20" unitCodeListAgencyName="United Nations Economic Commission for Europe">1</cbc:InvoicedQuantity>
+        <cbc:LineExtensionAmount currencyID="PEN">16.95</cbc:LineExtensionAmount>
+        <cac:PricingReference>
+            <cac:AlternativeConditionPrice>
+                <cbc:PriceAmount currencyID="PEN">20.00</cbc:PriceAmount>
+                <cbc:PriceTypeCode listName="Tipo de Precio" listAgencyName="PE:SUNAT" listURI="urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo16">01</cbc:PriceTypeCode>
+            </cac:AlternativeConditionPrice>
+        </cac:PricingReference>
+        <cac:TaxTotal>
+            <cbc:TaxAmount currencyID="PEN">3.05</cbc:TaxAmount>
+            <cac:TaxSubtotal>
+                <cbc:TaxableAmount currencyID="PEN">16.95</cbc:TaxableAmount>
+                <cbc:TaxAmount currencyID="PEN">3.05</cbc:TaxAmount>
+                <cac:TaxCategory>
+                    <cbc:ID schemeID="UN/ECE 5305" schemeName="Tax Category Identifier" schemeAgencyName="United Nations Economic Commission for Europe">S</cbc:ID>
+                    <cbc:Percent>18</cbc:Percent>
+                    <cbc:TaxExemptionReasonCode listAgencyName="PE:SUNAT" listName="Afectacion del IGV" listURI="urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo07">10</cbc:TaxExemptionReasonCode>
+                    <cac:TaxScheme>
+                        <cbc:ID schemeID="UN/ECE 5153" schemeName="Codigo de tributos" schemeAgencyName="PE:SUNAT">1000</cbc:ID>
+                        <cbc:Name>IGV</cbc:Name>
+                        <cbc:TaxTypeCode>VAT</cbc:TaxTypeCode>
+                    </cac:TaxScheme>
+                </cac:TaxCategory>
+            </cac:TaxSubtotal>
+        </cac:TaxTotal>
+        <cac:Item>
+            <cbc:Description><![CDATA[ANILLADOS]]></cbc:Description>
+            <cac:SellersItemIdentification>
+                <cbc:ID><![CDATA[001]]></cbc:ID>
+            </cac:SellersItemIdentification>
+            <cac:CommodityClassification>
+                <cbc:ItemClassificationCode listID="UNSPSC" listAgencyName="GS1 US" listName="Item Classification">10191509</cbc:ItemClassificationCode>
+            </cac:CommodityClassification>
+        </cac:Item>
+        <cac:Price>
+            <cbc:PriceAmount currencyID="PEN">16.95</cbc:PriceAmount>
+        </cac:Price>
+    </cac:InvoiceLine></Invoice>
