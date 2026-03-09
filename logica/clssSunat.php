@@ -810,26 +810,24 @@ class SunatComprobante
 
         // proc_open es más probable que esté habilitado que shell_exec en Render
         if (function_exists('proc_open')) {
-            $cmd = "openssl pkcs12 -in " . escapeshellarg($pfx_tmp)
-                 . " -out " . escapeshellarg($pem_tmp)
-                 . " -passin pass:" . escapeshellarg($pass)
-                 . " -passout pass:" . escapeshellarg($pass)
-                 . " -legacy 2>&1";
+            // -nodes = sin encriptar la clave privada (necesario para OpenSSL 3.x)
+            // -legacy = soportar PFX con RC2/3DES (formato SUNAT Perú)
+            $intentos = [
+                "openssl pkcs12 -in %s -out %s -passin pass:%s -nodes -legacy 2>&1",
+                "openssl pkcs12 -in %s -out %s -passin pass:%s -nodes 2>&1",
+                "openssl pkcs12 -in %s -out %s -passin pass:%s -nodes -nomacver 2>&1",
+            ];
 
-            $proc = proc_open($cmd, [['pipe','r'],['pipe','w'],['pipe','w']], $pipes);
-            if (is_resource($proc)) {
-                proc_close($proc);
-            }
+            foreach ($intentos as $cmdTpl) {
+                $cmd  = sprintf($cmdTpl,
+                    escapeshellarg($pfx_tmp),
+                    escapeshellarg($pem_tmp),
+                    escapeshellarg($pass)
+                );
+                $proc = proc_open($cmd, [['pipe','r'],['pipe','w'],['pipe','w']], $pipes);
+                if (is_resource($proc)) proc_close($proc);
 
-            // Si -legacy no funcionó, intentar sin -legacy
-            if (!file_exists($pem_tmp) || filesize($pem_tmp) < 10) {
-                $cmd2 = "openssl pkcs12 -in " . escapeshellarg($pfx_tmp)
-                      . " -out " . escapeshellarg($pem_tmp)
-                      . " -passin pass:" . escapeshellarg($pass)
-                      . " -passout pass:" . escapeshellarg($pass)
-                      . " 2>&1";
-                $proc2 = proc_open($cmd2, [['pipe','r'],['pipe','w'],['pipe','w']], $pipes2);
-                if (is_resource($proc2)) proc_close($proc2);
+                if (file_exists($pem_tmp) && filesize($pem_tmp) > 10) break;
             }
 
             if (file_exists($pem_tmp) && filesize($pem_tmp) > 10) {
@@ -837,9 +835,10 @@ class SunatComprobante
                 @unlink($pem_tmp);
                 @unlink($pfx_tmp);
 
-                // Extraer certificado y clave del PEM
+                // Extraer certificado y clave privada sin encriptar
                 preg_match('/-----BEGIN CERTIFICATE-----.*?-----END CERTIFICATE-----/s', $pem_content, $certMatch);
-                preg_match('/-----BEGIN (?:ENCRYPTED )?PRIVATE KEY-----.*?-----END (?:ENCRYPTED )?PRIVATE KEY-----/s', $pem_content, $keyMatch);
+                preg_match('/-----BEGIN (?:RSA )?PRIVATE KEY-----.*?-----END (?:RSA )?PRIVATE KEY-----/s', $pem_content, $keyMatch);
+
                 if (!empty($certMatch) && !empty($keyMatch)) {
                     $certs['cert'] = $certMatch[0];
                     $certs['pkey'] = $keyMatch[0];
