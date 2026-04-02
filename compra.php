@@ -159,7 +159,7 @@ if (!$sucursal_id) {
                             <div class="card-body">
                                 <div class="table-responsive">
                                     <table id="TablaVentaDiaria"
-                                        class="dataTable display table table-striped table-hover">
+                                        class="display table table-striped table-hover">
                                         <thead>
                                             <tr>
                                                 <th>ID</th>
@@ -167,6 +167,7 @@ if (!$sucursal_id) {
                                                 <th>Proveedor</th>
                                                 <th>Fecha Compra</th>
                                                 <th>Total</th>
+                                                <th>Total Por Productos</th>  <!-- ← AGREGAR -->
                                                 <th>Fecha Registro</th>
                                                 <th>Hora</th>
                                                 <th>Acción</th>
@@ -1049,44 +1050,7 @@ if (!$sucursal_id) {
 <script src="https://cdn.datatables.net/1.12.1/js/jquery.dataTables.min.js"></script>
 
 
-<script>
-    $(document).ready(function() {
 
-        fnDataTables();
-    });
-
-    function fnDataTables() {
-        $(".dataTable").DataTable({
-            "order": [
-                [0, 'desc']
-            ],
-            language: {
-                "sProcessing": "Procesando...",
-                "sLengthMenu": "Mostrar _MENU_ registros",
-                "sZeroRecords": "No se encontraron resultados",
-                "sEmptyTable": "Ningún dato disponible en esta tabla",
-                "sInfo": "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
-                "sInfoEmpty": "Mostrando registros del 0 al 0 de un total de 0 registros",
-                "sInfoFiltered": "(filtrado de un total de _MAX_ registros)",
-                "sInfoPostFix": "",
-                "sSearch": "Buscar:",
-                "sUrl": "",
-                "sInfoThousands": ",",
-                "sLoadingRecords": "Cargando...",
-                "oPaginate": {
-                    "sFirst": "Primero",
-                    "sPrevious": "Anterior",
-                    "sNext": "Siguiente",
-                    "sLast": "Último"
-                },
-                "oAria": {
-                    "sSortAscending": ": Activar para ordenar la columna de manera ascendente",
-                    "sSortDescending": ": Activar para ordenar la columna de manera descendente"
-                }
-            }
-        });
-    }
-</script>
 
 <script>
     const SUCURSAL_ID = <?php echo json_encode($sucursal_id); ?>;
@@ -1939,6 +1903,7 @@ function fn_registrar_articulo() {
         }
     }
 </script>
+
 <script>
     function fn_registrar_compra() {
         var json_compra = {
@@ -2097,39 +2062,27 @@ function fn_registrar_articulo() {
 var dtCompras = null;
 
 $(document).ready(function () {
-    // Inicializar DataTable
-    dtCompras = fnInicializarDTCompras();
-
-    // Cargar estadísticas iniciales (sin filtros)
     fnCargarStats();
+    fnCargarTablaInicial();
 });
 
-// ── Inicializar / Reinicializar DataTable ────────────────────
-function fnInicializarDTCompras() {
-    if ($.fn.DataTable.isDataTable('#TablaVentaDiaria')) {
-        $('#TablaVentaDiaria').DataTable().destroy();
-    }
-    return $('#TablaVentaDiaria').DataTable({
-        order: [[0, 'desc']],
-        language: {
-            sProcessing:   "Procesando...",
-            sLengthMenu:   "Mostrar _MENU_ registros",
-            sZeroRecords:  "No se encontraron resultados",
-            sEmptyTable:   "Ningún dato disponible",
-            sInfo:         "Mostrando _START_ al _END_ de _TOTAL_ registros",
-            sInfoEmpty:    "Mostrando 0 registros",
-            sInfoFiltered: "(filtrado de _MAX_ registros)",
-            sSearch:       "Buscar:",
-            oPaginate: {
-                sFirst:    "Primero",
-                sPrevious: "Anterior",
-                sNext:     "Siguiente",
-                sLast:     "Último"
-            }
+function fnCargarTablaInicial() {
+    $.ajax({
+        url: 'logica/clssFiltrosCompras.php',
+        type: 'POST',
+        data: {
+            accion:      'FILTRAR_COMPRAS',
+            sucursal_id: SUCURSAL_ID
+        },
+        dataType: 'json',
+        success: function (data) {
+            fnRenderizarTabla(data);
+        },
+        error: function (xhr, status, error) {
+            console.error('❌ Error AJAX fnCargarTablaInicial:', xhr.responseText);
         }
     });
 }
-
 // ── Aplicar filtros ──────────────────────────────────────────
 function fnAplicarFiltros() {
     var proveedor   = $('#filtro-proveedor').val().trim();
@@ -2198,40 +2151,89 @@ function fnRenderizarTabla(data) {
     var tbody = $('#tbody-compras');
     tbody.empty();
 
-    if (data.length === 0) {
+    if (!data || data.length === 0) {
         tbody.append(
-            '<tr><td colspan="8" class="text-center text-muted py-3">' +
+            '<tr><td colspan="9" class="text-center text-muted py-3">' +
             '<i class="fas fa-inbox"></i> Sin resultados para los filtros aplicados' +
             '</td></tr>'
         );
     } else {
         $.each(data, function (i, row) {
-            var datosJSON = JSON.stringify(row).replace(/'/g, "\\'");
-            tbody.append(
-                '<tr>' +
-                '<td>' + (row.compra_id   || '') + '</td>' +
-                '<td>' + (row.realizada_por || '') + '</td>' +
-                '<td>' + (row.proveedor   || '') + '</td>' +
-                '<td>' + (row.fecha_compra || '') + '</td>' +
-                '<td>' + (row.total       || '') + '</td>' +
-                '<td>' + (row.fecha_registro || '') + '</td>' +
-                '<td>' + (row.hora        || '') + '</td>' +
-                '<td>' +
-                    '<div class="mt-2 text-center">' +
-                        '<a onclick=\'abrirDetalle(' + JSON.stringify(row) + ')\' ' +
-                           'class="btn btn-secondary btn-round btn-sm" role="button">' +
-                            '<i class="fas fa-external-link-square-alt"></i>' +
-                        '</a>' +
-                    '</div>' +
-                '</td>' +
-                '</tr>'
-            );
+
+            // ── Calcular total por productos ─────────────────
+            var totalProductos = 0;
+            try {
+                var detalle = typeof row.js_detalle_compra === 'string'
+                    ? JSON.parse(row.js_detalle_compra)
+                    : row.js_detalle_compra;
+
+                if (Array.isArray(detalle)) {
+                    detalle.forEach(function(item) {
+                        totalProductos += parseFloat(item.sub_total_ || 0);
+                    });
+                }
+            } catch(e) {
+                totalProductos = 0;
+            }
+
+            // ── Guardar JSON en data-attribute (sin problemas de escape) ──
+            var $tr = $('<tr>');
+            $tr.append('<td>' + (row.compra_id     || '') + '</td>');
+            $tr.append('<td>' + (row.realizada_por  || '') + '</td>');
+            $tr.append('<td>' + (row.proveedor      || '') + '</td>');
+            $tr.append('<td>' + (row.fecha_compra   || '') + '</td>');
+            $tr.append('<td>' + (row.total          || '') + '</td>');
+            $tr.append('<td>S/ ' + totalProductos.toFixed(2) + '</td>');
+            $tr.append('<td>' + (row.fecha_registro || '') + '</td>');
+            $tr.append('<td>' + (row.hora           || '') + '</td>');
+
+            // ── Botón usando data-index para recuperar el objeto ──
+            var $btnTd = $('<td><div class="mt-2 text-center"></div></td>');
+            var $btn = $('<a class="btn btn-secondary btn-round btn-sm" role="button">' +
+                         '<i class="fas fa-external-link-square-alt"></i></a>');
+
+            // Guardar el objeto completo en el elemento con $.data (sin serializar a HTML)
+            $btn.data('compra', row);
+            $btn.on('click', function() {
+                abrirDetalle($(this).data('compra'));
+            });
+
+            $btnTd.find('div').append($btn);
+            $tr.append($btnTd);
+
+            tbody.append($tr);
         });
     }
 
     fnInicializarDTCompras();
 }
-
+// ── Inicializar / Reinicializar DataTable ────────────────────
+function fnInicializarDTCompras() {
+    if ($.fn.DataTable.isDataTable('#TablaVentaDiaria')) {
+        $('#TablaVentaDiaria').DataTable().destroy();
+    }
+    return $('#TablaVentaDiaria').DataTable({
+        order: [[0, 'desc']],
+        pageLength: 10,
+        lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, 'Todos']],
+        language: {
+            sProcessing:   "Procesando...",
+            sLengthMenu:   "Mostrar _MENU_ registros",
+            sZeroRecords:  "No se encontraron resultados",
+            sEmptyTable:   "Ningún dato disponible",
+            sInfo:         "Mostrando _START_ al _END_ de _TOTAL_ registros",
+            sInfoEmpty:    "Mostrando 0 registros",
+            sInfoFiltered: "(filtrado de _MAX_ registros)",
+            sSearch:       "Buscar:",
+            oPaginate: {
+                sFirst:    "Primero",
+                sPrevious: "Anterior",
+                sNext:     "Siguiente",
+                sLast:     "Último"
+            }
+        }
+    });
+}
 // ── Cargar estadísticas (tarjetas) ───────────────────────────
 function fnCargarStats(proveedor, usuario, fechaDesde, fechaHasta) {
     proveedor  = proveedor  || '';
@@ -2262,10 +2264,10 @@ function fnCargarStats(proveedor, usuario, fechaDesde, fechaHasta) {
 
 // ── Actualizar tarjetas con los datos recibidos ──────────────
 function fnActualizarCards(stats) {
-    var encontradas = parseInt(stats.total_compras_filtrado  || 0);
-    var totalRango  = parseFloat(stats.total_productos_filtrado || 0).toFixed(2);
+    var encontradas = parseInt(stats.total_compras_filtrado    || 0);
+    var totalRango  = parseFloat(stats.total_productos_filtrado || 0).toFixed(2); // ← mismo campo
     var totalProd   = parseFloat(stats.total_productos_filtrado || 0).toFixed(2);
-    var granTotal   = parseFloat(stats.gran_total_historico  || 0).toFixed(2);
+    var granTotal   = parseFloat(stats.gran_total_historico    || 0).toFixed(2);
 
     $('#stat-compras-encontradas').text(encontradas);
     $('#stat-total-rango').text('S/ ' + fnFormatearMonto(totalRango));
