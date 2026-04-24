@@ -38,15 +38,32 @@ function controladorConsultasPTMRE($accion)
             }
             break;
         case 'BUSQUEDAD_PROVEEDOR':
-            if (isset($_POST["cadenaBusqueda"])) {
-                $cadena = $_POST["cadenaBusqueda"];
-                $sucursal_id = isset($_POST['sucursal_id']) ? $_POST['sucursal_id'] : null; // ✅ Obtener sucursal_id
-                
-                $result = fnListadoProveedores($cadena, $sucursal_id); // ✅ Pasar sucursal_id
+            $cadenaBusqueda = $_POST['cadenaBusqueda'];
+            $sucursal_id = isset($_POST['sucursal_id']) ? (int)$_POST['sucursal_id'] : null;
 
-                // Si no hay resultados, devuelves un array vacío
-                echo json_encode($result ? $result : []);
-            }
+            // 👇 DEBUG TEMPORAL - bórralo después
+            error_log("BUSQUEDAD_PROVEEDOR - sucursal_id: " . $sucursal_id);
+            error_log("BUSQUEDAD_PROVEEDOR - busqueda: " . $cadenaBusqueda);
+
+            $sql = "SELECT id, nombre_comercial 
+                    FROM persona 
+                    WHERE nombre_comercial ILIKE :busqueda 
+                    AND condicion = 'PROVEEDOR'
+                    AND :sucursal_id = ANY(sucursal_id)
+                    LIMIT 10";
+
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute([
+                ':busqueda'    => '%' . $cadenaBusqueda . '%',
+                ':sucursal_id' => $sucursal_id
+            ]);
+
+            $resultado = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            // 👇 DEBUG TEMPORAL - bórralo después
+            error_log("RESULTADO: " . json_encode($resultado));
+
+            echo json_encode($resultado);
             break;
         case 'BUSQUEDAD_FILTRO_ARTICULOS':
             $cadena = $_POST["cadenaBusqueda"];
