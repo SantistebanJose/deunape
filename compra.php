@@ -35,25 +35,145 @@ if (!$sucursal_id) {
                 <div class="tab-content mt-2 mb-3" id="pills-without-border-tabContent">
                     <div class="tab-pane fade show active" id="pills-home-nobd" role="tabpanel" aria-labelledby="pills-home-tab-nobd" id="tab-registro-compras">
 
+                                            <!-- ── PANEL DE FILTROS ─────────────────────────────────── -->
+                        <div class="card mb-3">
+                            <div class="card-body">
+                                <h5 class="card-title mb-3">
+                                    <i class="fas fa-filter"></i> Filtros de Búsqueda
+                                </h5>
+                                <div class="row g-2 align-items-end">
+
+                                    <!-- Proveedor -->
+                                    <div class="col-12 col-sm-6 col-md-3">
+                                        <label class="form-label fw-semibold">
+                                            <i class="fas fa-truck"></i> Proveedor
+                                        </label>
+                                        <input type="text" id="filtro-proveedor" class="form-control"
+                                            placeholder="Buscar proveedor..." />
+                                    </div>
+
+                                    <!-- Realizada por -->
+                                    <div class="col-12 col-sm-6 col-md-3">
+                                        <label class="form-label fw-semibold">
+                                            <i class="fas fa-user"></i> Realizada Por
+                                        </label>
+                                        <input type="text" id="filtro-usuario" class="form-control"
+                                            placeholder="Usuario..." />
+                                    </div>
+
+                                    <!-- Fecha desde -->
+                                    <div class="col-12 col-sm-6 col-md-2">
+                                        <label class="form-label fw-semibold">
+                                            <i class="fas fa-calendar-alt"></i> Fecha Desde
+                                        </label>
+                                        <input type="date" id="filtro-fecha-desde" class="form-control" />
+                                    </div>
+
+                                    <!-- Fecha hasta -->
+                                    <div class="col-12 col-sm-6 col-md-2">
+                                        <label class="form-label fw-semibold">
+                                            <i class="fas fa-calendar-alt"></i> Fecha Hasta
+                                        </label>
+                                        <input type="date" id="filtro-fecha-hasta" class="form-control" />
+                                    </div>
+
+                                    <!-- Botones -->
+                                    <div class="col-12 col-sm-12 col-md-2 d-flex gap-2">
+                                        <button class="btn btn-primary btn-round flex-fill"
+                                                onclick="fnAplicarFiltros()">
+                                            <i class="fas fa-search"></i> Filtrar
+                                        </button>
+                                        <button class="btn btn-secondary btn-round flex-fill"
+                                                onclick="fnLimpiarFiltros()">
+                                            <i class="fas fa-times"></i> Limpiar
+                                        </button>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ── TARJETAS DE RESUMEN ───────────────────────────────── -->
+                        <div class="row g-2 mb-3" id="cards-stats-compras">
+
+                            <!-- Compras encontradas -->
+                            <div class="col-12 col-sm-6 col-md-3">
+                                <div class="card h-100" style="background:#e8f5e9; border-left:4px solid #4caf50;">
+                                    <div class="card-body py-3">
+                                        <div class="d-flex align-items-center gap-2 mb-1">
+                                            <i class="fas fa-list-ol" style="color:#4caf50;font-size:1.3rem;"></i>
+                                            <small class="text-muted fw-semibold">Compras encontradas</small>
+                                        </div>
+                                        <h4 class="mb-0 fw-bold" id="stat-compras-encontradas"
+                                            style="color:#2e7d32;">...</h4>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Total por Rango -->
+                            <div class="col-12 col-sm-6 col-md-3">
+                                <div class="card h-100" style="background:#e3f2fd; border-left:4px solid #1976d2;">
+                                    <div class="card-body py-3">
+                                        <div class="d-flex align-items-center gap-2 mb-1">
+                                            <i class="fas fa-calendar-check" style="color:#1976d2;font-size:1.3rem;"></i>
+                                            <small class="text-muted fw-semibold">Total por Rango (S/)</small>
+                                        </div>
+                                        <h4 class="mb-0 fw-bold" id="stat-total-rango"
+                                            style="color:#0d47a1;">...</h4>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Total por Productos -->
+                            <div class="col-12 col-sm-6 col-md-3">
+                                <div class="card h-100" style="background:#fff8e1; border-left:4px solid #f9a825;">
+                                    <div class="card-body py-3">
+                                        <div class="d-flex align-items-center gap-2 mb-1">
+                                            <i class="fas fa-boxes" style="color:#f9a825;font-size:1.3rem;"></i>
+                                            <small class="text-muted fw-semibold">Total por Productos (S/)</small>
+                                        </div>
+                                        <h4 class="mb-0 fw-bold" id="stat-total-productos"
+                                            style="color:#e65100;">...</h4>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Gran Total Histórico -->
+                            <div class="col-12 col-sm-6 col-md-3">
+                                <div class="card h-100" style="background:#fce4ec; border-left:4px solid #c2185b;">
+                                    <div class="card-body py-3">
+                                        <div class="d-flex align-items-center gap-2 mb-1">
+                                            <i class="fas fa-coins" style="color:#c2185b;font-size:1.3rem;"></i>
+                                            <small class="text-muted fw-semibold">Gran Total Histórico (S/)</small>
+                                        </div>
+                                        <h4 class="mb-0 fw-bold" id="stat-gran-total"
+                                            style="color:#880e4f;">...</h4>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <!-- ── TABLA DE COMPRAS ──────────────────────────────────── -->
                         <div class="card text-start">
                             <div class="card-body">
                                 <div class="table-responsive">
-                                    <table
-                                        id="TablaVentaDiaria"
-                                        class="dataTable display table table-striped table-hover">
+                                    <table id="TablaVentaDiaria"
+                                        class="display table table-striped table-hover">
                                         <thead>
                                             <tr>
                                                 <th>ID</th>
-                                                <th>realizada por</th>
-                                                <th>proveedor</th>
-                                                <th>fecha compra</th>
-                                                <th>total</th>
-                                                <th>fecha de registro</th>
-                                                <th>hora</th>
-                                                <th>Accion</th>
+                                                <th>Realizada por</th>
+                                                <th>Proveedor</th>
+                                                <th>Fecha Compra</th>
+                                                <th>Total</th>
+                                                <th>Total Por Productos</th>  <!-- ← AGREGAR -->
+                                                <th>Fecha Registro</th>
+                                                <th>Hora</th>
+                                                <th>Acción</th>
                                             </tr>
                                         </thead>
-                                        <tbody>
+                                        <tbody id="tbody-compras">
                                             <?php
                                             foreach (fnListadoCompras($sucursal_id) as $datos) {
                                                 $datosJSON = json_encode($datos);
@@ -76,16 +196,16 @@ if (!$sucursal_id) {
                                                         </div>
                                                     </td>
                                                 </tr>
-                                            <?php
-                                            }
-                                            ?>
+                                            <?php } ?>
                                         </tbody>
                                     </table>
                                 </div>
                             </div>
                         </div>
 
-                    </div>
+                    </div><!-- /tab-pane listado -->
+
+
                     <div class="tab-pane fade" id="pills-profile-nobd" role="tabpanel" aria-labelledby="pills-profile-tab-nobd" id="tab-listado-compras">
                         <div class="card text-start">
 
@@ -930,44 +1050,7 @@ if (!$sucursal_id) {
 <script src="https://cdn.datatables.net/1.12.1/js/jquery.dataTables.min.js"></script>
 
 
-<script>
-    $(document).ready(function() {
 
-        fnDataTables();
-    });
-
-    function fnDataTables() {
-        $(".dataTable").DataTable({
-            "order": [
-                [0, 'desc']
-            ],
-            language: {
-                "sProcessing": "Procesando...",
-                "sLengthMenu": "Mostrar _MENU_ registros",
-                "sZeroRecords": "No se encontraron resultados",
-                "sEmptyTable": "Ningún dato disponible en esta tabla",
-                "sInfo": "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
-                "sInfoEmpty": "Mostrando registros del 0 al 0 de un total de 0 registros",
-                "sInfoFiltered": "(filtrado de un total de _MAX_ registros)",
-                "sInfoPostFix": "",
-                "sSearch": "Buscar:",
-                "sUrl": "",
-                "sInfoThousands": ",",
-                "sLoadingRecords": "Cargando...",
-                "oPaginate": {
-                    "sFirst": "Primero",
-                    "sPrevious": "Anterior",
-                    "sNext": "Siguiente",
-                    "sLast": "Último"
-                },
-                "oAria": {
-                    "sSortAscending": ": Activar para ordenar la columna de manera ascendente",
-                    "sSortDescending": ": Activar para ordenar la columna de manera descendente"
-                }
-            }
-        });
-    }
-</script>
 
 <script>
     const SUCURSAL_ID = <?php echo json_encode($sucursal_id); ?>;
@@ -1820,6 +1903,7 @@ function fn_registrar_articulo() {
         }
     }
 </script>
+
 <script>
     function fn_registrar_compra() {
         var json_compra = {
@@ -1969,6 +2053,250 @@ function fn_registrar_articulo() {
 
     }
 </script>
+<!-- ============================================================
+     JAVASCRIPT DE FILTROS - agregar al final de la página,
+     junto con los demás bloques <script> existentes
+     ============================================================ -->
+<script>
+// ── Estado del DataTable ─────────────────────────────────────
+var dtCompras = null;
+
+$(document).ready(function () {
+    fnCargarStats();
+    fnCargarTablaInicial();
+});
+
+function fnCargarTablaInicial() {
+    $.ajax({
+        url: 'logica/clssFiltrosCompras.php',
+        type: 'POST',
+        data: {
+            accion:      'FILTRAR_COMPRAS',
+            sucursal_id: SUCURSAL_ID
+        },
+        dataType: 'json',
+        success: function (data) {
+            fnRenderizarTabla(data);
+        },
+        error: function (xhr, status, error) {
+            console.error('❌ Error AJAX fnCargarTablaInicial:', xhr.responseText);
+        }
+    });
+}
+// ── Aplicar filtros ──────────────────────────────────────────
+function fnAplicarFiltros() {
+    var proveedor   = $('#filtro-proveedor').val().trim();
+    var usuario     = $('#filtro-usuario').val().trim();
+    var fechaDesde  = $('#filtro-fecha-desde').val();
+    var fechaHasta  = $('#filtro-fecha-hasta').val();
+
+    // Mostrar spinner en tarjetas
+    fnMostrarLoadingStats();
+
+    // Cargar estadísticas
+    fnCargarStats(proveedor, usuario, fechaDesde, fechaHasta);
+
+    // Cargar tabla filtrada
+    $.ajax({
+        url: 'logica/clssFiltrosCompras.php',
+        type: 'POST',
+        data: {
+            accion:       'FILTRAR_COMPRAS',
+            sucursal_id:  SUCURSAL_ID,
+            proveedor:    proveedor,
+            usuario:      usuario,
+            fecha_desde:  fechaDesde,
+            fecha_hasta:  fechaHasta
+        },
+        dataType: 'json',
+        success: function (data) {
+            fnRenderizarTabla(data);
+        },
+        error: function () {
+            console.error('Error al filtrar compras');
+        }
+    });
+}
+
+// ── Limpiar filtros ──────────────────────────────────────────
+function fnLimpiarFiltros() {
+    $('#filtro-proveedor').val('');
+    $('#filtro-usuario').val('');
+    $('#filtro-fecha-desde').val('');
+    $('#filtro-fecha-hasta').val('');
+
+    fnCargarStats();
+
+    // Recargar datos originales (sin filtros = todos los de la sucursal)
+    $.ajax({
+        url: 'logica/clssFiltrosCompras.php',
+        type: 'POST',
+        data: {
+            accion:      'FILTRAR_COMPRAS',
+            sucursal_id: SUCURSAL_ID
+        },
+        dataType: 'json',
+        success: function (data) {
+            fnRenderizarTabla(data);
+        }
+    });
+}
+
+// ── Renderizar filas en la tabla ─────────────────────────────
+function fnRenderizarTabla(data) {
+    if ($.fn.DataTable.isDataTable('#TablaVentaDiaria')) {
+        $('#TablaVentaDiaria').DataTable().destroy();
+    }
+
+    var tbody = $('#tbody-compras');
+    tbody.empty();
+
+    if (!data || data.length === 0) {
+        tbody.append(
+            '<tr><td colspan="9" class="text-center text-muted py-3">' +
+            '<i class="fas fa-inbox"></i> Sin resultados para los filtros aplicados' +
+            '</td></tr>'
+        );
+    } else {
+        $.each(data, function (i, row) {
+
+            // ── Calcular total por productos ─────────────────
+            var totalProductos = 0;
+            try {
+                var detalle = typeof row.js_detalle_compra === 'string'
+                    ? JSON.parse(row.js_detalle_compra)
+                    : row.js_detalle_compra;
+
+                if (Array.isArray(detalle)) {
+                    detalle.forEach(function(item) {
+                        totalProductos += parseFloat(item.sub_total_ || 0);
+                    });
+                }
+            } catch(e) {
+                totalProductos = 0;
+            }
+
+            // ── Guardar JSON en data-attribute (sin problemas de escape) ──
+            var $tr = $('<tr>');
+            $tr.append('<td>' + (row.compra_id     || '') + '</td>');
+            $tr.append('<td>' + (row.realizada_por  || '') + '</td>');
+            $tr.append('<td>' + (row.proveedor      || '') + '</td>');
+            $tr.append('<td>' + (row.fecha_compra   || '') + '</td>');
+            $tr.append('<td>' + (row.total          || '') + '</td>');
+            $tr.append('<td>S/ ' + totalProductos.toFixed(2) + '</td>');
+            $tr.append('<td>' + (row.fecha_registro || '') + '</td>');
+            $tr.append('<td>' + (row.hora           || '') + '</td>');
+
+            // ── Botón usando data-index para recuperar el objeto ──
+            var $btnTd = $('<td><div class="mt-2 text-center"></div></td>');
+            var $btn = $('<a class="btn btn-secondary btn-round btn-sm" role="button">' +
+                         '<i class="fas fa-external-link-square-alt"></i></a>');
+
+            // Guardar el objeto completo en el elemento con $.data (sin serializar a HTML)
+            $btn.data('compra', row);
+            $btn.on('click', function() {
+                abrirDetalle($(this).data('compra'));
+            });
+
+            $btnTd.find('div').append($btn);
+            $tr.append($btnTd);
+
+            tbody.append($tr);
+        });
+    }
+
+    fnInicializarDTCompras();
+}
+// ── Inicializar / Reinicializar DataTable ────────────────────
+function fnInicializarDTCompras() {
+    if ($.fn.DataTable.isDataTable('#TablaVentaDiaria')) {
+        $('#TablaVentaDiaria').DataTable().destroy();
+    }
+    return $('#TablaVentaDiaria').DataTable({
+        order: [[0, 'desc']],
+        pageLength: 10,
+        lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, 'Todos']],
+        language: {
+            sProcessing:   "Procesando...",
+            sLengthMenu:   "Mostrar _MENU_ registros",
+            sZeroRecords:  "No se encontraron resultados",
+            sEmptyTable:   "Ningún dato disponible",
+            sInfo:         "Mostrando _START_ al _END_ de _TOTAL_ registros",
+            sInfoEmpty:    "Mostrando 0 registros",
+            sInfoFiltered: "(filtrado de _MAX_ registros)",
+            sSearch:       "Buscar:",
+            oPaginate: {
+                sFirst:    "Primero",
+                sPrevious: "Anterior",
+                sNext:     "Siguiente",
+                sLast:     "Último"
+            }
+        }
+    });
+}
+// ── Cargar estadísticas (tarjetas) ───────────────────────────
+function fnCargarStats(proveedor, usuario, fechaDesde, fechaHasta) {
+    proveedor  = proveedor  || '';
+    usuario    = usuario    || '';
+    fechaDesde = fechaDesde || '';
+    fechaHasta = fechaHasta || '';
+
+    $.ajax({
+        url: 'logica/clssFiltrosCompras.php',
+        type: 'POST',
+        data: {
+            accion:      'STATS_COMPRAS',
+            sucursal_id: SUCURSAL_ID,
+            proveedor:   proveedor,
+            usuario:     usuario,
+            fecha_desde: fechaDesde,
+            fecha_hasta: fechaHasta
+        },
+        dataType: 'json',
+        success: function (stats) {
+            fnActualizarCards(stats);
+        },
+        error: function () {
+            console.error('Error al cargar estadísticas');
+        }
+    });
+}
+
+// ── Actualizar tarjetas con los datos recibidos ──────────────
+function fnActualizarCards(stats) {
+    var encontradas = parseInt(stats.total_compras_filtrado    || 0);
+    var totalRango  = parseFloat(stats.total_productos_filtrado || 0).toFixed(2); // ← mismo campo
+    var totalProd   = parseFloat(stats.total_productos_filtrado || 0).toFixed(2);
+    var granTotal   = parseFloat(stats.gran_total_historico    || 0).toFixed(2);
+
+    $('#stat-compras-encontradas').text(encontradas);
+    $('#stat-total-rango').text('S/ ' + fnFormatearMonto(totalRango));
+    $('#stat-total-productos').text('S/ ' + fnFormatearMonto(totalProd));
+    $('#stat-gran-total').text('S/ ' + fnFormatearMonto(granTotal));
+}
+
+// ── Loading placeholder en tarjetas ─────────────────────────
+function fnMostrarLoadingStats() {
+    $('#stat-compras-encontradas').html('<span class="spinner-border spinner-border-sm"></span>');
+    $('#stat-total-rango').html('<span class="spinner-border spinner-border-sm"></span>');
+    $('#stat-total-productos').html('<span class="spinner-border spinner-border-sm"></span>');
+    $('#stat-gran-total').html('<span class="spinner-border spinner-border-sm"></span>');
+}
+
+// ── Formatea número con separador de miles ───────────────────
+function fnFormatearMonto(num) {
+    return parseFloat(num).toLocaleString('es-PE', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    });
+}
+
+// ── Permitir buscar con Enter en los inputs de filtro ────────
+$(document).on('keydown', '#filtro-proveedor, #filtro-usuario, #filtro-fecha-desde, #filtro-fecha-hasta', function (e) {
+    if (e.key === 'Enter') fnAplicarFiltros();
+});
+</script>
+
 
 <?php
 include("pie.php");
