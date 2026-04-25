@@ -53,7 +53,7 @@ class SunatComprobante
             $tipo      = $cabecera['tipo_comprobante']; // 01 | 03 | 07
             $nombrexml = $emisor['ruc'] . "-" . $tipo . "-" . $cabecera['serie'] . "-" . $cabecera['correlativo'];
             // Guardar ruta real para que otros módulos puedan leer el XML
-            $this->ultima_ruta_xml = $carpetaxml;
+            $this-> ultima_ruta_xml = $carpetaxml;
             $rutaXML   = $carpetaxml . $nombrexml . '.XML';
 
             // ── PASO 01: Generar XML ──────────────────────────────────

@@ -2,6 +2,8 @@
 #emisor.php
 include("cabecera.php");
 
+
+//askjdnakjsnd
 $sucursal_id = isset($_SESSION['sucursal_id']) ? $_SESSION['sucursal_id'] : null;
 
 if (!$sucursal_id) {
