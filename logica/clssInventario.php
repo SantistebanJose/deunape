@@ -63,17 +63,18 @@ function getSucursalId()
         : null;
 }
 
+// ============================================================
+// LISTAR — DataTables server-side
+// ============================================================
 function listar_inventario()
 {
     global $conectar;
 
-    $draw   = intval($_POST['draw']   ?? 1);
-    $start  = intval($_POST['start']  ?? 0);
-    $length = intval($_POST['length'] ?? 10);
-
-    // search puede llegar como array o string segun la version de DataTables
-    $searchRaw = $_POST['search'] ?? '';
-    $search    = trim(is_array($searchRaw) ? ($searchRaw['value'] ?? '') : $searchRaw);
+    $draw        = intval($_POST['draw']   ?? 1);
+    $start       = intval($_POST['start']  ?? 0);
+    $length      = intval($_POST['length'] ?? 10);
+    $searchRaw   = $_POST['search'] ?? '';
+    $search      = trim(is_array($searchRaw) ? ($searchRaw['value'] ?? '') : $searchRaw);
 
     $sucursal_id = getSucursalId();
 
@@ -84,7 +85,6 @@ function listar_inventario()
         if ($search !== '') {
             $whereBase .= " AND (
                 a.nombre ILIKE :search
-                OR a.codigo ILIKE :search
                 OR l.nombre ILIKE :search
                 OR el.nombre ILIKE :search
             )";
@@ -117,14 +117,15 @@ function listar_inventario()
         $sql = "
             SELECT
                 i.id,
-                a.id      AS articulo_id,
-                a.codigo  AS codigo_articulo,
-                a.nombre  AS nombre_articulo,
-                l.id      AS locacion_id,
-                l.nombre  AS nombre_locacion,
-                el.id     AS estructura_id,
-                el.nombre AS nombre_estructura,
-                el.tipo   AS tipo_estructura,
+                a.id            AS articulo_id,
+                a.nombre        AS nombre_articulo,
+                a.precio_venta,
+                a.precio_compra,
+                l.id            AS locacion_id,
+                l.nombre        AS nombre_locacion,
+                el.id           AS estructura_id,
+                el.nombre       AS nombre_estructura,
+                el.tipo         AS tipo_estructura,
                 i.stock
             FROM inventario i
             JOIN articulo a ON a.id = i.articulo_id
@@ -149,7 +150,6 @@ function listar_inventario()
             $rowJson = htmlspecialchars(json_encode($row), ENT_QUOTES, 'UTF-8');
             $data[] = [
                 "id"                => $row['id'],
-                "codigo_articulo"   => $row['codigo_articulo'],
                 "nombre_articulo"   => $row['nombre_articulo'],
                 "nombre_locacion"   => $row['nombre_locacion'],
                 "nombre_estructura" => $row['nombre_estructura'] ?? '<span class="text-muted">Sin estructura</span>',
@@ -184,16 +184,19 @@ function listar_inventario()
     }
 }
 
+// ============================================================
+// OBTENER
+// ============================================================
 function obtener_inventario($id)
 {
     global $conectar;
     try {
         $stmt = $conectar->prepare("
             SELECT i.*,
-                a.nombre AS nombre_articulo,
-                a.codigo AS codigo_articulo,
-                l.nombre AS nombre_locacion,
-                el.nombre AS nombre_estructura
+                a.nombre        AS nombre_articulo,
+                a.precio_venta,
+                l.nombre        AS nombre_locacion,
+                el.nombre       AS nombre_estructura
             FROM inventario i
             JOIN articulo a ON a.id = i.articulo_id
             JOIN locacion  l ON l.id = i.locacion_id
@@ -213,6 +216,9 @@ function obtener_inventario($id)
     }
 }
 
+// ============================================================
+// REGISTRAR
+// ============================================================
 function registrar_inventario($datos = [])
 {
     global $conectar;
@@ -221,10 +227,11 @@ function registrar_inventario($datos = [])
         $estructura_id = (!isset($datos['estructura_id']) || $datos['estructura_id'] === '' || $datos['estructura_id'] === null)
             ? null : intval($datos['estructura_id']);
 
+        // Verificar duplicado en misma ubicación
         $sqlCheck = "SELECT id FROM inventario
-            WHERE articulo_id = :articulo_id
-            AND   locacion_id = :locacion_id
-            AND   sucursal_id = :sucursal_id
+            WHERE articulo_id   = :articulo_id
+            AND   locacion_id   = :locacion_id
+            AND   sucursal_id   = :sucursal_id
             AND   estructura_id " . ($estructura_id === null ? "IS NULL" : "= :estructura_id");
 
         $stmtCheck = $conectar->prepare($sqlCheck);
@@ -259,6 +266,9 @@ function registrar_inventario($datos = [])
     }
 }
 
+// ============================================================
+// ACTUALIZAR
+// ============================================================
 function actualizar_inventario($datos = [])
 {
     global $conectar;
@@ -288,6 +298,9 @@ function actualizar_inventario($datos = [])
     }
 }
 
+// ============================================================
+// ELIMINAR
+// ============================================================
 function eliminar_inventario($id)
 {
     global $conectar;
@@ -301,16 +314,20 @@ function eliminar_inventario($id)
     }
 }
 
+// ============================================================
+// BUSCAR ARTÍCULO — usa nombre y sucursal_id (sin codigo/estado)
+// ============================================================
 function buscar_articulo($term, $sucursal_id)
 {
     global $conectar;
     try {
         $stmt = $conectar->prepare("
-            SELECT id, codigo, nombre, precio_venta AS precio
+            SELECT id, nombre, precio_venta, precio_compra
             FROM articulo
             WHERE sucursal_id = :sucursal_id
-              AND (nombre ILIKE :term OR codigo ILIKE :term)
-              AND estado = true
+              AND nombre ILIKE :term
+              AND deleted_at IS NULL
+            ORDER BY nombre
             LIMIT 10
         ");
         $stmt->bindValue(":sucursal_id", intval($sucursal_id), PDO::PARAM_INT);
@@ -322,6 +339,9 @@ function buscar_articulo($term, $sucursal_id)
     }
 }
 
+// ============================================================
+// LISTAR LOCACIONES
+// ============================================================
 function listar_locaciones()
 {
     global $conectar;
@@ -340,6 +360,9 @@ function listar_locaciones()
     }
 }
 
+// ============================================================
+// LISTAR ESTRUCTURAS
+// ============================================================
 function listar_estructuras($locacion_id)
 {
     global $conectar;

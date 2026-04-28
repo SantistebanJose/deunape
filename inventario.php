@@ -82,7 +82,6 @@ include("cabecera.php");
                                 <thead>
                                     <tr>
                                         <th>ID</th>
-                                        <th>Código</th>
                                         <th>Artículo</th>
                                         <th>Locación</th>
                                         <th>Estructura</th>
@@ -133,13 +132,12 @@ include("cabecera.php");
                     d.accion      = "LISTAR";
                     d.sucursal_id = SUCURSAL_ID;
                 },
-                error: function (xhr, error, thrown) {
+                error: function (xhr) {
                     console.error("Error DataTables:", xhr.responseText);
                 }
             },
             columns: [
                 { data: "id" },
-                { data: "codigo_articulo" },
                 { data: "nombre_articulo" },
                 { data: "nombre_locacion" },
                 { data: "nombre_estructura" },
@@ -200,28 +198,24 @@ include("cabecera.php");
     }
 
     // ================================================
-    // EDITAR  (el row llega como string JSON desde el botón PHP)
+    // EDITAR
     // ================================================
     function fn_editar_inventario(rowJson) {
-        // rowJson viene como string escapado con htmlspecialchars desde PHP
         const row = JSON.parse(rowJson);
 
         document.getElementById("contenidoInventario").innerHTML = buildFormHTML("Editar Distribución", "btnAccionInventario", "Actualizar");
         new bootstrap.Modal(document.getElementById("modalInventario")).show();
 
         inicializarFormulario(function () {
-            // Pre-cargar campos
             document.getElementById("inventario_id").value  = row.id;
             document.getElementById("articulo_id").value    = row.articulo_id;
-            document.getElementById("inputArticulo").value  = row.nombre_articulo + ' [' + row.codigo_articulo + ']';
+            document.getElementById("inputArticulo").value  = row.nombre_articulo;
             document.getElementById("inputStock").value     = row.stock;
 
-            // Seleccionar locación y disparar change para cargar estructuras
             const selLoc = document.getElementById("selectLocacion");
             selLoc.value = row.locacion_id;
             selLoc.dispatchEvent(new Event("change"));
 
-            // Esperar a que carguen las estructuras para seleccionar la correcta
             if (row.estructura_id) {
                 setTimeout(function () {
                     document.getElementById("selectEstructura").value = row.estructura_id;
@@ -231,8 +225,8 @@ include("cabecera.php");
 
         document.getElementById("btnAccionInventario").addEventListener("click", async function () {
             if (!validarCampos()) return;
-            const datos    = recogerDatos();
-            datos.id       = document.getElementById("inventario_id").value;
+            const datos = recogerDatos();
+            datos.id    = document.getElementById("inventario_id").value;
             try {
                 const res = await fnAjax("ACTUALIZAR", { data: JSON.stringify(datos) });
                 if (res.success) {
@@ -293,13 +287,16 @@ include("cabecera.php");
                     <input type="hidden" id="inventario_id">
                     <input type="hidden" id="articulo_id">
 
+                    <!-- Artículo autocomplete -->
                     <div class="mb-3 articulo-container">
                         <label class="form-label">Artículo <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" id="inputArticulo" placeholder="Buscar por nombre o código..." autocomplete="off">
+                        <input type="text" class="form-control" id="inputArticulo"
+                               placeholder="Escribe para buscar artículos..." autocomplete="off">
                         <div id="sugerenciasArticulo" class="list-group"></div>
                         <div class="invalid-feedback" id="error-articulo"></div>
                     </div>
 
+                    <!-- Locación -->
                     <div class="mb-3">
                         <label class="form-label">Locación / Almacén <span class="text-danger">*</span></label>
                         <select class="form-select" id="selectLocacion">
@@ -308,6 +305,7 @@ include("cabecera.php");
                         <div class="invalid-feedback" id="error-locacion"></div>
                     </div>
 
+                    <!-- Estructura -->
                     <div class="mb-3">
                         <label class="form-label">Estructura (Andamio / Estante)</label>
                         <select class="form-select" id="selectEstructura">
@@ -315,9 +313,11 @@ include("cabecera.php");
                         </select>
                     </div>
 
+                    <!-- Stock -->
                     <div class="mb-3">
                         <label class="form-label">Stock a distribuir <span class="text-danger">*</span></label>
-                        <input type="number" class="form-control" id="inputStock" placeholder="0" min="0" step="1">
+                        <input type="number" class="form-control" id="inputStock"
+                               placeholder="0" min="0" step="1">
                         <div class="invalid-feedback" id="error-stock"></div>
                     </div>
                 </div>
@@ -360,7 +360,7 @@ include("cabecera.php");
             });
         });
 
-        // Autocomplete artículo
+        // Autocomplete artículo — busca por nombre
         let timer;
         document.getElementById("inputArticulo").addEventListener("input", function () {
             const term  = this.value.trim();
@@ -377,9 +377,12 @@ include("cabecera.php");
                         res.data.forEach(function (art) {
                             const item = document.createElement("a");
                             item.className = "list-group-item list-group-item-action";
-                            item.innerHTML = `<strong>${art.codigo}</strong> — ${art.nombre} <span class="text-muted float-end">S/ ${parseFloat(art.precio || 0).toFixed(2)}</span>`;
+                            item.innerHTML = `
+                                <span>${art.nombre}</span>
+                                <span class="text-muted float-end">S/ ${parseFloat(art.precio_venta || 0).toFixed(2)}</span>
+                            `;
                             item.addEventListener("click", function () {
-                                document.getElementById("inputArticulo").value = art.nombre + ' [' + art.codigo + ']';
+                                document.getElementById("inputArticulo").value = art.nombre;
                                 document.getElementById("articulo_id").value   = art.id;
                                 lista.innerHTML = '';
                             });
