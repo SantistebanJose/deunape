@@ -343,11 +343,11 @@ function fnGenerarA4(int $idVenta): void
     $colUni   = 20;
     $colPU    = 30;
     $colTotal = 35;
-    $pdf->Cell($colDesc,  6, 'DESCRIPCIÓN',     'B', 0, 'C', true);
-    $pdf->Cell($colCant,  6, 'CANT.',            'B', 0, 'C', true);
-    $pdf->Cell($colUni,   6, 'UND.',             'B', 0, 'C', true);
-    $pdf->Cell($colPU,    6, 'PRECIO UNIT.',     'B', 0, 'C', true);
-    $pdf->Cell($colTotal, 6, 'TOTAL',            'B', 1, 'C', true);
+$pdf->Cell($colDesc,  6, utf8_decode('DESCRIPCIÓN'),     'B', 0, 'C', true);
+    $pdf->Cell($colCant,  6, utf8_decode('CANT.'),            'B', 0, 'C', true);
+    $pdf->Cell($colUni,   6, utf8_decode('UND.'),             'B', 0, 'C', true);
+    $pdf->Cell($colPU,    6, utf8_decode('PRECIO UNIT.'),     'B', 0, 'C', true);
+    $pdf->Cell($colTotal, 6, utf8_decode('TOTAL'),            'B', 1, 'C', true);
     $pdf->SetTextColor(0, 0, 0);
     $pdf->SetFont('Arial', '', 8);
 
@@ -413,7 +413,7 @@ function fnGenerarA4(int $idVenta): void
     $pdf->SetFont('Arial', 'B', 9);
     $pdf->SetFillColor(30, 30, 30);
     $pdf->SetTextColor(255, 255, 255);
-    $pdf->Cell(45, 7, 'IMPORTE TOTAL', 'LB', 0, 'L', true);
+    $pdf->Cell(45, 7, utf8_decode('IMPORTE TOTAL'), 'LB', 0, 'L', true);
     $pdf->Cell(30, 7, 'S/ ' . number_format($datosVenta["total"], 2), 'RB', 1, 'R', true);
     $pdf->SetTextColor(0, 0, 0);
 
@@ -472,10 +472,10 @@ function fnGenerarA5(int $idVenta): void
     $pdf->SetFillColor(220, 220, 220);
     $pdf->Cell(42, 6, utf8_decode($datosVenta["tipo_comprobante"]), 1, 1, 'C', true);
     $pdf->SetX(96);
-    $pdf->Cell(42, 5.5, 'ELECTRÓNICA', 1, 1, 'C');
+    $pdf->Cell(42, 5.5, utf8_decode('ELECTRÓNICA'), 1, 1, 'C');
     $pdf->SetX(96);
     $pdf->SetFont('Arial', 'B', 7);
-    $pdf->Cell(42, 5.5, $datosVenta["codigo_tiket"], 1, 1, 'C');
+    $pdf->Cell(42, 5.5, utf8_decode($datosVenta["codigo_tiket"]), 1, 1, 'C');
 
     $pdf->Ln(3);
 
