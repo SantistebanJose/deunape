@@ -66,6 +66,9 @@ function getSucursalId()
 // ============================================================
 // LISTAR — DataTables server-side
 // ============================================================
+// ============================================================
+// LISTAR — DataTables server-side
+// ============================================================
 function listar_inventario()
 {
     global $conectar;
@@ -112,6 +115,34 @@ function listar_inventario()
         ");
         $stmtFiltered->execute($params);
         $totalFiltered = (int) $stmtFiltered->fetchColumn();
+
+        // ── STATS ──────────────────────────────────────────────
+        // Con stock (stock > 0)
+        $stmtOk = $conectar->prepare("
+            SELECT COUNT(*) FROM inventario
+            WHERE sucursal_id = :sucursal_id AND stock > 0
+        ");
+        $stmtOk->execute([':sucursal_id' => $sucursal_id]);
+        $statOk = (int) $stmtOk->fetchColumn();
+
+        // Sin stock (stock = 0)
+        $stmtZero = $conectar->prepare("
+            SELECT COUNT(*) FROM inventario
+            WHERE sucursal_id = :sucursal_id AND stock = 0
+        ");
+        $stmtZero->execute([':sucursal_id' => $sucursal_id]);
+        $statZero = (int) $stmtZero->fetchColumn();
+
+        // Locaciones activas (distintas con estado = true)
+        $stmtLoc = $conectar->prepare("
+            SELECT COUNT(DISTINCT i.locacion_id)
+            FROM inventario i
+            JOIN locacion l ON l.id = i.locacion_id AND l.estado = true
+            WHERE i.sucursal_id = :sucursal_id
+        ");
+        $stmtLoc->execute([':sucursal_id' => $sucursal_id]);
+        $statLoc = (int) $stmtLoc->fetchColumn();
+        // ───────────────────────────────────────────────────────
 
         // Datos paginados
         $sql = "
@@ -170,7 +201,14 @@ function listar_inventario()
             "draw"            => $draw,
             "recordsTotal"    => $totalRecords,
             "recordsFiltered" => $totalFiltered,
-            "data"            => $data
+            "data"            => $data,
+            // ── Aquí se agrega el objeto stats ──
+            "stats"           => [
+                "total"     => $totalRecords,
+                "ok"        => $statOk,
+                "zero"      => $statZero,
+                "locaciones"=> $statLoc
+            ]
         ]);
 
     } catch (\Throwable $th) {
@@ -183,7 +221,6 @@ function listar_inventario()
         ]);
     }
 }
-
 // ============================================================
 // OBTENER
 // ============================================================

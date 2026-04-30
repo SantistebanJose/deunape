@@ -374,6 +374,40 @@ if (!$sucursal_id) {
                                                                                 </div>
                                                                             </div>
                                                                         </div>
+                                                                        <!-- DESTINO DE INVENTARIO — Cantidades Exactas -->
+                                                                        <div class="col-12 col-sm-6 col-md-3">
+                                                                            <div class="form-group">
+                                                                                <label class="form-label"><strong>Locación Destino <span class="text-danger">*</span></strong></label>
+                                                                                <select class="form-select form-select-sm" id="ca-idLocacion">
+                                                                                    <option value="">Seleccione locación...</option>
+                                                                                </select>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="col-12 col-sm-6 col-md-3">
+                                                                            <div class="form-group">
+                                                                                <label class="form-label"><strong>Estructura</strong></label>
+                                                                                <select class="form-select form-select-sm" id="ca-idEstructura">
+                                                                                    <option value="">— Sin estructura —</option>
+                                                                                </select>
+                                                                            </div>
+                                                                        </div>
+                                                                        <!-- DESTINO DE INVENTARIO — Cajas (mismo bloque, IDs con prefijo caj-) -->
+                                                                        <div class="col-12 col-sm-6 col-md-4">
+                                                                            <div class="form-group">
+                                                                                <label class="form-label"><strong>Locación Destino <span class="text-danger">*</span></strong></label>
+                                                                                <select class="form-select form-select-sm" id="caj-idLocacion">
+                                                                                    <option value="">Seleccione locación...</option>
+                                                                                </select>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="col-12 col-sm-6 col-md-4">
+                                                                            <div class="form-group">
+                                                                                <label class="form-label"><strong>Estructura</strong></label>
+                                                                                <select class="form-select form-select-sm" id="caj-idEstructura">
+                                                                                    <option value="">— Sin estructura —</option>
+                                                                                </select>
+                                                                            </div>
+                                                                        </div>
 
                                                                         <!-- Botón Agregar -->
                                                                         <div class="col-12 col-sm-6 col-md-3 d-flex justify-content-center align-items-center">
@@ -1230,6 +1264,50 @@ if (!$sucursal_id) {
         }
 
     });
+    // ── Cargar locaciones en los selectores de destino ──────────
+$.ajax({
+    url: 'logica/clssInventario.php',
+    type: 'POST',
+    data: { accion: 'LISTAR_LOCACIONES', sucursal_id: SUCURSAL_ID },
+    dataType: 'json',
+    success: function(res) {
+        if (res.success && res.data.length > 0) {
+            var opts = '<option value="">Seleccione locación...</option>';
+            res.data.forEach(function(loc) {
+                opts += '<option value="' + loc.id + '">[' + loc.tipo + '] ' + loc.nombre + '</option>';
+            });
+            $('#ca-idLocacion, #caj-idLocacion').html(opts);
+        }
+    }
+});
+
+// ── Cascada: al cambiar locación, cargar estructuras ─────────
+$(document).on('change', '#ca-idLocacion', function() {
+    fnCargarEstructuras($(this).val(), '#ca-idEstructura');
+});
+$(document).on('change', '#caj-idLocacion', function() {
+    fnCargarEstructuras($(this).val(), '#caj-idEstructura');
+});
+
+function fnCargarEstructuras(locacion_id, targetSel) {
+    $(targetSel).html('<option value="">— Sin estructura —</option>');
+    if (!locacion_id) return;
+    $.ajax({
+        url: 'logica/clssInventario.php',
+        type: 'POST',
+        data: { accion: 'LISTAR_ESTRUCTURAS', locacion_id: locacion_id },
+        dataType: 'json',
+        success: function(res) {
+            if (res.success && res.data.length > 0) {
+                res.data.forEach(function(est) {
+                    $(targetSel).append(
+                        '<option value="' + est.id + '">[' + est.tipo + '] ' + est.nombre + '</option>'
+                    );
+                });
+            }
+        }
+    });
+}
 </script>
 
 <!-- vamos hacer unos calculos de mrd -->
@@ -1338,149 +1416,163 @@ if (!$sucursal_id) {
 </script>
 <script>
     function fn_agregar_cantidad_exacta() {
-        try {
+    try {
+        var articulo_id = document.getElementById("idArticuloEncontrado").value;
+        var articulo    = document.getElementById("idBuscarArticulos").value;
+        var cantidad    = document.getElementById("ca-idCantidadArticulos").value;
+        var total_compra       = document.getElementById("ca-idTotalCompraArticulo").value;
+        var precio_calculado   = document.getElementById("ca-idPrecioCalculado").value;
+        var precio_venta       = parseFloat(document.getElementById("ca-idPrecioVenta").value).toFixed(4);
 
-            var articulo_id = document.getElementById("idArticuloEncontrado").value;
-            var articulo = document.getElementById("idBuscarArticulos").value;
-            var cantidad = document.getElementById("ca-idCantidadArticulos").value;
-            var total_compra = document.getElementById("ca-idTotalCompraArticulo").value;
-            var precio_calculado = document.getElementById("ca-idPrecioCalculado").value;
+        // ── Destino de inventario ────────────────────────────────
+        var locacion_id    = document.getElementById("ca-idLocacion").value;
+        var locacion_texto = $('#ca-idLocacion option:selected').text();
+        var estructura_id  = document.getElementById("ca-idEstructura").value || null;
+        var estructura_txt = estructura_id ? $('#ca-idEstructura option:selected').text() : '';
 
-            var precio_venta = parseFloat(document.getElementById("ca-idPrecioVenta").value).toFixed(4);
+        console.log("Precio de Venta:", precio_venta);
 
-            console.log("Precio de Venta ", precio_venta);
-            if (variable_global_js_articulo === null && (isNaN(precio_venta) || precio_venta === "")) {
-
-                swal("Error", "El producto no tiene precio de venta (S/)", {
-                    icon: "error",
-                    buttons: {
-                        confirm: {
-                            className: "btn btn-danger",
-                        },
-                    },
-                });
-
-
-            } else {
-                if (precio_venta === "" || isNaN(precio_venta)) {
-                    precio_venta = variable_global_js_articulo.precio_venta;
-                }
-                if (precio_venta === null || precio_venta === null) {
-                    console.log("Es nuloooo como tu culoo")
-                    swal("Error", "El producto no tiene precio de venta (S/)", {
-                        icon: "error",
-                        buttons: {
-                            confirm: {
-                                className: "btn btn-danger",
-                            },
-                        },
-                    });
-                } else {
-                    var js_cantidad_exacta = {
-                        "articulo_id": articulo_id,
-                        "cantidad_": cantidad,
-                        "precio_unitario_": precio_calculado,
-                        "sub_total_": total_compra,
-                        "precio_venta_": precio_venta,
-                        "ca": "si",
-                        "ca-cantidad_exacta": "si",
-                        "ca-cantidad_articulos": cantidad,
-                        "ca-total_compra": total_compra,
-                        "ca-precio_unitario_calculado_articulo": precio_calculado,
-                        "ca-precio_venta": precio_venta,
-                        "caja": "no",
-                        "caj-caja": "no",
-                        "caj-cantidad_cajas": 0,
-                        "caj-unidades_por_caja": 0,
-                        "caj-precio_unitario_de_caja": 0,
-                        "caj-total": 0,
-                        "caj-precio_unitario_articulo_calculado": 0,
-                        "caj-unidades_calculadas": 0,
-                        "caj-precio_venta_por_articulo": 0,
-                        "json_producto": variable_global_js_articulo
-                    };
-                    console.log("Cantidad: " + cantidad);
-                    console.log("Articulo: " + articulo_id);
-
-                    if (articulo_id === "" || isNaN(cantidad) || isNaN(total_compra) || isNaN(precio_calculado)) {
-                        alert("Por favor, completa todos los campos.");
-                        return; // Salir de la función si algún campo está vacío
-                    }
-
-
-                    var articuloJsFormat;
-                    if (variable_global_js_articulo === null) {
-                        articuloJsFormat = document.getElementById("idBuscarArticulos").value;
-                    } else {
-                        articuloJsFormat = variable_global_js_articulo.articulo + " | Tipo: " + variable_global_js_articulo.tipo + " | Dimesion: " + variable_global_js_articulo.dimension;
-                    }
-                    //var articuloJsFormat = variable_global_js_articulo.articulo + " | Tipo: " + variable_global_js_articulo.tipo + " | Dimesion: " + variable_global_js_articulo.dimension;
-
-                    var tablita = document.getElementById("idTablitaCompra").getElementsByTagName('tbody')[0];
-                    var newRow = tablita.insertRow(tablita.rows.length);
-                    var cell1 = newRow.insertCell(0); // ID
-                    var cell2 = newRow.insertCell(1); // Artículo
-                    var cell3 = newRow.insertCell(2); // Cantidad
-                    var cell4 = newRow.insertCell(3); // Precio Unitario
-                    var cell5 = newRow.insertCell(4); // Sub Total
-                    var cell6 = newRow.insertCell(5); // Precio Venta
-                    var cell7 = newRow.insertCell(6); // Celda para el botón
-
-                    ////////////////////////////////////////////////////////
-                    var btnEliminar = document.createElement("button");
-                    //btn btn-success btn-round
-                    btnEliminar.innerHTML = '<i class="fas fa-times"></i>';
-                    btnEliminar.classList.add("btn", "btn-danger", "btn-round", "btn-sm");
-
-                    // Cambiar la forma en que se llama a la función eliminarFilaDeMrd
-                    btnEliminar.onclick = function() {
-
-                        var row = this.closest('tr'); // Obtiene la fila más cercana al botón
-                        row.remove(); // Elimina la fila del DOM
-                        ///////////////////////////////7
-                        var indiceFila = row.rowIndex;
-                        listaArticulosCantidades.splice(indiceFila, 1);
-                        console.log("Lista de mrd de Json Cantidad de Exacta");
-                        console.log(listaArticulosCantidades);
-                        showNotification('eliminar');
-
-                    };
-                    //////////////////////////////////////////////////////
-
-                    // Insertar los valores en las celdas
-                    cell1.innerHTML = articulo_id;
-                    cell2.innerHTML = articuloJsFormat;
-                    cell3.innerHTML = cantidad;
-                    cell4.innerHTML = precio_calculado;
-                    cell5.innerHTML = (cantidad * precio_calculado).toFixed(4); // Sub Total = Cantidad * Precio Unitario
-                    cell6.innerHTML = precio_venta;
-                    cell7.appendChild(btnEliminar);
-                    if (variable_global_js_articulo === null) {
-                        showNotification('Agregar', 'Articulo Agregado ');
-                    } else {
-                        showNotification('Agregar', 'Articulo ' + variable_global_js_articulo.articulo);
-                    }
-
-                    ///////////////////////////
-                    listaArticulosCantidades.push(js_cantidad_exacta);
-
-
-                    console.log("Lista de mrd de Json Cantidad de Exacta");
-                    console.log(listaArticulosCantidades);
-                    document.getElementById("idBuscarArticulos").value = "";
-                    document.getElementById("ca-idCantidadArticulos").value = "";
-                    document.getElementById("ca-idTotalCompraArticulo").value = "";
-                    document.getElementById("ca-idPrecioCalculado").value = "";
-                    document.getElementById("ca-idPrecioVenta").value = "";
-                }
-
-            }
-        } catch (error) {
-            console.log("Error de mrd: ", error);
+        if (variable_global_js_articulo === null && (isNaN(precio_venta) || precio_venta === "")) {
+            swal("Error", "El producto no tiene precio de venta (S/)", {
+                icon: "error",
+                buttons: { confirm: { className: "btn btn-danger" } }
+            });
+            return;
         }
 
+        if (precio_venta === "" || isNaN(precio_venta)) {
+            precio_venta = variable_global_js_articulo.precio_venta;
+        }
 
+        if (precio_venta === null) {
+            swal("Error", "El producto no tiene precio de venta (S/)", {
+                icon: "error",
+                buttons: { confirm: { className: "btn btn-danger" } }
+            });
+            return;
+        }
+
+        // ── Validaciones ─────────────────────────────────────────
+        if (articulo_id === "" || isNaN(cantidad) || isNaN(total_compra) || isNaN(precio_calculado)) {
+            alert("Por favor, completa todos los campos del artículo.");
+            return;
+        }
+
+        if (!locacion_id) {
+            swal("Upps", "Debes seleccionar una locación destino para el artículo.", {
+                icon: "warning",
+                buttons: { confirm: { className: "btn btn-warning" } }
+            });
+            return;
+        }
+
+        // ── Armar objeto ─────────────────────────────────────────
+        var js_cantidad_exacta = {
+            "articulo_id":      articulo_id,
+            "cantidad_":        cantidad,
+            "precio_unitario_": precio_calculado,
+            "sub_total_":       total_compra,
+            "precio_venta_":    precio_venta,
+            // destino
+            "locacion_id":      locacion_id,
+            "locacion_texto":   locacion_texto,
+            "estructura_id":    estructura_id,
+            "estructura_txt":   estructura_txt,
+            // flags
+            "ca":                                    "si",
+            "ca-cantidad_exacta":                    "si",
+            "ca-cantidad_articulos":                 cantidad,
+            "ca-total_compra":                       total_compra,
+            "ca-precio_unitario_calculado_articulo": precio_calculado,
+            "ca-precio_venta":                       precio_venta,
+            "caja":                                  "no",
+            "caj-caja":                              "no",
+            "caj-cantidad_cajas":                    0,
+            "caj-unidades_por_caja":                 0,
+            "caj-precio_unitario_de_caja":           0,
+            "caj-total":                             0,
+            "caj-precio_unitario_articulo_calculado":0,
+            "caj-unidades_calculadas":               0,
+            "caj-precio_venta_por_articulo":         0,
+            "json_producto": variable_global_js_articulo
+        };
+
+        // ── Formatear nombre del artículo ────────────────────────
+        var articuloJsFormat = variable_global_js_articulo === null
+            ? document.getElementById("idBuscarArticulos").value
+            : variable_global_js_articulo.articulo +
+              " | Tipo: "    + variable_global_js_articulo.tipo +
+              " | Dimensión: " + variable_global_js_articulo.dimension;
+
+        // ── Badge de destino ─────────────────────────────────────
+        var destinoBadge =
+            '<span class="badge bg-info text-dark ms-1">' +
+                '<i class="fas fa-map-marker-alt me-1"></i>' +
+                locacion_texto +
+                (estructura_id ? ' / ' + estructura_txt : '') +
+            '</span>';
+
+        // ── Insertar fila en la tabla ────────────────────────────
+        var tablita = document.getElementById("idTablitaCompra").getElementsByTagName('tbody')[0];
+        var newRow  = tablita.insertRow(tablita.rows.length);
+
+        var cell1 = newRow.insertCell(0); // ID
+        var cell2 = newRow.insertCell(1); // Artículo + destino
+        var cell3 = newRow.insertCell(2); // Cantidad
+        var cell4 = newRow.insertCell(3); // Precio Unitario
+        var cell5 = newRow.insertCell(4); // Sub Total
+        var cell6 = newRow.insertCell(5); // Precio Venta
+        var cell7 = newRow.insertCell(6); // Botón eliminar
+
+        var btnEliminar = document.createElement("button");
+        btnEliminar.innerHTML = '<i class="fas fa-times"></i>';
+        btnEliminar.classList.add("btn", "btn-danger", "btn-round", "btn-sm");
+        btnEliminar.onclick = function() {
+            var row       = this.closest('tr');
+            var indice    = Array.from(tablita.rows).indexOf(row);
+            row.remove();
+            listaArticulosCantidades.splice(indice, 1);
+            console.log("Lista actualizada:", listaArticulosCantidades);
+            showNotification('Eliminar');
+        };
+
+        cell1.innerHTML = articulo_id;
+        cell2.innerHTML = articuloJsFormat + 
+        ' <span class="badge bg-info text-dark ms-1" title="Destino">' +
+        locacion_texto + (estructura_id ? ' / ' + estructura_txt : '') +
+        '</span>';
+        cell3.innerHTML = cantidad;
+        cell4.innerHTML = precio_calculado;
+        cell5.innerHTML = (cantidad * precio_calculado).toFixed(4);
+        cell6.innerHTML = precio_venta;
+        cell7.appendChild(btnEliminar);
+
+        listaArticulosCantidades.push(js_cantidad_exacta);
+
+        showNotification('Agregar',
+            variable_global_js_articulo === null
+                ? 'Artículo agregado'
+                : 'Artículo ' + variable_global_js_articulo.articulo
+        );
+
+        console.log("Lista actualizada:", listaArticulosCantidades);
+
+        // ── Limpiar campos ───────────────────────────────────────
+        document.getElementById("idBuscarArticulos").value        = "";
+        document.getElementById("idArticuloEncontrado").value     = "";
+        document.getElementById("ca-idCantidadArticulos").value   = "";
+        document.getElementById("ca-idTotalCompraArticulo").value = "";
+        document.getElementById("ca-idPrecioCalculado").value     = "";
+        document.getElementById("ca-idPrecioVenta").value         = "";
+        document.getElementById("ca-idLocacion").value            = "";
+        document.getElementById("ca-idEstructura").innerHTML      =
+            '<option value="">— Sin estructura —</option>';
+        variable_global_js_articulo = null;
+
+    } catch (error) {
+        console.error("Error en fn_agregar_cantidad_exacta:", error);
     }
+}
     //////////////////////////////////////////////////////////////////////////////////
     function fn_agregar_cantidad_cajas() {
         var articulo_id = document.getElementById("idArticuloEncontrado").value;
@@ -1493,6 +1585,16 @@ if (!$sucursal_id) {
 
         var pu_calculado_articulo_x_caja = document.getElementById("caj-idPrecioUnitarioCalculado").value;
         var unidades_calculadas = document.getElementById("caj-idUnidadesCalculadas").value;
+
+        var locacion_id    = document.getElementById("caj-idLocacion").value;
+        var locacion_text  = $('#caj-idLocacion option:selected').text();
+        var estructura_id  = document.getElementById("caj-idEstructura").value || null;
+        var estructura_txt = $('#caj-idEstructura option:selected').text();
+
+        if (!locacion_id) {
+            alert("Debes seleccionar una locación destino.");
+            return;
+        }
 
 
 
@@ -1555,7 +1657,12 @@ if (!$sucursal_id) {
                     "caj-precio_unitario_articulo_calculado": pu_calculado_articulo_x_caja,
                     "caj-unidades_calculadas": unidades_calculadas,
                     "caj-precio_venta_por_articulo": precio_venta_articulos,
-                    "json_producto": variable_global_js_articulo
+                    "json_producto": variable_global_js_articulo,
+                    // En js_cantidad_cajas, agrega:
+                    "locacion_id":    locacion_id,
+                    "locacion_texto": locacion_text,
+                    "estructura_id":  estructura_id,
+                    "estructura_txt": estructura_txt
                 };
 
 
@@ -1632,6 +1739,8 @@ if (!$sucursal_id) {
                 document.getElementById("caj-idPrecioUnitarioCalculado").value = "";
                 document.getElementById("caj-idUnidadesCalculadas").value = "";
                 document.getElementById("caj-idPrecioVenta").value = "";
+                document.getElementById("caj-idLocacion").value = "";
+                document.getElementById("caj-idEstructura").innerHTML = '<option value="">— Sin estructura —</option>';
 
             }
 
@@ -2296,6 +2405,8 @@ $(document).on('keydown', '#filtro-proveedor, #filtro-usuario, #filtro-fecha-des
     if (e.key === 'Enter') fnAplicarFiltros();
 });
 </script>
+
+
 
 
 <?php
