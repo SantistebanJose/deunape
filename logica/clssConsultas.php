@@ -1056,7 +1056,10 @@ function fnUltimaVentaPorIdVenta($id_venta): array
                 WHEN ar.nombre IS NULL THEN
                     UPPER(TRIM(SPLIT_PART(REPLACE(COALESCE(rva.nota_archivo, m.descripcion), 'Cotización', ''), ' / ', 1)))
                 ELSE
-                    UPPER(TRIM(SPLIT_PART(REPLACE(COALESCE(rva.nota_archivo, ar.nombre), 'Cotización', ''), ' / ', 1)))
+                    UPPER(TRIM(REGEXP_REPLACE(
+                        SPLIT_PART(REPLACE(COALESCE(rva.nota_archivo, ar.nombre), 'Cotización', ''), ' / ', 1),
+                        '\s*\[.*?\]\s*$', '', 'g'
+                    )))
             END as descripcion_2,
             rva.cantidad,
             rva.precio_unitario_articulo,

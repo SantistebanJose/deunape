@@ -51,7 +51,7 @@ include("cabecera.php");
     }
 
     /* ══════════════════════════════════════════
-       BOTONES DE ACCIÓN — diseño unificado
+       BOTONES DE ACCIÓN
     ══════════════════════════════════════════ */
     .acciones-grupo {
         display: inline-flex;
@@ -59,7 +59,6 @@ include("cabecera.php");
         gap: 6px;
     }
 
-    /* Botón XML */
     .btn-accion-xml {
         display: inline-flex;
         align-items: center;
@@ -78,7 +77,6 @@ include("cabecera.php");
     .btn-accion-xml:hover  { filter: brightness(1.15); transform: translateY(-1px); }
     .btn-accion-xml:active { transform: translateY(0); }
 
-    /* Grupo PDF + flecha */
     .pdf-group {
         display: inline-flex;
         align-items: stretch;
@@ -118,10 +116,8 @@ include("cabecera.php");
         transition: filter .15s;
     }
     .btn-pdf-arrow:hover { filter: brightness(1.3); }
-    /* Quitar el caret por defecto de Bootstrap */
     .btn-pdf-arrow::after { display: none !important; }
 
-    /* Dropdown personalizado */
     .pdf-group .dropdown-menu {
         min-width: 195px;
         border-radius: 10px;
@@ -145,16 +141,8 @@ include("cabecera.php");
         background: #f1f5f9;
         color: #111827;
     }
-    .pdf-group .dropdown-menu .dropdown-item i {
-        width: 14px;
-        text-align: center;
-        opacity: .65;
-    }
-    .pdf-group .dropdown-divider {
-        margin: 4px 0;
-        border-color: #e2e8f0;
-    }
-    /* Etiqueta de formato */
+    .pdf-group .dropdown-menu .dropdown-item i { width: 14px; text-align: center; opacity: .65; }
+    .pdf-group .dropdown-divider { margin: 4px 0; border-color: #e2e8f0; }
     .fmt-badge {
         margin-left: auto;
         font-size: .64rem;
@@ -165,6 +153,123 @@ include("cabecera.php");
         font-weight: 700;
         letter-spacing: .3px;
     }
+
+    /* ══════════════════════════════════════════
+       FILTRO DE FECHAS — TABS
+    ══════════════════════════════════════════ */
+    .filtro-tabs-wrap {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 14px;
+    }
+
+    .filtro-tab {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 7px 16px;
+        border-radius: 50px;
+        border: 1px solid #dee2e6;
+        background: #fff;
+        color: #495057;
+        font-size: .82rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background .15s, color .15s, border-color .15s, box-shadow .15s;
+        white-space: nowrap;
+        user-select: none;
+    }
+    .filtro-tab:hover { background: #f1f3f5; border-color: #adb5bd; }
+    .filtro-tab.activo {
+        background: #3b1fa8;
+        color: #fff;
+        border-color: #3b1fa8;
+        box-shadow: 0 2px 8px rgba(59,31,168,.35);
+    }
+    .filtro-tab i { font-size: .85rem; opacity: .85; }
+
+    /* Panel rango */
+    #panel-rango-fechas {
+        display: none;
+        flex-wrap: wrap;
+        align-items: flex-end;
+        gap: 10px;
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 12px;
+        padding: 14px 16px;
+        margin-bottom: 14px;
+    }
+    #panel-rango-fechas.visible { display: flex; }
+
+    #panel-rango-fechas label {
+        font-size: .76rem;
+        font-weight: 600;
+        color: #6c757d;
+        text-transform: uppercase;
+        letter-spacing: .4px;
+        display: block;
+        margin-bottom: 4px;
+    }
+    #panel-rango-fechas input[type="date"] {
+        border: 1px solid #ced4da;
+        border-radius: 8px;
+        padding: 6px 10px;
+        font-size: .83rem;
+        color: #212529;
+        background: #fff;
+        outline: none;
+        transition: border-color .15s;
+    }
+    #panel-rango-fechas input[type="date"]:focus {
+        border-color: #3b1fa8;
+        box-shadow: 0 0 0 3px rgba(59,31,168,.12);
+    }
+    .btn-aplicar-rango {
+        padding: 7px 18px;
+        background: #3b1fa8;
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        font-size: .82rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: filter .15s;
+    }
+    .btn-aplicar-rango:hover { filter: brightness(1.15); }
+    .btn-limpiar-rango {
+        padding: 7px 14px;
+        background: transparent;
+        color: #6c757d;
+        border: 1px solid #ced4da;
+        border-radius: 8px;
+        font-size: .82rem;
+        cursor: pointer;
+        transition: background .12s;
+    }
+    .btn-limpiar-rango:hover { background: #e9ecef; }
+
+    /* Barra resumen */
+    #resumen-declarado {
+        display: none;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 20px;
+        background: #f0fdf4;
+        border: 1px solid #bbf7d0;
+        border-radius: 12px;
+        padding: 12px 18px;
+        margin-bottom: 14px;
+    }
+    #resumen-declarado.visible { display: flex; }
+
+    .res-item { display: flex; flex-direction: column; gap: 1px; }
+    .res-lbl  { font-size: .72rem; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: .4px; }
+    .res-val  { font-size: 1.15rem; font-weight: 700; color: #111827; }
+    .res-val.monto { color: #15803d; }
+    .res-periodo { font-size: .8rem; color: #374151; margin-left: auto; }
 </style>
 
 <div class="container">
@@ -174,10 +279,56 @@ include("cabecera.php");
                 <h4 class="card-title">
                     <i class="fab fa-staylinked"></i> Ventas Declaradas a SUNAT
                 </h4>
-                <div class="card-sub">
+                <div class="card-sub mb-3">
                     Marque <strong>en el botón verde</strong> los comprobantes que desea <strong>revisar.</strong>
                 </div>
 
+                <!-- ══ TABS DE FILTRO ══ -->
+                <div class="filtro-tabs-wrap">
+                    <button class="filtro-tab activo" data-modo="hoy" onclick="ftab_cambiar('hoy', this)">
+                        <i class="fas fa-clock"></i> Ventas Declaradas del Día
+                    </button>
+                    <button class="filtro-tab" data-modo="semana" onclick="ftab_cambiar('semana', this)">
+                        <i class="fas fa-calendar-week"></i> Ventas Declaradas de la Semana
+                    </button>
+                    <button class="filtro-tab" data-modo="todas" onclick="ftab_cambiar('todas', this)">
+                        <i class="fas fa-chart-bar"></i> Todas las Ventas Declaradas
+                    </button>
+                    <button class="filtro-tab" data-modo="rango" onclick="ftab_cambiar('rango', this)">
+                        <i class="fas fa-calendar"></i> Ventas Declaradas por Rango
+                    </button>
+                </div>
+
+                <!-- ══ PANEL RANGO PERSONALIZADO ══ -->
+                <div id="panel-rango-fechas">
+                    <div>
+                        <label>Desde</label>
+                        <input type="date" id="ftab_desde">
+                    </div>
+                    <div>
+                        <label>Hasta</label>
+                        <input type="date" id="ftab_hasta">
+                    </div>
+                    <button class="btn-aplicar-rango" onclick="ftab_aplicar_rango()">
+                        <i class="fas fa-search me-1"></i> Filtrar
+                    </button>
+                    <button class="btn-limpiar-rango" onclick="ftab_limpiar_rango()">Limpiar</button>
+                </div>
+
+                <!-- ══ BARRA DE RESUMEN ══ -->
+                <div id="resumen-declarado">
+                    <div class="res-item">
+                        <span class="res-lbl">Comprobantes</span>
+                        <span class="res-val" id="res-cantidad">—</span>
+                    </div>
+                    <div class="res-item">
+                        <span class="res-lbl">Total Declarado a SUNAT</span>
+                        <span class="res-val monto" id="res-total">—</span>
+                    </div>
+                    <span class="res-periodo" id="res-etiqueta"></span>
+                </div>
+
+                <!-- ══ TABLA ══ -->
                 <div class="tablita-responsive">
                     <div class="table-responsive">
                         <table id="tabla_boletas" class="dataTable display table table-striped table-hover">
@@ -281,12 +432,13 @@ include("cabecera.php");
                         </table>
                     </div>
                 </div>
+
             </div>
         </div>
     </div>
 </div>
 
-<!-- ── Modal XML ── -->
+<!-- ══ MODAL XML ══ -->
 <div class="modal fade" id="modal_xml" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content" style="border-radius:14px; overflow:hidden;">
@@ -350,11 +502,147 @@ $(document).ready(function() {
             sSearch       : "Buscar:",
             oPaginate     : { sFirst:"Primero", sPrevious:"Anterior", sNext:"Siguiente", sLast:"Último" }
         },
-         order: [[0, "desc"]]
+        order: [[0, "desc"]]
     });
+
+    // Aplicar filtro "Hoy" al iniciar
+    setTimeout(function() {
+        const hoy = ftab_hoy();
+        ftab_aplicar(hoy, hoy, 'Hoy — ' + hoy.split('-').reverse().join('/'));
+    }, 300);
 });
 
-// ── Ver XML ──────────────────────────────────────────────────
+/* ══════════════════════════════════════════════════════════
+   FILTRO POR FECHAS
+══════════════════════════════════════════════════════════ */
+
+let _ftab_filtro_activo = null;
+
+function ftab_hoy() {
+    return new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+}
+
+function ftab_inicio_semana() {
+    const d   = new Date();
+    const dia = d.getDay() === 0 ? 6 : d.getDay() - 1; // lunes = 0
+    d.setDate(d.getDate() - dia);
+    return d.toISOString().split('T')[0];
+}
+
+// Normaliza DD/MM/YYYY → YYYY-MM-DD para poder comparar
+function ftab_iso(texto) {
+    if (!texto) return '';
+    if (texto.includes('/')) {
+        const [d, m, y] = texto.split('/');
+        return `${y}-${m.padStart(2,'0')}-${d.padStart(2,'0')}`;
+    }
+    return texto;
+}
+
+// Aplica el filtro de rango en el DataTable
+function ftab_aplicar(desde, hasta, etiqueta) {
+    // Quitar filtro anterior
+    if (_ftab_filtro_activo !== null) {
+        const idx = $.fn.dataTable.ext.search.indexOf(_ftab_filtro_activo);
+        if (idx > -1) $.fn.dataTable.ext.search.splice(idx, 1);
+    }
+    _ftab_filtro_activo = function(settings, data) {
+        const fecha = ftab_iso(data[3]); // columna índice 3 = Fecha Emisión
+        if (!fecha) return true;
+        return (!desde || fecha >= desde) && (!hasta || fecha <= hasta);
+    };
+    $.fn.dataTable.ext.search.push(_ftab_filtro_activo);
+    $('#tabla_boletas').DataTable().draw();
+    ftab_mostrar_resumen(etiqueta);
+}
+
+// Quita cualquier filtro activo
+function ftab_quitar_filtro() {
+    if (_ftab_filtro_activo !== null) {
+        const idx = $.fn.dataTable.ext.search.indexOf(_ftab_filtro_activo);
+        if (idx > -1) $.fn.dataTable.ext.search.splice(idx, 1);
+        _ftab_filtro_activo = null;
+    }
+    if ($.fn.DataTable.isDataTable('#tabla_boletas')) {
+        $('#tabla_boletas').DataTable().draw();
+    }
+    document.getElementById('resumen-declarado').classList.remove('visible');
+}
+
+// Calcula y muestra la barra de totales
+function ftab_mostrar_resumen(etiqueta) {
+    const tabla = $('#tabla_boletas').DataTable();
+    let cantidad = 0, total = 0;
+    tabla.rows({ search: 'applied' }).every(function() {
+        const d = this.data();
+        cantidad++;
+        // columna 4 = "S/ 1,234.56"
+        const monto = parseFloat(
+            (d[4] || '').replace('S/','').replace(/,/g,'').trim()
+        ) || 0;
+        total += monto;
+    });
+    document.getElementById('res-cantidad').textContent = cantidad;
+    document.getElementById('res-total').textContent =
+        'S/ ' + total.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    document.getElementById('res-etiqueta').textContent = etiqueta;
+    document.getElementById('resumen-declarado').classList.add('visible');
+}
+
+// Cambia el tab activo y ejecuta el filtro correspondiente
+function ftab_cambiar(modo, btn) {
+    document.querySelectorAll('.filtro-tab').forEach(t => t.classList.remove('activo'));
+    btn.classList.add('activo');
+
+    const panelRango = document.getElementById('panel-rango-fechas');
+    panelRango.classList.toggle('visible', modo === 'rango');
+
+    const hoy = ftab_hoy();
+
+    if (modo === 'hoy') {
+        ftab_aplicar(hoy, hoy,
+            'Hoy — ' + hoy.split('-').reverse().join('/'));
+
+    } else if (modo === 'semana') {
+        const inicio = ftab_inicio_semana();
+        ftab_aplicar(inicio, hoy,
+            'Esta semana (' +
+            inicio.split('-').reverse().join('/') + ' → ' +
+            hoy.split('-').reverse().join('/') + ')');
+
+    } else if (modo === 'todas') {
+        ftab_quitar_filtro();
+
+    } else if (modo === 'rango') {
+        ftab_quitar_filtro();
+    }
+}
+
+// Botón "Filtrar" del panel de rango
+function ftab_aplicar_rango() {
+    const desde = document.getElementById('ftab_desde').value;
+    const hasta  = document.getElementById('ftab_hasta').value;
+    if (!desde && !hasta) {
+        alert('Selecciona al menos una fecha.');
+        return;
+    }
+    const etq =
+        (desde ? desde.split('-').reverse().join('/') : '...') +
+        ' → ' +
+        (hasta  ? hasta.split('-').reverse().join('/')  : '...');
+    ftab_aplicar(desde || '', hasta || '', etq);
+}
+
+// Botón "Limpiar" del panel de rango
+function ftab_limpiar_rango() {
+    document.getElementById('ftab_desde').value = '';
+    document.getElementById('ftab_hasta').value  = '';
+    ftab_quitar_filtro();
+}
+
+/* ══════════════════════════════════════════════════════════
+   VER XML
+══════════════════════════════════════════════════════════ */
 let _xmlTextoActual = '';
 
 function fn_ver_xml(nombrexml, sucursal) {
@@ -362,7 +650,7 @@ function fn_ver_xml(nombrexml, sucursal) {
     document.getElementById('xml_spinner').style.display = 'block';
     document.getElementById('xml_visor').style.display   = 'none';
     document.getElementById('xml_error').style.display   = 'none';
-    document.getElementById('xml_nombre').textContent     = nombrexml + '.XML';
+    document.getElementById('xml_nombre').textContent    = nombrexml + '.XML';
     _xmlTextoActual = '';
     $('#modal_xml').modal('show');
 
@@ -387,7 +675,9 @@ function fn_ver_xml(nombrexml, sucursal) {
         });
 }
 
-// ── Copiar al portapapeles ────────────────────────────────────
+/* ══════════════════════════════════════════════════════════
+   COPIAR XML
+══════════════════════════════════════════════════════════ */
 function fn_copiar_xml() {
     if (!_xmlTextoActual) return;
     navigator.clipboard.writeText(_xmlTextoActual).then(() => {
@@ -401,7 +691,9 @@ function fn_copiar_xml() {
     });
 }
 
-// ── Coloreado XML básico ──────────────────────────────────────
+/* ══════════════════════════════════════════════════════════
+   COLOREAR XML
+══════════════════════════════════════════════════════════ */
 function colorearXML(xml) {
     const esc = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     return esc(xml)
@@ -415,7 +707,9 @@ function colorearXML(xml) {
         });
 }
 
-// ── Abrir PDF ─────────────────────────────────────────────────
+/* ══════════════════════════════════════════════════════════
+   ABRIR PDF
+══════════════════════════════════════════════════════════ */
 function fn_abrir_pdf(id_venta, formato) {
     formato = formato || 'ticket';
     fetch("ticket.php?accion=token&id=" + parseInt(id_venta))

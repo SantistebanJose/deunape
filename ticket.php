@@ -170,6 +170,20 @@ function fnGenerarTicket(int $idVenta): void
     $pdf->Cell(74, 4, "RUC: " . $datoEmisor["ruc"], 0, 1, 'C');
     $pdf->SetFont('Arial', '', 6);
     $pdf->MultiCell(74, 3.5, utf8_decode($datoEmisor["direccion"]), 0, 'C');
+
+    // Teléfonos
+    if (!empty($datoEmisor["telefono"])) {
+        $tels = json_decode($datoEmisor["telefono"], true);
+        if (is_array($tels) && count($tels)) {
+            $pdf->Cell(74, 3.5, utf8_decode('Tel: ' . implode(' / ', $tels)), 0, 1, 'C');
+        }
+    }
+
+    // Email
+    if (!empty($datoEmisor["email"])) {
+        $pdf->Cell(74, 3.5, utf8_decode($datoEmisor["email"]), 0, 1, 'C');
+    }
+
     $pdf->Ln(1);
 
     // Tipo comprobante
@@ -306,6 +320,18 @@ function fnGenerarA4(int $idVenta): void
     $pdf->MultiCell(80, 4, utf8_decode($datoEmisor["direccion"]), 0, 'C');
     $pdf->SetX(55);
     $pdf->Cell(80, 4, 'RUC: ' . $datoEmisor["ruc"], 0, 1, 'C');
+
+    if (!empty($datoEmisor["telefono"])) {
+        $tels = json_decode($datoEmisor["telefono"], true);
+        if (is_array($tels) && count($tels)) {
+            $pdf->SetX(55);
+            $pdf->Cell(80, 4, utf8_decode('Tel: ' . implode(' / ', $tels)), 0, 1, 'C');
+        }
+    }
+    if (!empty($datoEmisor["email"])) {
+        $pdf->SetX(55);
+        $pdf->Cell(80, 4, utf8_decode($datoEmisor["email"]), 0, 1, 'C');
+    }
 
     // Cuadro comprobante (columna derecha)
     $pdf->SetXY(140, 15);
@@ -467,12 +493,28 @@ function fnGenerarA5(int $idVenta): void
 
     $pdf->SetXY(36, 10);
     $pdf->SetFont('Arial', 'B', 9);
-    $pdf->Cell(55, 5, utf8_decode($datoEmisor["razon_social"]), 0, 1, 'C');
+    $pdf->Cell(58, 5, utf8_decode($datoEmisor["razon_social"]), 0, 1, 'C');
     $pdf->SetX(36);
     $pdf->SetFont('Arial', '', 7);
-    $pdf->MultiCell(55, 3.5, utf8_decode($datoEmisor["direccion"]), 0, 'C');
+    $pdf->MultiCell(58, 3.5, utf8_decode($datoEmisor["direccion"]), 0, 'C');
     $pdf->SetX(36);
-    $pdf->Cell(55, 3.5, 'RUC: ' . $datoEmisor["ruc"], 0, 1, 'C');
+    $pdf->Cell(58, 3.5, 'RUC: ' . $datoEmisor["ruc"], 0, 1, 'C');
+
+    if (!empty($datoEmisor["telefono"])) {
+        $tels = json_decode($datoEmisor["telefono"], true);
+        if (is_array($tels) && count($tels)) {
+            $pdf->SetX(36);
+            $pdf->Cell(58, 3.5, utf8_decode('Tel: ' . implode(' / ', $tels)), 0, 1, 'C');
+        }
+    }
+    if (!empty($datoEmisor["email"])) {
+    $email = $datoEmisor["email"];
+    if (strlen($email) > 30) $email = substr($email, 0, 28) . '..';
+    $pdf->SetX(36);
+    $pdf->SetFont('Arial', '', 6);
+    $pdf->Cell(58, 3.5, utf8_decode($email), 0, 1, 'C');
+    $pdf->SetFont('Arial', '', 7);
+}
 
     // Cuadro comprobante (derecha)
     $pdf->SetXY(96, 10);
@@ -651,7 +693,17 @@ function fnGenerarPantalla(int $idVenta): void
 
     ob_clean();
     header('Content-Type: text/html; charset=utf-8');
+    $telHtml = '';
+    if (!empty($datoEmisor["telefono"])) {
+        $tels = json_decode($datoEmisor["telefono"], true);
+        if (is_array($tels) && count($tels))
+            $telHtml = '<p>Tel: ' . htmlspecialchars(implode(' / ', $tels)) . '</p>';
+    }
+    $emailHtml = !empty($datoEmisor["email"])
+        ? '<p>' . htmlspecialchars($datoEmisor["email"]) . '</p>'
+        : '';
 
+    // ... aquí ya viene el HTML completo con estilos embebidos y las variables interpoladas
     echo <<<HTML
 <!DOCTYPE html>
 <html lang="es">
@@ -815,14 +867,16 @@ function fnGenerarPantalla(int $idVenta): void
 <body>
 <div class="comprobante">
 
-  <!-- ENCABEZADO -->
-  <div class="header">
-    {$logoTag}
-    <div class="emisor-info">
-      <h1>{$razonSocial}</h1>
-      <p>RUC: {$ruc}</p>
-      <p>{$direccion}</p>
-    </div>
+<!-- ENCABEZADO -->
+<div class="header">
+  {$logoTag}
+  <div class="emisor-info">
+    <h1>{$razonSocial}</h1>
+    <p>RUC: {$ruc}</p>
+    <p>{$direccion}</p>
+    {$telHtml}
+    {$emailHtml}
+  </div>
     <div class="badge">
       <div class="tipo">{$tipoComp}</div>
       <div class="num">{$codigoTicket}</div>
