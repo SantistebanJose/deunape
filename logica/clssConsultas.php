@@ -1,4 +1,5 @@
 <?php
+
 include("bd.php");
 
 if (isset($_POST["accion"])) {
@@ -93,9 +94,15 @@ function controladorConsultasPTMRE($accion)
             echo json_encode($datos);
             break;
         case 'VENTAS_POR_RANGO':
-            $fecha_inicio = $_POST['fecha_inicio'];
-            $fecha_fin = $_POST['fecha_fin'];
-            $sucursal_id = isset($_SESSION['sucursal_id']) ? $_SESSION['sucursal_id'] : null;
+            $fecha_inicio = $_POST['fecha_inicio'] ?? null;
+            $fecha_fin    = $_POST['fecha_fin']    ?? null;
+            $sucursal_id  = $_POST['sucursal_id']  ?? ($_SESSION['sucursal_id'] ?? null);
+
+            if (!$sucursal_id) {
+                echo json_encode(['error' => 'Sin sucursal_id']);
+                break;
+            }
+
             echo json_encode(fnListForVentasPorRango($fecha_inicio, $fecha_fin, $sucursal_id));
             break;
     }
@@ -318,6 +325,12 @@ function listarProductosVenta1($sucursal_id): array
 
     return executeQuery($query, ["sucursal_id" => $sucursal_id]);
 }
+function listarProductosVenta2($sucursal_id): array
+{
+    $query = "SELECT * FROM view_articulos_2 WHERE precio_venta is not null AND sucursal_id = :sucursal_id; ";
+
+    return executeQuery($query, ["sucursal_id" => $sucursal_id]);
+}
 
 function listarTipoArticuloMantenimiento($sucursal_id): array
 {
@@ -328,6 +341,12 @@ function listarTipoArticuloMantenimiento($sucursal_id): array
 function listarDimensionArticuloMantenimiento($sucursal_id): array
 {
     $query = "select * from dimension where sucursal_id = :sucursal_id";
+    return executeQuery($query, ["sucursal_id" => $sucursal_id]);
+}
+
+function listarUndiadesDeCompra($sucursal_id): array
+{
+    $query = "select * from unidadescompra where sucursal_id = :sucursal_id";
     return executeQuery($query, ["sucursal_id" => $sucursal_id]);
 }
 
@@ -409,7 +428,7 @@ function listarVentaReservaCorte($sucursal_id = null): array
     return executeQuery($query, ['sucursal_id' => $sucursal_id]);
 }
 
-function listarVentasNoDeclaradas()
+function listarVentasNoDeclaradas($sucursal_id)
 {
     $sql = "
         --select * from emisor ;
@@ -513,11 +532,12 @@ function listarVentasNoDeclaradas()
         JOIN persona p1 ON p1.id = v.cliente_id
         LEFT JOIN comprobante cb ON v.id = cb.venta_id
         WHERE cb.venta_id is null 
+        AND v.sucursal_id = :sucursal_id
         --AND 
         --WHERE p.created_at >= (CURRENT_TIMESTAMP - INTERVAL '2 days')
         order by 1 desc
     ";
-    return executeQuery($sql);
+    return executeQuery($sql,params:["sucursal_id"=>$sucursal_id]);
 }
 function listarVentasPagadasParaComprobantes($sucursal_id): array
 {
@@ -655,9 +675,10 @@ function listarVentasPagadasParaComprobantes($sucursal_id): array
         JOIN venta v    ON p.id_venta = v.id AND v.tipo_comprobante IN ('BOLETA','FACTURA')
         JOIN persona p1 ON p1.id = v.cliente_id
         LEFT JOIN comprobante cb ON v.id = cb.venta_id
-        WHERE cb.venta_id IS NULL 
+        WHERE v.deleted_at IS NULL
+        AND cb.venta_id IS NULL 
           AND v.sucursal_id = :sucursal_id
-          AND p.created_at >= (CURRENT_TIMESTAMP - INTERVAL '2 days')
+          AND p.created_at >= (CURRENT_TIMESTAMP - INTERVAL '7 days')
         ORDER BY 1 DESC
     ";
 
@@ -819,9 +840,8 @@ function fnListarEmisor($sucursal_id)
     ";
     return executeQuery($sql,params:["sucursal_id" => $sucursal_id]);
 }
-function fnSiguienteCorrelativo($tipo_comprobante, $sucursal_id, $serie)
-{
-    $sql = "
+function fnSiguienteCorrelativo($tipo_comprobante, $sucursal_id, $serie){
+    $sql1 = "
         SELECT 
             COALESCE(MAX(c.correlativo), 0) + 1 AS correlativo_siguiente,
             LPAD((COALESCE(MAX(c.correlativo), 0) + 1)::text, 8, '0') AS correlativo_texto
@@ -831,6 +851,35 @@ function fnSiguienteCorrelativo($tipo_comprobante, $sucursal_id, $serie)
           AND c.serie            = :serie
           AND e.sucursal_id      = :sucursal_id
           AND c.estado_envio     = true;
+    ";
+    $sql = "
+        SELECT 
+            COALESCE(MAX(c.correlativo), 0) + 1 AS correlativo_siguiente,
+            LPAD((COALESCE(MAX(c.correlativo), 0) + 1)::text, 8, '0') AS correlativo_texto
+        FROM comprobante c
+        JOIN emisor e ON c.ruc_emisor = e.ruc
+        WHERE c.tipo_comprobante = :tipo_comprobante
+        AND c.serie            = :serie
+        AND e.sucursal_id      = :sucursal_id;
+    ";
+    return executeQuery($sql, [
+        ":tipo_comprobante" => $tipo_comprobante,
+        ":serie"            => $serie,
+        ":sucursal_id"      => $sucursal_id,
+    ]);
+}
+function fnSiguienteCorrelativoGuia($tipo_comprobante, $sucursal_id, $serie)
+{
+    $sql = "
+        SELECT 
+            COALESCE(MAX(g.correlativo), 0) + 1 AS correlativo_siguiente,
+            LPAD((COALESCE(MAX(g.correlativo), 0) + 1)::text, 8, '0') AS correlativo_texto
+        FROM guia_remision g
+        JOIN emisor e ON g.ruc_emisor = e.ruc
+        WHERE g.tipo_comprobante = :tipo_comprobante
+          AND g.serie            = :serie
+          AND e.sucursal_id      = :sucursal_id
+          AND g.estado_envio     = true
     ";
     return executeQuery($sql, [
         ":tipo_comprobante" => $tipo_comprobante,
@@ -1005,9 +1054,9 @@ function fnUltimaVentaPorIdVenta($id_venta): array
                 WHEN ar.dimension_id IS NOT NULL THEN
                     CONCAT(ar.nombre, ' (', dim.medida, ')')
                 WHEN ar.nombre IS NULL THEN
-                    m.descripcion
+                    UPPER(TRIM(SPLIT_PART(REPLACE(COALESCE(rva.nota_archivo, m.descripcion), 'Cotización', ''), ' / ', 1)))
                 ELSE
-                    ar.nombre 
+                    UPPER(TRIM(SPLIT_PART(REPLACE(COALESCE(rva.nota_archivo, ar.nombre), 'Cotización', ''), ' / ', 1)))
             END as descripcion_2,
             rva.cantidad,
             rva.precio_unitario_articulo,
@@ -1772,10 +1821,9 @@ function fnListadoCompras($sucursal_id): array
     );
 }
 
-//
-function fnListadoCajaChica(): array
+// 
+function fnListadoCajaChica(int $sucursal_id): array
 {
-    // La consulta SQL para buscar proveedores
     $query = "   
     WITH with_detalle_caja AS
     (
@@ -1796,11 +1844,9 @@ function fnListadoCajaChica(): array
     )
     SELECT *, 
     CASE
-		WHEN saldo IS NULL THEN
-			0
-		ELSE
-			(monto-saldo)
-	END as egresos_de_caja,
+        WHEN saldo IS NULL THEN 0
+        ELSE (monto-saldo)
+    END as egresos_de_caja,
     COALESCE(saldo,monto) as saldo_v2,
     COALESCE(((monto-saldo)/monto)*100,0)::INTEGER as porcentaje,
     apertura::date as fecha_apertura,
@@ -1809,30 +1855,31 @@ function fnListadoCajaChica(): array
         SELECT 
             json_agg(
                 json_build_object(
-                    'detalle_caja_id',d.detalle_caja_id,
-                    'caja_id', d.detalle_caja_id,
-                    'responsable', d.responsable,
-                    'concepto', d.concepto,
-                    'monto', d.monto,
-                    'created_at',d.created_at,
-                    'fecha_registro', d.fecha_registro,
-                    'hora_registro', d.hora_registro,
-                    'tipo_movimiento',d.tipo_movimiento,
-                    'nota', d.nota
+                    'detalle_caja_id', d.detalle_caja_id,
+                    'caja_id',         d.detalle_caja_id,
+                    'responsable',     d.responsable,
+                    'concepto',        d.concepto,
+                    'monto',           d.monto,
+                    'created_at',      d.created_at,
+                    'fecha_registro',  d.fecha_registro,
+                    'hora_registro',   d.hora_registro,
+                    'tipo_movimiento', d.tipo_movimiento,
+                    'nota',            d.nota
                 )
             )
         FROM with_detalle_caja d WHERE d.caja_id = c.id
     ) as js_detalle_caja
-    FROM caja c where cierre IS NULL ORDER BY 1 DESC LIMIT 1;  
+    FROM caja c 
+    WHERE cierre IS NULL 
+    AND sucursal_id = :sucursal_id
+    ORDER BY 1 DESC LIMIT 1;  
     ";
 
-    // Ejecuta la consulta con el parámetro de búsqueda
-    return executeQuery($query);
+    return executeQuery($query, ['sucursal_id' => $sucursal_id]);
 }
 
-function fnListadoCajaChicaCerradas(): array
+function fnListadoCajaChicaCerradas(int $sucursal_id): array
 {
-    // La consulta SQL para buscar proveedores
     $query = "   
     WITH with_detalle_caja AS
     (
@@ -1862,44 +1909,41 @@ function fnListadoCajaChicaCerradas(): array
         WHEN EXTRACT(DOW FROM c.apertura) = 6 THEN UPPER('Sábado')
     END dia_semana,
     CASE
-        WHEN saldo IS NULL THEN
-            0
-        ELSE
-            (monto-saldo)
+        WHEN saldo IS NULL THEN 0
+        ELSE (monto-saldo)
     END as egresos_de_caja,
     COALESCE(saldo,monto) saldo_v2,
     COALESCE(((monto-saldo)/monto)*100,0)::INTEGER as porcentaje,
     apertura::date as fecha_apertura,
     cierre::date as fecha_cierre,
-
     TO_CHAR(apertura, 'HH12:MI:SS AM') as hora_apertura,
-    TO_CHAR(cierre, 'HH12:MI:SS AM') as hora_cierre,
+    TO_CHAR(cierre,   'HH12:MI:SS AM') as hora_cierre,
     (
         SELECT 
             json_agg(
                 json_build_object(
-                    'detalle_caja_id',d.detalle_caja_id,
-                    'caja_id', d.caja_id,
-                    'responsable', d.responsable,
-                    'concepto', d.concepto,
-                    'monto', d.monto,
-                    'created_at',d.created_at,
-                    'fecha_registro', d.fecha_registro,
-                    'hora_registro', d.hora_registro,
-                    'tipo_movimiento',d.tipo_movimiento,
-                    'nota', d.nota
+                    'detalle_caja_id', d.detalle_caja_id,
+                    'caja_id',         d.caja_id,
+                    'responsable',     d.responsable,
+                    'concepto',        d.concepto,
+                    'monto',           d.monto,
+                    'created_at',      d.created_at,
+                    'fecha_registro',  d.fecha_registro,
+                    'hora_registro',   d.hora_registro,
+                    'tipo_movimiento', d.tipo_movimiento,
+                    'nota',            d.nota
                 )
             )
         FROM with_detalle_caja d WHERE d.caja_id = c.id
     ) as js_detalle_caja
     FROM caja c 
-    where cierre IS NOT NULL AND deleted_at IS null
+    WHERE cierre IS NOT NULL 
+    AND deleted_at IS NULL
+    AND sucursal_id = :sucursal_id
     ORDER BY 1 DESC;  
-
     ";
 
-    // Ejecuta la consulta con el parámetro de búsqueda
-    return executeQuery($query);
+    return executeQuery($query, ['sucursal_id' => $sucursal_id]);
 }
 
 function fnListadoConceptosEgresos($tipoCaja, $sucursal_id = null): array
@@ -2096,27 +2140,50 @@ function fnGenerarTicketAntiguo($idVenta): void
     $pdf->AddPage();
 
     // ✅ USAR LOGO DINÁMICO DE LA SUCURSAL
-    $logoPath = null;
-    
-    // Verificar si existe ruta de logo en la BD
-    if (!empty($datoEmisor["ruta_logo"])) {
-        $logoPath = $datoEmisor["ruta_logo"];
-        
-        // Verificar si el archivo existe
-        if (!file_exists($logoPath)) {
-            error_log("⚠️ Logo no encontrado en: " . $logoPath);
-            $logoPath = null;
+   // ── Logo: soporta Base64 (Render) y rutas físicas antiguas ──
+        $logoPath    = null;
+        $tmpLogoFile = null; // para limpiarlo al final
+
+        if (!empty($datoEmisor["ruta_logo"])) {
+
+            $rawLogo = $datoEmisor["ruta_logo"];
+
+            if (str_starts_with($rawLogo, 'data:image/')) {
+                // ── Es Base64 → extraer datos y guardar en /tmp ──
+                // Formato: data:image/png;base64,XXXXXX
+                if (preg_match('/^data:(image\/(\w+));base64,(.+)$/s', $rawLogo, $matches)) {
+                    $extension   = $matches[2]; // png, jpeg, jpg
+                    $base64Data  = $matches[3];
+                    $imagenBytes = base64_decode($base64Data);
+
+                    if ($imagenBytes !== false) {
+                        $tmpLogoFile = '/tmp/logo_sucursal_' . $sucursal_id . '.' . $extension;
+                        file_put_contents($tmpLogoFile, $imagenBytes);
+                        $logoPath = $tmpLogoFile;
+                        error_log("✅ Logo Base64 guardado en: " . $logoPath);
+                    } else {
+                        error_log("⚠️ No se pudo decodificar el Base64 del logo");
+                    }
+                }
+            } else {
+                // ── Es ruta física antigua ──
+                if (file_exists($rawLogo)) {
+                    $logoPath = $rawLogo;
+                } else {
+                    error_log("⚠️ Logo físico no encontrado en: " . $rawLogo);
+                }
+            }
         }
-    }
-    
-    // Si no hay logo de la sucursal, usar logo por defecto
-    if ($logoPath === null) {
-        $logoPath = 'logica/logo.jpeg';
-        if (!file_exists($logoPath)) {
-            error_log("⚠️ Logo por defecto no encontrado");
-            $logoPath = null;
+
+        // Fallback: logo por defecto
+        if ($logoPath === null) {
+            $default = 'logica/logo.jpeg';
+            if (file_exists($default)) {
+                $logoPath = $default;
+            } else {
+                error_log("⚠️ Logo por defecto no encontrado");
+            }
         }
-    }
 
     // Mostrar logo si existe
     if ($logoPath) {
@@ -2259,6 +2326,10 @@ function fnGenerarTicketAntiguo($idVenta): void
     // GENERAR PDF
     ob_clean();
     $pdf->Output('I', 'ticket_venta.pdf');
+    // Limpiar archivo temporal del logo si fue creado desde Base64
+    if ($tmpLogoFile && file_exists($tmpLogoFile)) {
+        unlink($tmpLogoFile);
+        }
 }
 
 function fnRankingClientes()

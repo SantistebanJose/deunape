@@ -115,16 +115,24 @@ function fnCargarDatosVenta(int $idVenta): array
     return [$datosVenta, $datoEmisor, $productos, $pagos];
 }
 
-/** Resuelve la ruta del logo */
+
+
 function fnResolverLogo(array $datoEmisor): ?string
 {
+    // 1. Primero intenta la ruta guardada en BD
     if (!empty($datoEmisor["ruta_logo"]) && file_exists($datoEmisor["ruta_logo"]))
         return $datoEmisor["ruta_logo"];
-    if (file_exists('logica/logo.jpeg'))
-        return 'logica/logo.jpeg';
+
+    // 2. Logo fijo en carpeta img/
+    if (file_exists('img/logo.png'))  return 'img/logo.png';
+    if (file_exists('img/logo.jpg'))  return 'img/logo.jpg';
+    if (file_exists('img/logo.jpeg')) return 'img/logo.jpeg';
+
+    // 3. Fallback anterior
+    if (file_exists('logica/logo.jpeg')) return 'logica/logo.jpeg';
+
     return null;
 }
-
 /** Genera el subtotal IGV para comprobantes A4/A5 */
 function fnCalcularImpuestos(array $productos, float $total): array
 {
@@ -149,9 +157,9 @@ function fnGenerarTicket(int $idVenta): void
     // Logo
     $logoPath = fnResolverLogo($datoEmisor);
     if ($logoPath) {
-        $lw = 20;
-        $pdf->Image($logoPath, (80 - $lw) / 2, 5, $lw);
-        $pdf->Ln(22);
+        $lw = 45;                                          // logo más grande
+        $pdf->Image($logoPath, (80 - $lw) / 2, 4, $lw);  // centrado, un poco más arriba
+        $pdf->Ln(30);                                      // más espacio tras el logo
     } else {
         $pdf->Ln(4);
     }
@@ -165,7 +173,7 @@ function fnGenerarTicket(int $idVenta): void
     $pdf->Ln(1);
 
     // Tipo comprobante
-    $pdf->SetFont('Arial', 'B', 9);
+    $pdf->SetFont('Arial', 'B', 10);
 $pdf->Cell(74, 5, utf8_decode($datosVenta["tipo_comprobante"] . ' ELECTRÓNICA'), 0, 1, 'C');
     $pdf->SetFont('Arial', 'B', 8);
     $pdf->Cell(74, 4, $datosVenta["codigo_tiket"], 0, 1, 'C');
@@ -258,7 +266,7 @@ $pdf->Cell(74, 5, utf8_decode($datosVenta["tipo_comprobante"] . ' ELECTRÓNICA')
     $pdf->Ln(1);
     $pdf->SetFont('Arial', 'B', 6);
     $pdf->Cell(74, 3, utf8_decode($datoEmisor["nombre_comercial"]), 0, 1, 'C');
-    $pdf->Cell(74, 3, utf8_decode('DESARROLLADO POR CARACOL SOFT'), 0, 1, 'C');
+    $pdf->Cell(74, 3, utf8_decode('DESARROLLADO POR CAPTAIN'), 0, 1, 'C');
     $pdf->Ln(4);
 
     ob_clean();
@@ -429,7 +437,7 @@ $pdf->Cell($colDesc,  6, utf8_decode('DESCRIPCIÓN'),     'B', 0, 'C', true);
     $pdf->Ln(3);
     $pdf->SetFont('Arial', 'B', 7);
     $pdf->SetTextColor(100, 100, 100);
-    $pdf->Cell($ancho, 4, utf8_decode($datoEmisor["nombre_comercial"] . '  |  Atendido por: ' . $datosVenta["usuario_final"] . '  |  DESARROLLADO POR CARACOL SOFT'), 0, 1, 'C');
+    $pdf->Cell($ancho, 4, utf8_decode($datoEmisor["nombre_comercial"] . '  |  Atendido por: ' . $datosVenta["usuario_final"] . '  |  DESARROLLADO POR CAPTAIN'), 0, 1, 'C');
 
     ob_clean();
     $pdf->Output('I', 'comprobante_a4.pdf');
@@ -576,7 +584,7 @@ function fnGenerarA5(int $idVenta): void
     $pdf->MultiCell($ancho, 3, utf8_decode('Representación impresa de la ' . $datosVenta["tipo_comprobante"] . ' ELECTRÓNICA'), 0, 'C');
     $pdf->SetFont('Arial', 'B', 6);
     $pdf->SetTextColor(100, 100, 100);
-    $pdf->Cell($ancho, 3.5, utf8_decode($datoEmisor["nombre_comercial"] . '  |  CARACOL SOFT'), 0, 1, 'C');
+    $pdf->Cell($ancho, 3.5, utf8_decode($datoEmisor["nombre_comercial"] . '  |  CAPTAIN'), 0, 1, 'C');
 
     ob_clean();
     $pdf->Output('I', 'comprobante_a5.pdf');
@@ -886,7 +894,7 @@ function fnGenerarPantalla(int $idVenta): void
   <!-- PIE -->
   <div class="pie">
     Representación impresa de la {$tipoComp} ELECTRÓNICA<br>
-    {$nombreComercial} &nbsp;|&nbsp; Atendido por: {$usuarioFinal} &nbsp;|&nbsp; DESARROLLADO POR CARACOL SOFT
+    {$nombreComercial} &nbsp;|&nbsp; Atendido por: {$usuarioFinal} &nbsp;|&nbsp; DESARROLLADO POR CAPTAIN
   </div>
 
 </div>

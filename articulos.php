@@ -539,6 +539,7 @@ function generarFormularioArticulo(isEdit, datosArticulo) {
     html += '</div>'; // Fin row datos
     html += '</div>'; // Fin tab datos-panel
     
+    
     // ============================================
     // TAB 2: PRECIOS POR PRESENTACIÓN (MEJORADO)
     // ============================================

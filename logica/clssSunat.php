@@ -3,11 +3,6 @@
  * clssSunat.php
  * Clase reutilizable para generar, firmar y enviar comprobantes a SUNAT.
  * Soporta: Boleta (03), Factura (01), Nota de Crédito (07)
- *
- * Uso:
- *   require_once 'clssSunat.php';
- *   $sunat = new SunatComprobante();
- *   $resultado = $sunat->enviar($emisor, $cliente, $cabecera, $items);
  */
 
 require_once dirname(__DIR__) . '/vendor/autoload.php';
@@ -17,32 +12,25 @@ use RobRichards\XMLSecLibs\XMLSecurityKey;
 class SunatComprobante
 {
     private string $base_dir;
+    public string $version = 'v6';
+
 
     public function __construct()
     {
-        // Raíz del proyecto (un nivel arriba de logica/)
         $this->base_dir = rtrim(dirname(__DIR__), '/') . '/';
     }
 
     // =========================================================
     // PUNTO DE ENTRADA PRINCIPAL
     // =========================================================
-    /**
-     * @param array $emisor   Datos del emisor (ruc, sucursal, certificado, ...)
-     * @param array $cliente  Datos del cliente
-     * @param array $cabecera Cabecera del comprobante
-     * @param array $items    Líneas de detalle
-     * @return array ['estado' => bool, 'mensaje' => string, 'nombrexml' => string]
-     */
     public function enviar(array $emisor, array $cliente, array $cabecera, array $items): array
     {
+        // FIX: forzar correlativo como string con ceros para evitar conversión numérica
+        $cabecera['correlativo'] = str_pad((string)(int)$cabecera['correlativo'], 8, '0', STR_PAD_LEFT);
+
         try {
-            // ── Rutas dinámicas por sucursal ──────────────────────────
             $sucursal   = $emisor['sucursal'] ?? '1';
             $base       = $this->base_dir . "sucursales/{$sucursal}/";
-
-            // Render define la variable de entorno RENDER=true automáticamente.
-            // En XAMPP local usa las carpetas normales del proyecto.
             $esRender   = getenv('RENDER') === 'true' || !is_writable(dirname($base));
             $carpetaxml = $esRender ? "/tmp/xml_{$sucursal}/" : $base . "xml/";
             $carpetacdr = $esRender ? "/tmp/cdr_{$sucursal}/" : $base . "cdr/";
@@ -50,31 +38,30 @@ class SunatComprobante
             if (!is_dir($carpetaxml)) mkdir($carpetaxml, 0777, true);
             if (!is_dir($carpetacdr)) mkdir($carpetacdr, 0777, true);
 
-            $tipo      = $cabecera['tipo_comprobante']; // 01 | 03 | 07
+            $tipo      = $cabecera['tipo_comprobante'];
             $nombrexml = $emisor['ruc'] . "-" . $tipo . "-" . $cabecera['serie'] . "-" . $cabecera['correlativo'];
-            // Guardar ruta real para que otros módulos puedan leer el XML
-            $this-> ultima_ruta_xml = $carpetaxml;
+            $this->ultima_ruta_xml = $carpetaxml;
             $rutaXML   = $carpetaxml . $nombrexml . '.XML';
 
-            // ── PASO 01: Generar XML ──────────────────────────────────
+            // PASO 01: Generar XML
             $xml = match ($tipo) {
                 '07'    => $this->generarXMLNotaCredito($emisor, $cliente, $cabecera, $items),
                 default => $this->generarXMLInvoice($emisor, $cliente, $cabecera, $items),
             };
 
             $doc = new DOMDocument('1.0', 'utf-8');
-            $doc->formatOutput      = false;
+            $doc->formatOutput       = false;
             $doc->preserveWhiteSpace = true;
             $doc->loadXML($xml);
             $doc->save($rutaXML);
 
-            // ── PASO 02: Firmar ───────────────────────────────────────
+            // PASO 02: Firmar
             $firma = $this->firmar($rutaXML, $emisor);
             if (!$firma['ok']) {
                 return ['estado' => false, 'mensaje' => $firma['mensaje']];
             }
 
-            // ── PASO 03: ZIP ──────────────────────────────────────────
+            // PASO 03: ZIP
             $nombrezip = $nombrexml . ".ZIP";
             $rutazip   = $carpetaxml . $nombrezip;
 
@@ -82,21 +69,19 @@ class SunatComprobante
                 return ['estado' => false, 'mensaje' => 'No se pudo crear el archivo ZIP'];
             }
 
-            // ── PASO 04/05: Enviar a SUNAT ────────────────────────────
+            // PASO 04: Enviar a SUNAT
             $resp = $this->enviarWS($rutazip, $emisor, $nombrezip);
 
-            // ── PASO 06: Procesar CDR ─────────────────────────────────
+            // PASO 05: Procesar CDR
             if ($resp['http_code'] == 200) {
                 $docResp = new DOMDocument();
                 $docResp->loadXML($resp['body']);
                 $appResp = $docResp->getElementsByTagName('applicationResponse')->item(0);
 
                 if ($appResp && $appResp->nodeValue) {
-                    // CDR recibido — guardar y descomprimir
                     $cdr = base64_decode($appResp->nodeValue);
                     file_put_contents($carpetacdr . "R-" . $nombrezip, $cdr);
 
-                    // Extraer CDR zip
                     if (class_exists('ZipArchive')) {
                         $zipCdr = new ZipArchive();
                         if ($zipCdr->open($carpetacdr . "R-" . $nombrezip) === true) {
@@ -104,7 +89,6 @@ class SunatComprobante
                             $zipCdr->close();
                         }
                     } else {
-                        // Fallback: extraer con proc_open
                         $carpetaExtr = $carpetacdr . 'R-' . $nombrexml;
                         if (!is_dir($carpetaExtr)) mkdir($carpetaExtr, 0777, true);
                         $proc = proc_open(
@@ -117,19 +101,25 @@ class SunatComprobante
                     $msgSunat = $this->leerMensajeCDR($carpetacdr . 'R-' . $nombrexml);
 
                     return [
-                        'estado'    => true,
-                        'mensaje'   => $msgSunat ?: 'Comprobante enviado correctamente a SUNAT',
-                        'nombrexml' => $nombrexml,
-                        'nombrezip' => $nombrezip,
+                        'estado'        => true,
+                        'mensaje'       => 'Comprobante enviado correctamente a SUNAT',
+                        'codigo_sunat'  => '0',
+                        'mensaje_sunat' => $msgSunat ?: '',
+                        'nombrexml'     => $nombrexml,
+                        'nombrezip'     => $nombrezip,
                     ];
                 } else {
-                    // Error SOAP de SUNAT
                     $code = $docResp->getElementsByTagName('faultcode')->item(0)->nodeValue ?? '';
                     $msg  = $docResp->getElementsByTagName('faultstring')->item(0)->nodeValue ?? '';
                     return ['estado' => false, 'mensaje' => "Error SUNAT [{$code}]: {$msg}"];
                 }
             } else {
-                return ['estado' => false, 'mensaje' => 'Error de conexión: ' . $resp['error']];
+                return [
+                    'estado'  => false,
+                    'mensaje' => 'Error de conexión: HTTP ' . $resp['http_code']
+                        . ' | cURL: ' . ($resp['error'] ?: 'sin error curl')
+                        . ' | Body: ' . substr($resp['body'] ?: '', 0, 2000),
+                ];
             }
         } catch (Throwable $e) {
             return ['estado' => false, 'mensaje' => 'Excepción: ' . $e->getMessage()];
@@ -137,7 +127,7 @@ class SunatComprobante
     }
 
     // =========================================================
-    // XML — INVOICE  (Boleta 03 y Factura 01)
+    // XML — INVOICE (Boleta 03 y Factura 01)
     // =========================================================
     private function generarXMLInvoice(array $emisor, array $cliente, array $cabecera, array $items): string
     {
@@ -145,15 +135,15 @@ class SunatComprobante
 
         $xml  = '<?xml version="1.0" encoding="utf-8"?>';
         $xml .= '<Invoice xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-         xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2"
-         xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2"
-         xmlns:ccts="urn:un:unece:uncefact:documentation:2"
-         xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
-         xmlns:ext="urn:oasis:names:specification:ubl:schema:xsd:CommonExtensionComponents-2"
-         xmlns:qdt="urn:oasis:names:specification:ubl:schema:xsd:QualifiedDatatypes-2"
-         xmlns:udt="urn:un:unece:uncefact:data:specification:UnqualifiedDataTypesSchemaModule:2"
-         xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2">
+     xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+     xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2"
+     xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2"
+     xmlns:ccts="urn:un:unece:uncefact:documentation:2"
+     xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
+     xmlns:ext="urn:oasis:names:specification:ubl:schema:xsd:CommonExtensionComponents-2"
+     xmlns:qdt="urn:oasis:names:specification:ubl:schema:xsd:QualifiedDatatypes-2"
+     xmlns:udt="urn:un:unece:uncefact:data:specification:UnqualifiedDataTypesSchemaModule:2"
+     xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2">
     <ext:UBLExtensions>
         <ext:UBLExtension><ext:ExtensionContent/></ext:UBLExtension>
     </ext:UBLExtensions>
@@ -163,8 +153,7 @@ class SunatComprobante
         schemeURI="urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo17">' . $cabecera['tipo_operacion'] . '</cbc:ProfileID>
     <cbc:ID>' . $cabecera['serie'] . '-' . $cabecera['correlativo'] . '</cbc:ID>
     <cbc:IssueDate>' . $cabecera['fecha_emision'] . '</cbc:IssueDate>
-    <cbc:IssueTime>' . $cabecera['hora_emision'] . '</cbc:IssueTime>
-    <cbc:DueDate>' . ($cabecera['fecha_vencimiento'] ?? $cabecera['fecha_emision']) . '</cbc:DueDate>
+    <cbc:IssueTime>' . substr($cabecera['hora_emision'], 0, 8) . '</cbc:IssueTime>
     <cbc:InvoiceTypeCode listAgencyName="PE:SUNAT" listName="Tipo de Documento"
         listURI="urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo01"
         listID="0101" name="Tipo de Operacion">' . $cabecera['tipo_comprobante'] . '</cbc:InvoiceTypeCode>
@@ -193,24 +182,17 @@ class SunatComprobante
     {
         $moneda = $cabecera['moneda'] ?? 'PEN';
 
-        // Campos requeridos para NC:
-        //   $cabecera['tipo_nota']           → catálogo 09  (ej: "01" = anulación)
-        //   $cabecera['motivo_nota']          → descripción libre
-        //   $cabecera['serie_ref']            → serie del comprobante origen
-        //   $cabecera['correlativo_ref']      → correlativo del comprobante origen
-        //   $cabecera['tipo_comprobante_ref'] → 01 o 03
-
         $xml  = '<?xml version="1.0" encoding="utf-8"?>';
         $xml .= '<CreditNote xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-         xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2"
-         xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2"
-         xmlns:ccts="urn:un:unece:uncefact:documentation:2"
-         xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
-         xmlns:ext="urn:oasis:names:specification:ubl:schema:xsd:CommonExtensionComponents-2"
-         xmlns:qdt="urn:oasis:names:specification:ubl:schema:xsd:QualifiedDatatypes-2"
-         xmlns:udt="urn:un:unece:uncefact:data:specification:UnqualifiedDataTypesSchemaModule:2"
-         xmlns="urn:oasis:names:specification:ubl:schema:xsd:CreditNote-2">
+     xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+     xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2"
+     xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2"
+     xmlns:ccts="urn:un:unece:uncefact:documentation:2"
+     xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
+     xmlns:ext="urn:oasis:names:specification:ubl:schema:xsd:CommonExtensionComponents-2"
+     xmlns:qdt="urn:oasis:names:specification:ubl:schema:xsd:QualifiedDatatypes-2"
+     xmlns:udt="urn:un:unece:uncefact:data:specification:UnqualifiedDataTypesSchemaModule:2"
+     xmlns="urn:oasis:names:specification:ubl:schema:xsd:CreditNote-2">
     <ext:UBLExtensions>
         <ext:UBLExtension><ext:ExtensionContent/></ext:UBLExtension>
     </ext:UBLExtensions>
@@ -218,7 +200,7 @@ class SunatComprobante
     <cbc:CustomizationID schemeAgencyName="PE:SUNAT">2.0</cbc:CustomizationID>
     <cbc:ID>' . $cabecera['serie'] . '-' . $cabecera['correlativo'] . '</cbc:ID>
     <cbc:IssueDate>' . $cabecera['fecha_emision'] . '</cbc:IssueDate>
-    <cbc:IssueTime>' . $cabecera['hora_emision'] . '</cbc:IssueTime>
+    <cbc:IssueTime>' . substr($cabecera['hora_emision'], 0, 8) . '</cbc:IssueTime>
     <cbc:DocumentCurrencyCode listID="ISO 4217 Alpha" listName="Currency"
         listAgencyName="United Nations Economic Commission for Europe">' . $moneda . '</cbc:DocumentCurrencyCode>
     <cbc:LineCountNumeric>' . count($items) . '</cbc:LineCountNumeric>
@@ -226,13 +208,13 @@ class SunatComprobante
         <cbc:ReferenceID>' . $cabecera['serie_ref'] . '-' . $cabecera['correlativo_ref'] . '</cbc:ReferenceID>
         <cbc:ResponseCode listAgencyName="PE:SUNAT" listName="Tipo de nota de credito"
             listURI="urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo09">' . ($cabecera['tipo_nota'] ?? '01') . '</cbc:ResponseCode>
-        <cbc:Description><![CDATA[' . ($cabecera['motivo_nota'] ?? 'Anulación de la operación') . ']]></cbc:Description>
+        <cbc:Description><![CDATA[' . ($cabecera['motivo_nota'] ?? 'Anulacion de la operacion') . ']]></cbc:Description>
     </cac:DiscrepancyResponse>
     <cac:BillingReference>
         <cac:InvoiceDocumentReference>
             <cbc:ID>' . $cabecera['serie_ref'] . '-' . $cabecera['correlativo_ref'] . '</cbc:ID>
             <cbc:DocumentTypeCode listAgencyName="PE:SUNAT" listName="Tipo de Documento"
-                listURI="urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo01">' . ($cabecera['tipo_comprobante_ref'] ?? '03') . '</cbc:DocumentTypeCode>
+                listURI="urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo01">' . ($cabecera['tipo_comp_ref'] ?? '03') . '</cbc:DocumentTypeCode>
         </cac:InvoiceDocumentReference>
     </cac:BillingReference>';
 
@@ -276,14 +258,14 @@ class SunatComprobante
 
     private function xmlSupplier(array $e): string
     {
-        $td = $e['tipo_documento'];
+        $td = '6'; // Emisor siempre RUC
         return '
     <cac:AccountingSupplierParty>
         <cac:Party>
             <cac:PartyIdentification>
                 <cbc:ID schemeID="' . $td . '" schemeName="Documento de Identidad"
                     schemeAgencyName="PE:SUNAT"
-                    schemeURI="urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo06">' . $e['ruc'] . '</cbc:ID>
+                    schemeURI="urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo06">' . htmlspecialchars($e['ruc']) . '</cbc:ID>
             </cac:PartyIdentification>
             <cac:PartyName>
                 <cbc:Name><![CDATA[' . $e['razon_social'] . ']]></cbc:Name>
@@ -292,11 +274,11 @@ class SunatComprobante
                 <cbc:RegistrationName><![CDATA[' . $e['razon_social'] . ']]></cbc:RegistrationName>
                 <cbc:CompanyID schemeID="' . $td . '" schemeName="SUNAT:Identificador de Documento de Identidad"
                     schemeAgencyName="PE:SUNAT"
-                    schemeURI="urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo06">' . $e['ruc'] . '</cbc:CompanyID>
+                    schemeURI="urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo06">' . htmlspecialchars($e['ruc']) . '</cbc:CompanyID>
                 <cac:TaxScheme>
                     <cbc:ID schemeID="' . $td . '" schemeName="SUNAT:Identificador de Documento de Identidad"
                         schemeAgencyName="PE:SUNAT"
-                        schemeURI="urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo06">' . $e['ruc'] . '</cbc:ID>
+                        schemeURI="urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo06">' . htmlspecialchars($e['ruc']) . '</cbc:ID>
                 </cac:TaxScheme>
             </cac:PartyTaxScheme>
             <cac:PartyLegalEntity>
@@ -326,7 +308,7 @@ class SunatComprobante
 
     private function xmlCustomer(array $c): string
     {
-        $td     = $c['tipo_documento'];
+        $td     = (string)($c['tipo_documento'] ?? '1');
         $numDoc = $c['numero_doc_cliente'] ?? $c['ruc'] ?? '';
         $nombre = $c['razon_social'] ?? $c['cliente'] ?? '';
         $dir    = $c['direccion'] ?? '';
@@ -378,7 +360,7 @@ class SunatComprobante
     {
         $n = fn($v) => number_format((float)($v ?? 0), 2, '.', '');
 
-        $xml  = '
+        $xml = '
     <cac:TaxTotal>
         <cbc:TaxAmount currencyID="' . $moneda . '">' . $n($cab['total_impuestos']) . '</cbc:TaxAmount>
         <cac:TaxSubtotal>
@@ -459,18 +441,16 @@ class SunatComprobante
     </cac:LegalMonetaryTotal>';
     }
 
-    // ─── InvoiceLine ────────────────────────────────────────────
     private function xmlInvoiceLine(array $v, string $moneda): string
     {
         $n       = fn($val) => number_format((float)($val ?? 0), 2, '.', '');
         $codigos = $this->resolverCodigosImpuesto($v);
         $unidad  = $v['unidad'] ?? 'NIU';
 
-        $xml  = '
+        $xml = '
     <cac:InvoiceLine>
         <cbc:ID>' . $v['item'] . '</cbc:ID>
-        <cbc:InvoicedQuantity unitCode="' . $unidad . '" unitCodeListID="UN/ECE rec 20"
-            unitCodeListAgencyName="United Nations Economic Commission for Europe">' . $v['cantidad'] . '</cbc:InvoicedQuantity>
+        <cbc:InvoicedQuantity unitCode="' . $unidad . '">' . $v['cantidad'] . '</cbc:InvoicedQuantity>
         <cbc:LineExtensionAmount currencyID="' . $moneda . '">' . $n($v['total_antes_impuestos'] ?? $v['valor_total'] ?? 0) . '</cbc:LineExtensionAmount>
         <cac:PricingReference>
             <cac:AlternativeConditionPrice>
@@ -499,7 +479,6 @@ class SunatComprobante
                 </cac:TaxCategory>
             </cac:TaxSubtotal>';
 
-        // ICBPER adicional (bolsas plásticas)
         if ((float)($v['icbper'] ?? 0) > 0) {
             $xml .= '
             <cac:TaxSubtotal>
@@ -521,7 +500,7 @@ class SunatComprobante
         <cac:Item>
             <cbc:Description><![CDATA[' . $v['nombre'] . ']]></cbc:Description>
             <cac:SellersItemIdentification>
-                <cbc:ID><![CDATA[' . ($v['codigo_producto'] ?? '001') . ']]></cbc:ID>
+                <cbc:ID>' . htmlspecialchars($v['codigo_producto'] ?? '001') . '</cbc:ID>
             </cac:SellersItemIdentification>
             <cac:CommodityClassification>
                 <cbc:ItemClassificationCode listID="UNSPSC" listAgencyName="GS1 US"
@@ -536,7 +515,6 @@ class SunatComprobante
         return $xml;
     }
 
-    // ─── CreditNoteLine ─────────────────────────────────────────
     private function xmlCreditNoteLine(array $v, string $moneda): string
     {
         $n       = fn($val) => number_format((float)($val ?? 0), 2, '.', '');
@@ -546,8 +524,7 @@ class SunatComprobante
         return '
     <cac:CreditNoteLine>
         <cbc:ID>' . $v['item'] . '</cbc:ID>
-        <cbc:CreditedQuantity unitCode="' . $unidad . '" unitCodeListID="UN/ECE rec 20"
-            unitCodeListAgencyName="United Nations Economic Commission for Europe">' . $v['cantidad'] . '</cbc:CreditedQuantity>
+        <cbc:CreditedQuantity unitCode="' . $unidad . '">' . $v['cantidad'] . '</cbc:CreditedQuantity>
         <cbc:LineExtensionAmount currencyID="' . $moneda . '">' . $n($v['total_antes_impuestos'] ?? $v['valor_total'] ?? 0) . '</cbc:LineExtensionAmount>
         <cac:PricingReference>
             <cac:AlternativeConditionPrice>
@@ -579,7 +556,7 @@ class SunatComprobante
         <cac:Item>
             <cbc:Description><![CDATA[' . $v['nombre'] . ']]></cbc:Description>
             <cac:SellersItemIdentification>
-                <cbc:ID><![CDATA[' . ($v['codigo_producto'] ?? '001') . ']]></cbc:ID>
+                <cbc:ID>' . htmlspecialchars($v['codigo_producto'] ?? '001') . '</cbc:ID>
             </cac:SellersItemIdentification>
             <cac:CommodityClassification>
                 <cbc:ItemClassificationCode listID="UNSPSC" listAgencyName="GS1 US"
@@ -594,24 +571,21 @@ class SunatComprobante
 
     // =========================================================
     // RESOLVER CÓDIGOS DE IMPUESTO
-    // Acepta tanto el array 'codigos' antiguo como 'tipo_impuesto' nuevo
     // =========================================================
     private function resolverCodigosImpuesto(array $item): array
     {
-        // Formato antiguo: $item['codigos'] = ["S","10","1000","IGV","VAT"]
         if (!empty($item['codigos']) && count($item['codigos']) >= 5) {
             $c = $item['codigos'];
             return [
-                'cat_id'        => $c[0],
-                'razon'         => $c[1],
-                'cod_tributo'   => $c[2],
-                'nombre_tributo'=> $c[3],
-                'tipo_codigo'   => $c[4],
-                'porcentaje'    => $c[5] ?? 18,
+                'cat_id'         => $c[0],
+                'razon'          => $c[1],
+                'cod_tributo'    => $c[2],
+                'nombre_tributo' => $c[3],
+                'tipo_codigo'    => $c[4],
+                'porcentaje'     => $c[5] ?? 18,
             ];
         }
 
-        // Formato nuevo: $item['tipo_impuesto'] = 'IGV' | 'EXONERADO' | 'INAFECTO' | 'ICBPER'
         $tipo = strtoupper($item['tipo_impuesto'] ?? 'IGV');
 
         return match ($tipo) {
@@ -629,22 +603,14 @@ class SunatComprobante
         $sucursal = $emisor['sucursal'] ?? '1';
         $base     = $this->base_dir . "sucursales/{$sucursal}/";
         $pass_pfx = $emisor['pass_certificado'];
-
-        // ── Resolver ruta del PFX ─────────────────────────────────
         $ruta_pfx = $base . ($emisor['certificado'] ?? '');
 
-        // Si no existe, buscar cualquier .pfx/.p12 en la carpeta
         if (!file_exists($ruta_pfx)) {
-            $candidatos = array_merge(
-                glob($base . '*.pfx') ?: [],
-                glob($base . '*.p12') ?: []
-            );
-            // Preferir el que contiene el RUC en el nombre
+            $candidatos = array_merge(glob($base . '*.pfx') ?: [], glob($base . '*.p12') ?: []);
             $ruc = $emisor['ruc'] ?? '';
             foreach ($candidatos as $c) {
                 if (strpos(basename($c), $ruc) !== false) { $ruta_pfx = $c; break; }
             }
-            // Si no encontró por RUC, usar el primero disponible
             if (!file_exists($ruta_pfx) && !empty($candidatos)) {
                 $ruta_pfx = $candidatos[0];
             }
@@ -652,29 +618,16 @@ class SunatComprobante
 
         if (!file_exists($ruta_pfx)) {
             $archivos = implode(', ', array_map('basename', glob($base . '*') ?: []));
-            return ['ok' => false, 'mensaje' => "No se encontró certificado en sucursales/{$sucursal}/. Archivos: [{$archivos}]. Configure el PFX en Emisor."];
+            return ['ok' => false, 'mensaje' => "No se encontró certificado en sucursales/{$sucursal}/. Archivos: [{$archivos}]."];
         }
 
         $pfx   = file_get_contents($ruta_pfx);
         $certs = [];
 
-        // ── Intentos de lectura del PFX ──────────────────────────
-        // Intento 1: contraseña normal
         $resultado = openssl_pkcs12_read($pfx, $certs, (string)$pass_pfx);
+        if (!$resultado) $resultado = openssl_pkcs12_read($pfx, $certs, '');
+        if (!$resultado) $resultado = $this->_leerPfxLegacy($pfx, (string)$pass_pfx, $certs);
 
-        // Intento 2: contraseña vacía
-        if (!$resultado) {
-            $resultado = openssl_pkcs12_read($pfx, $certs, '');
-        }
-
-        // Intento 3 (Render/OpenSSL 3.x): los PFX de SUNAT usan RC2/3DES (legacy).
-        // OpenSSL 3.x los rechaza. Convertimos el PFX a PEM y re-empaquetamos
-        // usando solo funciones nativas de PHP (sin shell_exec).
-        if (!$resultado) {
-            $resultado = $this->_leerPfxLegacy($pfx, (string)$pass_pfx, $certs);
-        }
-
-        // Intento 4: shell_exec (solo en entornos que lo permiten, ej: XAMPP)
         if (!$resultado && function_exists('shell_exec') && !getenv('RENDER')) {
             $pfx_path  = realpath($ruta_pfx);
             $tmp       = sys_get_temp_dir();
@@ -691,9 +644,8 @@ class SunatComprobante
         }
 
         if (!$resultado) {
-            $passInfo  = empty($pass_pfx) ? 'VACÍA' : 'proporcionada ('.strlen((string)$pass_pfx).' chars)';
-            $tamano    = strlen($pfx) . ' bytes';
-            return ['ok' => false, 'mensaje' => "No se pudo leer el PFX ({$tamano}). Contraseña {$passInfo}. OpenSSL: " . OPENSSL_VERSION_TEXT];
+            $passInfo = empty($pass_pfx) ? 'VACÍA' : 'proporcionada (' . strlen((string)$pass_pfx) . ' chars)';
+            return ['ok' => false, 'mensaje' => "No se pudo leer el PFX (" . strlen($pfx) . " bytes). Contraseña {$passInfo}. OpenSSL: " . OPENSSL_VERSION_TEXT];
         }
 
         $docFirma = new DOMDocument();
@@ -754,8 +706,8 @@ class SunatComprobante
          </soapenv:Body>
         </soapenv:Envelope>';
 
-        // URL según ambiente (añade 'ambiente' => 'produccion' al emisor para producción)
-        $ws = ($emisor['ambiente'] ?? 'beta') === 'produccion'
+        // FIX: default produccion
+        $ws = ($emisor['ambiente'] ?? 'produccion') === 'produccion'
             ? 'https://e-factura.sunat.gob.pe/ol-ti-itcpfegem/billService'
             : 'https://e-beta.sunat.gob.pe/ol-ti-itcpfegem-beta/billService';
 
@@ -788,115 +740,57 @@ class SunatComprobante
     }
 
     // =========================================================
-    // LEER MENSAJE DEL CDR
+    // HELPERS
     // =========================================================
-    // Busca cacert.pem: primero en la carpeta de la sucursal, luego en la raíz
     private function _resolverCacert(array $emisor): string
     {
-        $sucursal = $emisor['sucursal'] ?? '1';
+        $sucursal    = $emisor['sucursal'] ?? '1';
         $en_sucursal = $this->base_dir . "sucursales/{$sucursal}/cacert.pem";
         if (file_exists($en_sucursal)) return $en_sucursal;
         $en_raiz = $this->base_dir . 'cacert.pem';
         if (file_exists($en_raiz)) return $en_raiz;
-        // Sin cacert → deshabilitar verificación (solo para desarrollo)
         return '';
     }
 
-        // =========================================================
-    // LEER PFX LEGACY (OpenSSL 3.x compatible)
-    // Los PFX de SUNAT Perú usan RC2/3DES. OpenSSL 3.x los
-    // rechaza por defecto. Este método extrae clave+cert usando
-    // openssl_x509_read y openssl_pkey_get_private directamente.
-    // =========================================================
-    // =========================================================
-    // CREAR ZIP SIN EXTENSIÓN ZIPARCHIVE
-    // Implementación pura PHP compatible con cualquier servidor
-    // =========================================================
+    // FIX: ZIP sin compresión (Store) — SUNAT requiere método 0
     private function crearZip(string $rutaZip, string $rutaArchivo, string $nombreDentroZip): bool
     {
-        // Usar ZipArchive si está disponible
         if (class_exists('ZipArchive')) {
             $zip = new ZipArchive();
             if ($zip->open($rutaZip, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) return false;
             $zip->addFile($rutaArchivo, $nombreDentroZip);
+            // Forzar sin compresión (Store) — SUNAT no acepta Deflate
+            $zip->setCompressionName($nombreDentroZip, ZipArchive::CM_STORE);
             $zip->close();
             return true;
         }
 
-        // Fallback: crear ZIP manualmente (formato PKZIP)
-        $contenido = file_get_contents($rutaArchivo);
-        $nombre    = $nombreDentroZip;
-        $crc       = crc32($contenido);
-        $len       = strlen($contenido);
-        $time      = time();
-        $dostime   = (((date('Y',$time) - 1980) << 9) |
-                       (date('n',$time) << 5) |
-                        date('j',$time)) << 16 |
-                      ((date('G',$time) << 11) |
-                       (date('i',$time) << 5) |
-                       (int)(date('s',$time) / 2));
-
-        // Local file header
-        $lfh  = pack('VvvvVVVVvv', 0x04034b50, 20, 0, 0, $dostime, $crc, $len, $len, strlen($nombre), 0);
-        $lfh .= $nombre;
-        $lfh .= $contenido;
-
-        // Central directory header
-        $cdh  = pack('VvvvvVVVVvvvvvVV', 0x02014b50, 20, 20, 0, 0, $dostime, $crc, $len, $len, strlen($nombre), 0, 0, 0, 0, 0, 0);
-        $cdh .= $nombre;
-
-        $offset  = strlen($lfh) - $len;
-        $cdSize  = strlen($cdh);
-        $cdOffset= strlen($lfh);
-
-        // End of central directory
-        $eocd = pack('VvvvvVVv', 0x06054b50, 0, 0, 1, 1, $cdSize, $cdOffset, 0);
-
-        file_put_contents($rutaZip, $lfh . $cdh . $eocd);
-        return true;
-    }
-
-    // =========================================================
-    // ZIP PURO EN PHP (sin ext-zip)
-    // Crea un ZIP con un solo archivo, compatible con SUNAT
-    // =========================================================
-    private function _crearZip(string $rutaZip, string $rutaArchivo, string $nombreDentro): bool
-    {
-        if (class_exists('ZipArchive')) {
-            $zip = new ZipArchive();
-            if ($zip->open($rutaZip, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) return false;
-            $zip->addFile($rutaArchivo, $nombreDentro);
-            $zip->close();
-            return file_exists($rutaZip);
-        }
-
-        // ZIP manual puro PHP — no requiere ext-zip
+        // Fallback ZIP manual puro PHP — offset corregido
         $contenido  = file_get_contents($rutaArchivo);
         $tamano     = strlen($contenido);
         $crc        = crc32($contenido);
-        $nombre     = $nombreDentro;
+        $nombre     = $nombreDentroZip;
         $lenNombre  = strlen($nombre);
         $timestamp  = $this->_dosTime(time());
 
-        // Local file header
-        $localHeader  = pack('V', 0x04034b50);     // signature
-        $localHeader .= pack('v', 20);             // version needed
-        $localHeader .= pack('v', 0);              // flags
-        $localHeader .= pack('v', 0);              // compression (store)
-        $localHeader .= pack('V', $timestamp);     // mod time/date
-        $localHeader .= pack('V', $crc);           // crc32
-        $localHeader .= pack('V', $tamano);        // compressed size
-        $localHeader .= pack('V', $tamano);        // uncompressed size
-        $localHeader .= pack('v', $lenNombre);     // filename length
-        $localHeader .= pack('v', 0);              // extra field length
+        // Local file header (30 bytes + nombre + datos)
+        $localHeader  = pack('V', 0x04034b50);  // signature
+        $localHeader .= pack('v', 20);           // version needed
+        $localHeader .= pack('v', 0);            // flags
+        $localHeader .= pack('v', 0);            // compression: store
+        $localHeader .= pack('V', $timestamp);   // mod time/date
+        $localHeader .= pack('V', $crc);         // crc32
+        $localHeader .= pack('V', $tamano);      // compressed size
+        $localHeader .= pack('V', $tamano);      // uncompressed size
+        $localHeader .= pack('v', $lenNombre);   // filename length
+        $localHeader .= pack('v', 0);            // extra field length
         $localHeader .= $nombre;
         $localHeader .= $contenido;
 
-        $offsetCentral = strlen($localHeader) - $tamano - $lenNombre - 30;
-        $offsetCentral = 30 + $lenNombre + $tamano; // offset = tamaño del local header
+        $offsetCentral = 30 + $lenNombre + $tamano; // offset correcto
 
         // Central directory header
-        $centralHeader  = pack('V', 0x02014b50);   // signature
+        $centralHeader  = pack('V', 0x02014b50);  // signature
         $centralHeader .= pack('v', 20);           // version made by
         $centralHeader .= pack('v', 20);           // version needed
         $centralHeader .= pack('v', 0);            // flags
@@ -910,7 +804,7 @@ class SunatComprobante
         $centralHeader .= pack('v', 0);            // comment length
         $centralHeader .= pack('v', 0);            // disk number start
         $centralHeader .= pack('v', 0);            // internal attributes
-        $centralHeader .= pack('V', 0);            // external attributes
+        $centralHeader .= pack('V', 0x20);         // external attributes (archivo normal)
         $centralHeader .= pack('V', 0);            // offset local header
         $centralHeader .= $nombre;
 
@@ -923,11 +817,10 @@ class SunatComprobante
         $endRecord .= pack('v', 1);                // entries on disk
         $endRecord .= pack('v', 1);                // total entries
         $endRecord .= pack('V', $centralSize);     // central dir size
-        $endRecord .= pack('V', 30 + $lenNombre + $tamano); // central dir offset
+        $endRecord .= pack('V', $offsetCentral);   // offset central dir ← CORREGIDO
         $endRecord .= pack('v', 0);                // comment length
 
-        $zip = $localHeader . $centralHeader . $endRecord;
-        return file_put_contents($rutaZip, $zip) !== false;
+        return file_put_contents($rutaZip, $localHeader . $centralHeader . $endRecord) !== false;
     }
 
     private function _dosTime(int $timestamp): int
@@ -940,53 +833,15 @@ class SunatComprobante
              | ((int)date('s', $timestamp) >> 1);
     }
 
-    private function _extraerZip(string $rutaZip, string $destino): void
-    {
-        if (!is_dir($destino)) mkdir($destino, 0777, true);
-
-        if (class_exists('ZipArchive')) {
-            $zip = new ZipArchive();
-            if ($zip->open($rutaZip) === true) {
-                $zip->extractTo($destino);
-                $zip->close();
-            }
-            return;
-        }
-
-        // Extracción manual pura PHP
-        $data   = file_get_contents($rutaZip);
-        $offset = 0;
-        while ($offset < strlen($data)) {
-            $sig = substr($data, $offset, 4);
-            if ($sig !== "\x50\x4b\x03\x04") break;
-
-            $lenNombre  = unpack('v', substr($data, $offset + 26, 2))[1];
-            $lenExtra   = unpack('v', substr($data, $offset + 28, 2))[1];
-            $tamano     = unpack('V', substr($data, $offset + 22, 4))[1];
-            $nombre     = substr($data, $offset + 30, $lenNombre);
-            $contenido  = substr($data, $offset + 30 + $lenNombre + $lenExtra, $tamano);
-
-            if ($nombre && substr($nombre, -1) !== '/') {
-                $ruta = $destino . '/' . basename($nombre);
-                file_put_contents($ruta, $contenido);
-            }
-            $offset += 30 + $lenNombre + $lenExtra + $tamano;
-        }
-    }
-
     private function _leerPfxLegacy(string $pfx_data, string $pass, array &$certs): bool
     {
-        // Guardar PFX en /tmp y llamar openssl vía proc_open si está disponible
-        $tmp      = sys_get_temp_dir();
-        $pfx_tmp  = $tmp . '/pfx_legacy_' . getmypid() . '.pfx';
-        $pem_tmp  = $tmp . '/pem_legacy_' . getmypid() . '.pem';
+        $tmp     = sys_get_temp_dir();
+        $pfx_tmp = $tmp . '/pfx_legacy_' . getmypid() . '.pfx';
+        $pem_tmp = $tmp . '/pem_legacy_' . getmypid() . '.pem';
 
         file_put_contents($pfx_tmp, $pfx_data);
 
-        // proc_open es más probable que esté habilitado que shell_exec en Render
         if (function_exists('proc_open')) {
-            // -nodes = sin encriptar la clave privada (necesario para OpenSSL 3.x)
-            // -legacy = soportar PFX con RC2/3DES (formato SUNAT Perú)
             $intentos = [
                 "openssl pkcs12 -in %s -out %s -passin pass:%s -nodes -legacy 2>&1",
                 "openssl pkcs12 -in %s -out %s -passin pass:%s -nodes 2>&1",
@@ -994,14 +849,9 @@ class SunatComprobante
             ];
 
             foreach ($intentos as $cmdTpl) {
-                $cmd  = sprintf($cmdTpl,
-                    escapeshellarg($pfx_tmp),
-                    escapeshellarg($pem_tmp),
-                    escapeshellarg($pass)
-                );
+                $cmd  = sprintf($cmdTpl, escapeshellarg($pfx_tmp), escapeshellarg($pem_tmp), escapeshellarg($pass));
                 $proc = proc_open($cmd, [['pipe','r'],['pipe','w'],['pipe','w']], $pipes);
                 if (is_resource($proc)) proc_close($proc);
-
                 if (file_exists($pem_tmp) && filesize($pem_tmp) > 10) break;
             }
 
@@ -1010,7 +860,6 @@ class SunatComprobante
                 @unlink($pem_tmp);
                 @unlink($pfx_tmp);
 
-                // Extraer certificado y clave privada sin encriptar
                 preg_match('/-----BEGIN CERTIFICATE-----.*?-----END CERTIFICATE-----/s', $pem_content, $certMatch);
                 preg_match('/-----BEGIN (?:RSA )?PRIVATE KEY-----.*?-----END (?:RSA )?PRIVATE KEY-----/s', $pem_content, $keyMatch);
 

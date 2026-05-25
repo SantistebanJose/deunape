@@ -1,4 +1,5 @@
 <?php
+
 /**
  * clssComprobante.php
  * Handler AJAX para declarar comprobantes a SUNAT.
@@ -20,6 +21,8 @@ require_once __DIR__ . '/clssSunat.php';
 
 if (isset($_POST["accion"])) {
     controlador_clss_comprobante($_POST["accion"]);
+} elseif (isset($_GET["accion"])) {
+    controlador_clss_comprobante($_GET["accion"]);
 }
 
 function controlador_clss_comprobante(string $accion): void
@@ -30,6 +33,15 @@ function controlador_clss_comprobante(string $accion): void
             break;
         case 'REGISTRARNOTACREDITO':
             fn_procesar_comprobante($_POST["jsComprobantes"] ?? '', 'NOTA_CREDITO');
+            break;
+        case 'LISTAR_NOTAS_CREDITO':
+            fn_listar_notas_credito();
+            break;
+        case 'BUSCAR_COMPROBANTE':
+            fn_buscar_comprobante($_GET['tipo_comprobante'] ?? '', $_GET['serie'] ?? '', $_GET['correlativo'] ?? '');
+            break;
+        case 'OBTENER_NOTA_CREDITO':
+            fn_obtener_nota_credito((int)($_GET['id'] ?? 0));
             break;
         default:
             echo json_encode(['estado' => false, 'mensaje' => 'Acción no reconocida']);
@@ -73,20 +85,19 @@ function fn_procesar_comprobante(string $jsDatos, string $modo): void
     $correlativo_texto = $sigCorr[0]['correlativo_texto']     ?? str_pad($correlativo, 8, '0', STR_PAD_LEFT);
 
     // ── 3. Armar $emisor ─────────────────────────────────────
+    // ── 3. Armar $emisor ─────────────────────────────────────
     $emisor = [
         'sucursal'         => $emisorRaw['sucursal_id'] ?? $emisorRaw['sucursal'] ?? '1',
         'certificado'      => basename($emisorRaw['direccion_firma_digital'] ?? '') ?: ($emisorRaw['certificado'] ?? (($emisorRaw['ruc'] ?? '') . 'Mp12.pfx')),
-        'pass_certificado' => (function() use ($emisorRaw) {
-                               // Buscar la clave con ñ sin depender del encoding
-                               foreach ($emisorRaw as $k => $v) {
-                                   if (stripos($k, 'contrase') !== false && stripos($k, 'firma') !== false) return $v;
-                               }
-                               return $emisorRaw['pass_certificado']
-                                   ?? $emisorRaw['clave_firma_digital']
-                                   ?? '';
-                           })()
-                           ?? '',
-        'tipo_documento'   => $emisorRaw['tipo_documento']         ?? 6,
+        'pass_certificado' => (function () use ($emisorRaw) {
+            foreach ($emisorRaw as $k => $v) {
+                if (stripos($k, 'contrase') !== false && stripos($k, 'firma') !== false) return $v;
+            }
+            return $emisorRaw['pass_certificado']
+                ?? $emisorRaw['clave_firma_digital']
+                ?? '';
+        })() ?? '',
+        'tipo_documento'   => '6',   // ← siempre string '6', el emisor es RUC
         'ruc'              => $emisorRaw['ruc']                    ?? '',
         'razon_social'     => $emisorRaw['razon_social']           ?? '',
         'nombre_comercial' => $emisorRaw['nombre_comercial']       ?? '',
@@ -97,7 +108,7 @@ function fn_procesar_comprobante(string $jsDatos, string $modo): void
         'ubigeo'           => $emisorRaw['ubigeo']                 ?? '000000',
         'usuario_sol'      => $emisorRaw['usuario_sol']            ?? '',
         'clave_sol'        => $emisorRaw['clave_sol']              ?? '',
-        'ambiente'         => $emisorRaw['ambiente']               ?? 'beta', // ← cambiar a 'produccion' cuando corresponda
+        'ambiente'         => $emisorRaw['ambiente']               ?? 'produccion', // ← default produccion
     ];
 
     // ── 4. Armar $cliente ────────────────────────────────────
@@ -128,8 +139,8 @@ function fn_procesar_comprobante(string $jsDatos, string $modo): void
         'moneda'                  => $cabeceraRaw['moneda']                  ?? 'PEN',
         // Serie desde el emisor (BD) según tipo de comprobante — ignora lo que venga del JS
         'serie'                   => ($tipo_comprobante === '01')
-                                   ? ($emisorRaw['serie_factura'] ?? $cabeceraRaw['serie'] ?? 'F001')
-                                   : ($emisorRaw['serie_boleta']  ?? $cabeceraRaw['serie'] ?? 'B001'),
+            ? ($emisorRaw['serie_factura'] ?? $cabeceraRaw['serie'] ?? 'F001')
+            : ($emisorRaw['serie_boleta']  ?? $cabeceraRaw['serie'] ?? 'B001'),
         'correlativo'             => $correlativo_texto,
         'forma_pago'              => $cabeceraRaw['forma_pago']              ?? 'Contado',
         'total_op_gravadas'       => (float)($cabeceraRaw['total_op_gravadas']       ?? 0),
@@ -217,9 +228,15 @@ function fn_procesar_comprobante(string $jsDatos, string $modo): void
         // IGV recalculado con el porcentaje real de cada item
         $igv_real += round($it['valor_total'] * ($it['porcentaje_div'] ?? 0.18), 2);
         switch ($it['tipo_impuesto']) {
-            case 'EXONERADO': $op_exoneradas_real += $it['valor_total']; break;
-            case 'INAFECTO':  $op_inafectas_real  += $it['valor_total']; break;
-            default:          $op_gravadas_real   += $it['valor_total']; break;
+            case 'EXONERADO':
+                $op_exoneradas_real += $it['valor_total'];
+                break;
+            case 'INAFECTO':
+                $op_inafectas_real  += $it['valor_total'];
+                break;
+            default:
+                $op_gravadas_real   += $it['valor_total'];
+                break;
         }
     }
 
@@ -242,6 +259,7 @@ function fn_procesar_comprobante(string $jsDatos, string $modo): void
 
     // ── 7. Enviar a SUNAT vía clssSunat ──────────────────────
     $sunat     = new SunatComprobante();
+    
     $resultado = $sunat->enviar($emisor, $cliente, $cabecera, $items);
 
     // ── 8. Guardar en BD (solo si SUNAT respondió OK) ────────
@@ -294,7 +312,9 @@ function fn_insertar_comprobante_bd(
     $stmt = $conectar->prepare($sql);
 
     $nombrexml  = $resultado['nombrexml']    ?? '';
-    $msg_sunat  = $resultado['mensaje']      ?? '';
+    //$msg_sunat  = $resultado['mensaje']      ?? '';
+    $msg_sunat  = $resultado['mensaje_sunat'] ?? $resultado['mensaje'] ?? '';
+
     $estado_num = $resultado['estado'] ? '1' : '0';
     $cod_sunat  = $resultado['codigo_sunat'] ?? '0';
     $xmlBase64  = '';   // Si deseas guardar el XML en base64, leerlo aquí del archivo generado
@@ -333,5 +353,177 @@ function fn_insertar_comprobante_bd(
     } catch (Exception $e) {
         // El comprobante ya fue enviado a SUNAT, solo logueamos el error de BD
         error_log('ERROR INSERT comprobante: ' . $e->getMessage());
+    }
+}
+
+function fn_listar_notas_credito(): void
+{
+    global $conectar;
+ 
+    $desde  = $_GET['desde']  ?? date('Y-m-01');
+    $hasta  = $_GET['hasta']  ?? date('Y-m-d');
+    $estado = $_GET['estado'] ?? '';
+    $buscar = $_GET['buscar'] ?? '';
+ 
+    $where  = ["c.tipo_comprobante = '07'", "c.fecha_emision BETWEEN :desde AND :hasta"];
+    $params = [':desde' => $desde, ':hasta' => $hasta];
+ 
+    if ($estado !== '') {
+        $where[]          = 'c.estado_envio = :estado';
+        $params[':estado'] = ($estado === '1');   // cast a bool para Postgres
+    }
+ 
+    if ($buscar) {
+        $where[]           = "(c.serie || '-' || c.correlativo_texto ILIKE :buscar
+                               OR c.numero_doc_cliente ILIKE :buscar
+                               OR c.serie_correletaivo_ref ILIKE :buscar)";
+        $params[':buscar'] = '%' . $buscar . '%';
+    }
+ 
+    $sql = "
+        SELECT
+            c.id,
+            c.tipo_comprobante,
+            c.serie,
+            c.correlativo_texto,
+            c.fecha_emision,
+            c.numero_doc_cliente,
+            c.tipo_comp_ref,
+            c.serie_correletaivo_ref,
+            c.codmotivo,
+            c.total,
+            c.estado_envio,
+            c.estado_comprobante,
+            c.mensaje_sunat,
+            c.venta_id
+        FROM comprobante c
+        WHERE " . implode(' AND ', $where) . "
+        ORDER BY c.id DESC
+    ";
+ 
+    try {
+        $stmt = $conectar->prepare($sql);
+        foreach ($params as $k => $v) {
+            $stmt->bindValue($k, $v);
+        }
+        $stmt->execute();
+        $datos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        echo json_encode(['estado' => true, 'datos' => $datos]);
+    } catch (Exception $e) {
+        echo json_encode(['estado' => false, 'mensaje' => $e->getMessage()]);
+    }
+}
+ 
+// =============================================================
+// BUSCAR COMPROBANTE ORIGEN (para prellenar el modal de NC)
+// Devuelve cabecera + ítems del comprobante encontrado
+// =============================================================
+function fn_buscar_comprobante(string $tipo, string $serie, string $correlativo): void
+{
+    global $conectar;
+ 
+    if (!$tipo || !$serie || !$correlativo) {
+        echo json_encode(['estado' => false, 'mensaje' => 'Parámetros incompletos']);
+        return;
+    }
+ 
+    try {
+        // Buscar cabecera en tabla comprobante
+        $sql = "
+            SELECT
+                c.id,
+                c.ruc_emisor,
+                c.tipo_comprobante,
+                c.serie,
+                c.correlativo,
+                c.correlativo_texto,
+                c.fecha_emision,
+                c.moneda,
+                c.forma_pago,
+                c.numero_doc_cliente,
+                c.op_gravadas,
+                c.igv,
+                c.total,
+                c.venta_id,
+                c.estado_envio
+            FROM comprobante c
+            WHERE c.tipo_comprobante = :tipo
+              AND c.serie            = :serie
+              AND c.correlativo_texto = :correlativo
+              AND c.estado_envio     = true
+            LIMIT 1
+        ";
+        $stmt = $conectar->prepare($sql);
+        $stmt->bindValue(':tipo',        $tipo);
+        $stmt->bindValue(':serie',       strtoupper($serie));
+        $stmt->bindValue(':correlativo', $correlativo);
+        $stmt->execute();
+        $comp = $stmt->fetch(PDO::FETCH_ASSOC);
+ 
+        if (!$comp) {
+            echo json_encode(['estado' => false, 'comprobante' => null]);
+            return;
+        }
+ 
+        // Buscar ítems del detalle de venta relacionado (ajusta a tus tablas)
+        $items = [];
+        if (!empty($comp['venta_id'])) {
+            $sqlItems = "
+                SELECT
+                    d.articulo_id    AS codigo_producto,
+                    d.descripcion    AS nombre,
+                    d.cantidad,
+                    d.unidad_medida  AS unidad,
+                    d.pu_sin_igv     AS valor_unitario,
+                    d.tipo_impuesto
+                FROM detalle_venta d
+                WHERE d.venta_id = :venta_id
+                ORDER BY d.id
+            ";
+            $stmtI = $conectar->prepare($sqlItems);
+            $stmtI->bindValue(':venta_id', $comp['venta_id']);
+            $stmtI->execute();
+            $items = $stmtI->fetchAll(PDO::FETCH_ASSOC);
+        }
+ 
+        echo json_encode([
+            'estado'      => true,
+            'comprobante' => $comp,
+            'items'       => $items,
+        ]);
+ 
+    } catch (Exception $e) {
+        echo json_encode(['estado' => false, 'mensaje' => $e->getMessage()]);
+    }
+}
+ 
+// =============================================================
+// OBTENER UNA NOTA DE CRÉDITO POR ID
+// =============================================================
+function fn_obtener_nota_credito(int $id): void
+{
+    global $conectar;
+ 
+    if ($id <= 0) {
+        echo json_encode(['estado' => false, 'mensaje' => 'ID inválido']);
+        return;
+    }
+ 
+    try {
+        $sql  = "SELECT * FROM comprobante WHERE id = :id AND tipo_comprobante = '07' LIMIT 1";
+        $stmt = $conectar->prepare($sql);
+        $stmt->bindValue(':id', $id, PDO::PARAM_INT);
+        $stmt->execute();
+        $comp = $stmt->fetch(PDO::FETCH_ASSOC);
+ 
+        if (!$comp) {
+            echo json_encode(['estado' => false, 'mensaje' => 'Nota de crédito no encontrada']);
+            return;
+        }
+ 
+        echo json_encode(['estado' => true, 'comprobante' => $comp]);
+ 
+    } catch (Exception $e) {
+        echo json_encode(['estado' => false, 'mensaje' => $e->getMessage()]);
     }
 }

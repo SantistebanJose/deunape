@@ -1,9 +1,6 @@
 <?php
-#emisor.php
 include("cabecera.php");
 
-
-//askjdnakjsnd
 $sucursal_id = isset($_SESSION['sucursal_id']) ? $_SESSION['sucursal_id'] : null;
 
 if (!$sucursal_id) {
@@ -62,8 +59,8 @@ $e            = $emisorExiste ? $datosEmisor[0] : [];
                                 <div class="mb-3">
                                     <label class="form-label"><b>RUC <span class="fw-bold text-danger">*</span></b></label>
                                     <input type="text" class="form-control" id="idRuc"
-                                           value="<?php echo $emisorExiste ? htmlspecialchars($e["ruc"]) : ''; ?>"
-                                           disabled maxlength="11" placeholder="20123456789">
+                                        value="<?php echo $emisorExiste ? htmlspecialchars($e["ruc"]) : ''; ?>"
+                                        disabled maxlength="11" placeholder="20123456789">
                                 </div>
                             </div>
 
@@ -72,8 +69,8 @@ $e            = $emisorExiste ? $datosEmisor[0] : [];
                                 <div class="mb-3">
                                     <label class="form-label"><b>Razón Social <span class="fw-bold text-danger">*</span></b></label>
                                     <input type="text" class="form-control" id="idRazonSocial"
-                                           value="<?php echo $emisorExiste ? htmlspecialchars($e["razon_social"]) : ''; ?>"
-                                           disabled placeholder="MI EMPRESA S.A.C.">
+                                        value="<?php echo $emisorExiste ? htmlspecialchars($e["razon_social"]) : ''; ?>"
+                                        disabled placeholder="MI EMPRESA S.A.C.">
                                 </div>
                             </div>
 
@@ -82,8 +79,8 @@ $e            = $emisorExiste ? $datosEmisor[0] : [];
                                 <div class="mb-3">
                                     <label class="form-label"><b>Nombre Comercial <span class="fw-bold text-danger">*</span></b></label>
                                     <input type="text" class="form-control" id="idNombreComercial"
-                                           value="<?php echo $emisorExiste ? htmlspecialchars($e["nombre_comercial"]) : ''; ?>"
-                                           disabled placeholder="MI NEGOCIO">
+                                        value="<?php echo $emisorExiste ? htmlspecialchars($e["nombre_comercial"]) : ''; ?>"
+                                        disabled placeholder="MI NEGOCIO">
                                 </div>
                             </div>
 
@@ -95,8 +92,8 @@ $e            = $emisorExiste ? $datosEmisor[0] : [];
                                     <label class="form-label"><b>Usuario SOL <span class="fw-bold text-danger">*</span></b></label>
                                     <div class="input-group">
                                         <input type="password" class="form-control" id="idUsuarioSol"
-                                               value="<?php echo $emisorExiste ? htmlspecialchars($e["usuario_sol"]) : ''; ?>"
-                                               disabled placeholder="MODDATOS">
+                                            value="<?php echo $emisorExiste ? htmlspecialchars($e["usuario_sol"]) : ''; ?>"
+                                            disabled placeholder="MODDATOS">
                                     </div>
                                 </div>
                             </div>
@@ -107,8 +104,8 @@ $e            = $emisorExiste ? $datosEmisor[0] : [];
                                     <label class="form-label"><b>Clave Sol <span class="fw-bold text-danger">*</span></b></label>
                                     <div class="input-group">
                                         <input type="password" class="form-control" id="idClaveSol"
-                                               value="<?php echo $emisorExiste ? htmlspecialchars($e["clave_sol"]) : ''; ?>"
-                                               disabled placeholder="••••••••">
+                                            value="<?php echo $emisorExiste ? htmlspecialchars($e["clave_sol"]) : ''; ?>"
+                                            disabled placeholder="••••••••">
                                     </div>
                                 </div>
                             </div>
@@ -128,7 +125,7 @@ $e            = $emisorExiste ? $datosEmisor[0] : [];
 
                                     <div id="dropLogo" class="drop-zone drop-zone--disabled">
                                         <input type="file" id="idLogoSucursal" class="drop-zone__input"
-                                               accept="image/jpeg,image/jpg,image/png" disabled>
+                                            accept="image/jpeg,image/jpg,image/png" disabled>
                                         <div class="drop-zone__content">
                                             <i class="fas fa-cloud-upload-alt drop-zone__icon"></i>
                                             <p class="drop-zone__text">Arrastra tu logo aquí<br>
@@ -146,13 +143,18 @@ $e            = $emisorExiste ? $datosEmisor[0] : [];
 
                                     <?php if ($emisorExiste && !empty($e["ruta_logo"])): ?>
                                         <div class="mt-2 drop-zone__current">
-                                            <img src="<?php echo htmlspecialchars($e["ruta_logo"]); ?>"
-                                                 alt="Logo actual" class="img-thumbnail" style="max-height:70px;">
+                                            <?php
+                                            // Si es ruta de archivo → servir via script
+                                            // Si es Base64 antiguo (data:image/...) → usar directo
+                                            $logoSrc = str_starts_with($e["ruta_logo"], 'data:')
+                                                ? $e["ruta_logo"]
+                                                : 'logica/serve_logo.php?ruta=' . urlencode($e["ruta_logo"]);
+                                            ?>
+                                            <img src="<?php echo htmlspecialchars($logoSrc); ?>"
+                                                alt="Logo actual" class="img-thumbnail" style="max-height:70px;">
                                             <small class="text-muted ms-2">Logo actual</small>
                                         </div>
                                         <input type="hidden" id="idRutaLogoActual" value="<?php echo htmlspecialchars($e["ruta_logo"]); ?>">
-                                    <?php else: ?>
-                                        <input type="hidden" id="idRutaLogoActual" value="">
                                     <?php endif; ?>
                                 </div>
                             </div>
@@ -167,7 +169,7 @@ $e            = $emisorExiste ? $datosEmisor[0] : [];
 
                                     <div id="dropFirma" class="drop-zone drop-zone--disabled drop-zone--pfx">
                                         <input type="file" id="idFirmaDigital" class="drop-zone__input"
-                                               accept=".pfx,.p12" disabled>
+                                            accept=".pfx,.p12" disabled>
                                         <div class="drop-zone__content">
                                             <i class="fas fa-file-certificate drop-zone__icon"></i>
                                             <p class="drop-zone__text">Arrastra tu certificado aquí<br>
@@ -209,8 +211,8 @@ $e            = $emisorExiste ? $datosEmisor[0] : [];
                                         <b><i class="fas fa-key"></i> Contraseña del Certificado</b>
                                     </label>
                                     <input type="password" class="form-control" id="idPasswordFirma"
-                                           value="<?php echo $emisorExiste ? htmlspecialchars($e["contraseña_firma_digital"]) : ''; ?>"
-                                           disabled placeholder="••••••••">
+                                        value="<?php echo $emisorExiste ? htmlspecialchars($e["contraseña_firma_digital"]) : ''; ?>"
+                                        disabled placeholder="••••••••">
                                     <small class="text-muted">Contraseña del archivo .pfx/.p12</small>
                                 </div>
                             </div>
@@ -223,9 +225,9 @@ $e            = $emisorExiste ? $datosEmisor[0] : [];
                                         <small class="text-muted d-block">Ej: B001, B002, B003</small>
                                     </label>
                                     <input type="text" class="form-control text-uppercase" id="idSerieBoleta"
-                                           maxlength="4" placeholder="B001"
-                                           value="<?php echo $emisorExiste ? htmlspecialchars($e['serie_boleta'] ?? 'B001') : 'B001'; ?>"
-                                           disabled>
+                                        maxlength="4" placeholder="B001"
+                                        value="<?php echo $emisorExiste ? htmlspecialchars($e['serie_boleta'] ?? 'B001') : 'B001'; ?>"
+                                        disabled>
                                     <small class="text-muted">1 letra + 3 números</small>
                                 </div>
                             </div>
@@ -237,9 +239,9 @@ $e            = $emisorExiste ? $datosEmisor[0] : [];
                                         <small class="text-muted d-block">Ej: F001, F002, F003</small>
                                     </label>
                                     <input type="text" class="form-control text-uppercase" id="idSerieFactura"
-                                           maxlength="4" placeholder="F001"
-                                           value="<?php echo $emisorExiste ? htmlspecialchars($e['serie_factura'] ?? 'F001') : 'F001'; ?>"
-                                           disabled>
+                                        maxlength="4" placeholder="F001"
+                                        value="<?php echo $emisorExiste ? htmlspecialchars($e['serie_factura'] ?? 'F001') : 'F001'; ?>"
+                                        disabled>
                                     <small class="text-muted">1 letra + 3 números</small>
                                 </div>
                             </div>
@@ -251,7 +253,7 @@ $e            = $emisorExiste ? $datosEmisor[0] : [];
                                         <b><i class="fas fa-server"></i> Ambiente SUNAT <span class="fw-bold text-danger">*</span></b>
                                     </label>
                                     <select class="form-select" id="idAmbiente" disabled>
-                                        <option value="beta"       <?php echo ($emisorExiste && ($e["ambiente"] ?? 'beta') == 'beta')       ? 'selected' : ''; ?>>🧪 Beta (Pruebas)</option>
+                                        <option value="beta" <?php echo ($emisorExiste && ($e["ambiente"] ?? 'beta') == 'beta')       ? 'selected' : ''; ?>>🧪 Beta (Pruebas)</option>
                                         <option value="produccion" <?php echo ($emisorExiste && ($e["ambiente"] ?? '') == 'produccion') ? 'selected' : ''; ?>>🚀 Producción</option>
                                     </select>
                                     <?php if ($emisorExiste && ($e["ambiente"] ?? 'beta') === 'produccion'): ?>
@@ -278,8 +280,8 @@ $e            = $emisorExiste ? $datosEmisor[0] : [];
                                 <div class="mb-3">
                                     <label class="form-label"><b>Departamento <span class="fw-bold text-danger">*</span></b></label>
                                     <input type="text" class="form-control" id="idDepartamento"
-                                           value="<?php echo $emisorExiste ? htmlspecialchars($e["departamento"]) : ''; ?>"
-                                           disabled placeholder="LAMBAYEQUE">
+                                        value="<?php echo $emisorExiste ? htmlspecialchars($e["departamento"]) : ''; ?>"
+                                        disabled placeholder="LAMBAYEQUE">
                                 </div>
                             </div>
 
@@ -288,8 +290,8 @@ $e            = $emisorExiste ? $datosEmisor[0] : [];
                                 <div class="mb-3">
                                     <label class="form-label"><b>Provincia <span class="fw-bold text-danger">*</span></b></label>
                                     <input type="text" class="form-control" id="idProvincia"
-                                           value="<?php echo $emisorExiste ? htmlspecialchars($e["provincia"]) : ''; ?>"
-                                           disabled placeholder="CHICLAYO">
+                                        value="<?php echo $emisorExiste ? htmlspecialchars($e["provincia"]) : ''; ?>"
+                                        disabled placeholder="CHICLAYO">
                                 </div>
                             </div>
 
@@ -298,8 +300,8 @@ $e            = $emisorExiste ? $datosEmisor[0] : [];
                                 <div class="mb-3">
                                     <label class="form-label"><b>Distrito</b></label>
                                     <input type="text" class="form-control" id="idDistrito"
-                                           value="<?php echo $emisorExiste ? htmlspecialchars($e["distrito"]) : ''; ?>"
-                                           disabled placeholder="CHICLAYO">
+                                        value="<?php echo $emisorExiste ? htmlspecialchars($e["distrito"]) : ''; ?>"
+                                        disabled placeholder="CHICLAYO">
                                 </div>
                             </div>
 
@@ -308,8 +310,8 @@ $e            = $emisorExiste ? $datosEmisor[0] : [];
                                 <div class="mb-3">
                                     <label class="form-label"><b>Ubigeo</b></label>
                                     <input type="text" class="form-control" id="idUbigeo"
-                                           value="<?php echo $emisorExiste ? htmlspecialchars($e["ubigeo"]) : ''; ?>"
-                                           disabled placeholder="140101">
+                                        value="<?php echo $emisorExiste ? htmlspecialchars($e["ubigeo"]) : ''; ?>"
+                                        disabled placeholder="140101">
                                 </div>
                             </div>
 
@@ -318,8 +320,36 @@ $e            = $emisorExiste ? $datosEmisor[0] : [];
                                 <div class="mb-3">
                                     <label class="form-label"><b>Dirección Fiscal <span class="fw-bold text-danger">*</span></b></label>
                                     <input type="text" class="form-control" id="idDireccion"
-                                           value="<?php echo $emisorExiste ? htmlspecialchars($e["direccion"]) : ''; ?>"
-                                           disabled placeholder="AV. PRINCIPAL NRO. 123">
+                                        value="<?php echo $emisorExiste ? htmlspecialchars($e["direccion"]) : ''; ?>"
+                                        disabled placeholder="AV. PRINCIPAL NRO. 123">
+                                </div>
+                            </div>
+
+                            <!-- EMAIL -->
+                            <div class="col-12 col-sm-6 col-md-6 col-lg-6">
+                                <div class="mb-3">
+                                    <label class="form-label"><b>Correo Electrónico</b></label>
+                                    <input type="email" class="form-control" id="idEmail"
+                                        value="<?php echo $emisorExiste ? htmlspecialchars($e["email"] ?? '') : ''; ?>"
+                                        disabled placeholder="contacto@miempresa.com">
+                                </div>
+                            </div>
+
+                            <!-- TELÉFONOS -->
+                            <div class="col-12 col-sm-6 col-md-6 col-lg-6">
+                                <div class="mb-3">
+                                    <label class="form-label"><b>Teléfonos</b>
+                                        <small class="text-muted d-block">Separados por coma. Ej: 074-123456, 987654321</small>
+                                    </label>
+                                    <input type="text" class="form-control" id="idTelefonos"
+                                        value="<?php
+                                                $tel = $emisorExiste ? ($e["telefono"] ?? '[]') : '[]';
+                                                // Si ya es JSON array, convertir a string separado por coma
+                                                $telArr = json_decode($tel, true);
+                                                echo htmlspecialchars(is_array($telArr) ? implode(', ', $telArr) : '');
+                                                ?>"
+                                        disabled placeholder="074-123456, 987654321">
+                                    <small class="text-muted">Se guardan como lista</small>
                                 </div>
                             </div>
 
@@ -329,17 +359,17 @@ $e            = $emisorExiste ? $datosEmisor[0] : [];
                         <div class="col-12 text-center">
                             <div class="d-flex justify-content-center gap-2">
                                 <button id="idBtnHabilitar"
-                                        class="btn btn-warning btn-round text"
-                                        onclick="habilitarCampos()"
-                                        role="button">
+                                    class="btn btn-warning btn-round text"
+                                    onclick="habilitarCampos()"
+                                    role="button">
                                     <i class="fas fa-edit"></i> Habilitar Cambios
                                 </button>
 
                                 <a style="display: none;"
-                                   id="idBtneGuardar"
-                                   class="btn btn-success btn-round text"
-                                   onclick="fn_guardar_cambios()"
-                                   role="button">
+                                    id="idBtneGuardar"
+                                    class="btn btn-success btn-round text"
+                                    onclick="fn_guardar_cambios()"
+                                    role="button">
                                     <i class="fas fa-save"></i> Guardar
                                 </a>
                             </div>
@@ -397,23 +427,37 @@ $e            = $emisorExiste ? $datosEmisor[0] : [];
 
     function fn_guardar_cambios() {
 
-        const tipoDocumento   = document.getElementById("idTipoDocumento").value.trim();
-        const ruc             = document.getElementById("idRuc").value.trim();
-        const razonSocial     = document.getElementById("idRazonSocial").value.trim();
+        const tipoDocumento = document.getElementById("idTipoDocumento").value.trim();
+        const ruc = document.getElementById("idRuc").value.trim();
+        const razonSocial = document.getElementById("idRazonSocial").value.trim();
         const nombreComercial = document.getElementById("idNombreComercial").value.trim();
-        const usuarioSol      = document.getElementById("idUsuarioSol").value.trim();
-        const claveSol        = document.getElementById("idClaveSol").value.trim();
-        const departamento    = document.getElementById("idDepartamento").value.trim();
-        const provincia       = document.getElementById("idProvincia").value.trim();
-        const direccion       = document.getElementById("idDireccion").value.trim();
-        const ambiente        = document.getElementById("idAmbiente").value; // ✅ NUEVO
+        const usuarioSol = document.getElementById("idUsuarioSol").value.trim();
+        const claveSol = document.getElementById("idClaveSol").value.trim();
+        const departamento = document.getElementById("idDepartamento").value.trim();
+        const provincia = document.getElementById("idProvincia").value.trim();
+        const direccion = document.getElementById("idDireccion").value.trim();
+        const ambiente = document.getElementById("idAmbiente").value; // ✅ NUEVO
+        // Agregar junto a las otras variables al inicio de fn_guardar_cambios()
+        const email     = document.getElementById("idEmail").value.trim();
+        const telefonos = document.getElementById("idTelefonos").value.trim();
+
+        // Convertir teléfonos a array JSON
+        const telefonosArr = telefonos
+            ? telefonos.split(',').map(t => t.trim()).filter(t => t !== '')
+            : [];
+
+        
 
         // Validar campos obligatorios
         if (!tipoDocumento || !ruc || !razonSocial || !nombreComercial || !usuarioSol || !claveSol ||
             !departamento || !provincia || !direccion) {
             swal("Error", "Por favor, complete todos los campos obligatorios (*)", {
                 icon: "error",
-                buttons: { confirm: { className: "btn btn-danger" } }
+                buttons: {
+                    confirm: {
+                        className: "btn btn-danger"
+                    }
+                }
             });
             return;
         }
@@ -421,7 +465,11 @@ $e            = $emisorExiste ? $datosEmisor[0] : [];
         if (tipoDocumento === "6" && (ruc.length !== 11 || !/^\d+$/.test(ruc))) {
             swal("Error", "El RUC debe tener exactamente 11 dígitos numéricos", {
                 icon: "error",
-                buttons: { confirm: { className: "btn btn-danger" } }
+                buttons: {
+                    confirm: {
+                        className: "btn btn-danger"
+                    }
+                }
             });
             return;
         }
@@ -429,7 +477,11 @@ $e            = $emisorExiste ? $datosEmisor[0] : [];
         if (tipoDocumento === "1" && (ruc.length !== 8 || !/^\d+$/.test(ruc))) {
             swal("Error", "El DNI debe tener exactamente 8 dígitos numéricos", {
                 icon: "error",
-                buttons: { confirm: { className: "btn btn-danger" } }
+                buttons: {
+                    confirm: {
+                        className: "btn btn-danger"
+                    }
+                }
             });
             return;
         }
@@ -442,33 +494,40 @@ $e            = $emisorExiste ? $datosEmisor[0] : [];
         }
 
         const formData = new FormData();
-        formData.append('accion',          'EDITAR_EMISOR');
-        formData.append('sucursal_id',     SUCURSAL_ID);
-        formData.append('tipo_documento',  tipoDocumento);
-        formData.append('ruc',             ruc);
-        formData.append('razon_social',    razonSocial);
-        formData.append('nombre_comercial',nombreComercial);
-        formData.append('usuario_sol',     usuarioSol);
-        formData.append('clave_sol',       claveSol);
-        formData.append('password_firma',  document.getElementById("idPasswordFirma").value.trim());
-        formData.append('ambiente',        ambiente); // ✅ NUEVO
-        formData.append('serie_boleta',    document.getElementById('idSerieBoleta').value.trim().toUpperCase());
-        formData.append('serie_factura',   document.getElementById('idSerieFactura').value.trim().toUpperCase());
-        formData.append('departamento',    departamento);
-        formData.append('provincia',       provincia);
-        formData.append('distrito',        document.getElementById("idDistrito").value.trim());
-        formData.append('ubigeo',          document.getElementById("idUbigeo").value.trim());
-        formData.append('direccion',       direccion);
+        formData.append('accion', 'EDITAR_EMISOR');
+        formData.append('sucursal_id', SUCURSAL_ID);
+        formData.append('tipo_documento', tipoDocumento);
+        formData.append('ruc', ruc);
+        formData.append('razon_social', razonSocial);
+        formData.append('nombre_comercial', nombreComercial);
+        formData.append('usuario_sol', usuarioSol);
+        formData.append('clave_sol', claveSol);
+        formData.append('password_firma', document.getElementById("idPasswordFirma").value.trim());
+        formData.append('ambiente', ambiente); // ✅ NUEVO
+        formData.append('serie_boleta', document.getElementById('idSerieBoleta').value.trim().toUpperCase());
+        formData.append('serie_factura', document.getElementById('idSerieFactura').value.trim().toUpperCase());
+        formData.append('departamento', departamento);
+        formData.append('provincia', provincia);
+        formData.append('distrito', document.getElementById("idDistrito").value.trim());
+        formData.append('ubigeo', document.getElementById("idUbigeo").value.trim());
+        formData.append('direccion', direccion);
+        
+        formData.append('email',    email);
+        formData.append('telefono', JSON.stringify(telefonosArr));
 
         // Archivos
-        const logoFile  = document.getElementById("idLogoSucursal").files[0];
+        const logoFile = document.getElementById("idLogoSucursal").files[0];
         const firmaFile = document.getElementById("idFirmaDigital").files[0];
 
         if (logoFile) {
             if (logoFile.size > 2 * 1024 * 1024) {
                 swal("Error", "El logo no debe superar los 2MB", {
                     icon: "error",
-                    buttons: { confirm: { className: "btn btn-danger" } }
+                    buttons: {
+                        confirm: {
+                            className: "btn btn-danger"
+                        }
+                    }
                 });
                 return;
             }
@@ -481,7 +540,11 @@ $e            = $emisorExiste ? $datosEmisor[0] : [];
             if (firmaFile.size > 5 * 1024 * 1024) {
                 swal("Error", "El certificado digital no debe superar los 5MB", {
                     icon: "error",
-                    buttons: { confirm: { className: "btn btn-danger" } }
+                    buttons: {
+                        confirm: {
+                            className: "btn btn-danger"
+                        }
+                    }
                 });
                 return;
             }
@@ -491,19 +554,19 @@ $e            = $emisorExiste ? $datosEmisor[0] : [];
         }
 
         $.ajax({
-            url        : 'logica/clssInsertPA.php',
-            type       : 'POST',
-            data       : formData,
+            url: 'logica/clssInsertPA.php',
+            type: 'POST',
+            data: formData,
             processData: false,
             contentType: false,
             beforeSend: function() {
                 swal({
-                    title             : "Guardando...",
-                    text              : "Subiendo archivos y guardando datos, por favor espere",
-                    icon              : "info",
-                    buttons           : false,
+                    title: "Guardando...",
+                    text: "Subiendo archivos y guardando datos, por favor espere",
+                    icon: "info",
+                    buttons: false,
                     closeOnClickOutside: false,
-                    closeOnEsc        : false
+                    closeOnEsc: false
                 });
             },
             success: function(response) {
@@ -511,42 +574,58 @@ $e            = $emisorExiste ? $datosEmisor[0] : [];
                     var result = JSON.parse(response);
                     if (result.estado === true) {
                         swal({
-                            title  : "¡Emisor Actualizado!",
-                            text   : result.mensaje || "Los datos del emisor se guardaron correctamente",
-                            icon   : "success",
+                            title: "¡Emisor Actualizado!",
+                            text: result.mensaje || "Los datos del emisor se guardaron correctamente",
+                            icon: "success",
                             buttons: false,
-                            timer  : 1500
-                        }).then(() => { location.reload(); });
+                            timer: 1500
+                        }).then(() => {
+                            location.reload();
+                        });
                     } else {
                         swal("Error", result.mensaje || "No se pudo guardar el emisor", {
-                            icon   : "error",
-                            buttons: { confirm: { className: "btn btn-danger" } }
+                            icon: "error",
+                            buttons: {
+                                confirm: {
+                                    className: "btn btn-danger"
+                                }
+                            }
                         });
                     }
                 } catch (e) {
                     console.error("Respuesta recibida:", response);
                     swal("Error", "No se pudo procesar la respuesta del servidor.", {
-                        icon   : "error",
-                        buttons: { confirm: { className: "btn btn-danger" } }
+                        icon: "error",
+                        buttons: {
+                            confirm: {
+                                className: "btn btn-danger"
+                            }
+                        }
                     });
                 }
             },
             error: function(xhr, status, error) {
                 console.error("Response:", xhr.responseText);
                 swal("Error", "Hubo un problema al guardar los datos: " + error, {
-                    icon   : "error",
-                    buttons: { confirm: { className: "btn btn-danger" } }
+                    icon: "error",
+                    buttons: {
+                        confirm: {
+                            className: "btn btn-danger"
+                        }
+                    }
                 });
             }
         });
     }
     // ── Drag & Drop ──────────────────────────────────────────────
     function initDropZone(zoneId, inputId, tipo) {
-        const zone  = document.getElementById(zoneId);
+        const zone = document.getElementById(zoneId);
         const input = document.getElementById(inputId);
 
         // Clic en la zona abre el selector
-        zone.addEventListener('click', () => { if (!input.disabled) input.click(); });
+        zone.addEventListener('click', () => {
+            if (!input.disabled) input.click();
+        });
 
         input.addEventListener('change', () => {
             if (input.files[0]) handleFile(input.files[0], tipo);
@@ -577,10 +656,12 @@ $e            = $emisorExiste ? $datosEmisor[0] : [];
             const max = 2 * 1024 * 1024;
             const allowed = ['image/jpeg', 'image/jpg', 'image/png'];
             if (!allowed.includes(file.type)) {
-                swal("Formato inválido", "Solo se permiten JPG o PNG para el logo", "error"); return;
+                swal("Formato inválido", "Solo se permiten JPG o PNG para el logo", "error");
+                return;
             }
             if (file.size > max) {
-                swal("Archivo muy grande", "El logo no debe superar los 2MB", "error"); return;
+                swal("Archivo muy grande", "El logo no debe superar los 2MB", "error");
+                return;
             }
             // Mostrar preview
             const reader = new FileReader();
@@ -596,10 +677,12 @@ $e            = $emisorExiste ? $datosEmisor[0] : [];
             const allowed = ['.pfx', '.p12'];
             const ext = '.' + file.name.split('.').pop().toLowerCase();
             if (!allowed.includes(ext)) {
-                swal("Formato inválido", "Solo se permiten PFX o P12 para el certificado", "error"); return;
+                swal("Formato inválido", "Solo se permiten PFX o P12 para el certificado", "error");
+                return;
             }
             if (file.size > max) {
-                swal("Archivo muy grande", "El certificado no debe superar los 5MB", "error"); return;
+                swal("Archivo muy grande", "El certificado no debe superar los 5MB", "error");
+                return;
             }
             document.getElementById('previewFirmaNombre').textContent = file.name;
             document.getElementById('previewFirma').style.display = 'flex';
@@ -620,7 +703,7 @@ $e            = $emisorExiste ? $datosEmisor[0] : [];
     }
 
     // Inicializar zonas
-    initDropZone('dropLogo',  'idLogoSucursal', 'logo');
+    initDropZone('dropLogo', 'idLogoSucursal', 'logo');
     initDropZone('dropFirma', 'idFirmaDigital', 'firma');
 
     // Habilitar zonas al habilitar campos
@@ -629,112 +712,135 @@ $e            = $emisorExiste ? $datosEmisor[0] : [];
         _habilitarOriginal();
         document.getElementById('dropLogo').classList.remove('drop-zone--disabled');
         document.getElementById('dropFirma').classList.remove('drop-zone--disabled');
-        document.getElementById('idSerieBoleta').disabled  = false;
+        document.getElementById('idSerieBoleta').disabled = false;
         document.getElementById('idSerieFactura').disabled = false;
     };
 </script>
 
 <style>
-/* ── Drag & Drop Zone ── */
-.drop-zone {
-    position: relative;
-    border: 2px dashed #ced4da;
-    border-radius: 12px;
-    padding: 24px 16px;
-    text-align: center;
-    cursor: pointer;
-    transition: border-color .2s, background .2s;
-    background: #fafbff;
-    min-height: 130px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-.drop-zone:not(.drop-zone--disabled):hover,
-.drop-zone--over {
-    border-color: #667eea;
-    background: #f0f3ff;
-}
-.drop-zone--disabled {
-    cursor: not-allowed;
-    opacity: .6;
-    background: #f5f5f5;
-}
-.drop-zone--pfx { border-color: #a8d5b5; background: #f0fff4; }
-.drop-zone--pfx:not(.drop-zone--disabled):hover { border-color: #11998e; background: #e6faf5; }
+    /* ── Drag & Drop Zone ── */
+    .drop-zone {
+        position: relative;
+        border: 2px dashed #ced4da;
+        border-radius: 12px;
+        padding: 24px 16px;
+        text-align: center;
+        cursor: pointer;
+        transition: border-color .2s, background .2s;
+        background: #fafbff;
+        min-height: 130px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
 
-.drop-zone__input {
-    display: none;
-}
-.drop-zone__content {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 6px;
-    pointer-events: none;
-}
-.drop-zone__icon {
-    font-size: 2rem;
-    color: #667eea;
-}
-.drop-zone--pfx .drop-zone__icon { color: #11998e; }
-.drop-zone__text {
-    margin: 0;
-    font-size: .88rem;
-    color: #555;
-    line-height: 1.4;
-}
-.drop-zone__link {
-    color: #667eea;
-    font-weight: 600;
-    text-decoration: underline;
-}
-.drop-zone__hint {
-    margin: 0;
-    font-size: .75rem;
-    color: #9ca3af;
-}
+    .drop-zone:not(.drop-zone--disabled):hover,
+    .drop-zone--over {
+        border-color: #667eea;
+        background: #f0f3ff;
+    }
 
-/* Preview imagen (logo) */
-.drop-zone__preview {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    width: 100%;
-}
-.drop-zone__preview img {
-    max-height: 80px;
-    max-width: 160px;
-    border-radius: 8px;
-    object-fit: contain;
-    box-shadow: 0 2px 8px rgba(0,0,0,.12);
-}
-/* Preview archivo (pfx) */
-.drop-zone__preview--file {
-    font-size: .88rem;
-    color: #065f46;
-}
+    .drop-zone--disabled {
+        cursor: not-allowed;
+        opacity: .6;
+        background: #f5f5f5;
+    }
 
-.drop-zone__remove {
-    background: #fee2e2;
-    border: none;
-    color: #dc2626;
-    border-radius: 50%;
-    width: 26px;
-    height: 26px;
-    font-size: .75rem;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    transition: background .15s;
-    flex-shrink: 0;
-}
-.drop-zone__remove:hover { background: #fca5a5; }
+    .drop-zone--pfx {
+        border-color: #a8d5b5;
+        background: #f0fff4;
+    }
 
-.drop-zone__current {
-    display: flex;
-    align-items: center;
-}
+    .drop-zone--pfx:not(.drop-zone--disabled):hover {
+        border-color: #11998e;
+        background: #e6faf5;
+    }
+
+    .drop-zone__input {
+        display: none;
+    }
+
+    .drop-zone__content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        pointer-events: none;
+    }
+
+    .drop-zone__icon {
+        font-size: 2rem;
+        color: #667eea;
+    }
+
+    .drop-zone--pfx .drop-zone__icon {
+        color: #11998e;
+    }
+
+    .drop-zone__text {
+        margin: 0;
+        font-size: .88rem;
+        color: #555;
+        line-height: 1.4;
+    }
+
+    .drop-zone__link {
+        color: #667eea;
+        font-weight: 600;
+        text-decoration: underline;
+    }
+
+    .drop-zone__hint {
+        margin: 0;
+        font-size: .75rem;
+        color: #9ca3af;
+    }
+
+    /* Preview imagen (logo) */
+    .drop-zone__preview {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        width: 100%;
+    }
+
+    .drop-zone__preview img {
+        max-height: 80px;
+        max-width: 160px;
+        border-radius: 8px;
+        object-fit: contain;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, .12);
+    }
+
+    /* Preview archivo (pfx) */
+    .drop-zone__preview--file {
+        font-size: .88rem;
+        color: #065f46;
+    }
+
+    .drop-zone__remove {
+        background: #fee2e2;
+        border: none;
+        color: #dc2626;
+        border-radius: 50%;
+        width: 26px;
+        height: 26px;
+        font-size: .75rem;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: background .15s;
+        flex-shrink: 0;
+    }
+
+    .drop-zone__remove:hover {
+        background: #fca5a5;
+    }
+
+    .drop-zone__current {
+        display: flex;
+        align-items: center;
+    }
 </style>

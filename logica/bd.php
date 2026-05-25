@@ -8,11 +8,18 @@
 //$port = "5432";
 
 
-$server = "aws-1-us-east-1.pooler.supabase.com";
-$bd = "postgres";
-$user = "postgres.jsrtcyygjhxnrtgbmwrp";
-$pass = "LqBG4VVUrK6_jcy";
+#$server = "aws-1-us-east-1.pooler.supabase.com";
+#$bd = "postgres";
+#$user = "postgres.jsrtcyygjhxnrtgbmwrp";
+#$pass = "LqBG4VVUrK6_jcy";
+#$port = "5432";
+
+$server = "38.187.1.203";
+$bd = "deunaperender";
+$user = "postgres";
+$pass = "admin-Oll*";
 $port = "5432";
+
 
 
 try {

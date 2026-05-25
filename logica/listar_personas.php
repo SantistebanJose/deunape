@@ -35,11 +35,12 @@ $sqlBase = "SELECT id, numero_documento,
                        WHEN nombres IS NOT NULL AND apellidos IS NOT NULL THEN CONCAT(nombres, ' ', apellidos)
                        WHEN razon_social IS NOT NULL THEN razon_social
                        ELSE '-'
-                   END AS nombre, 
+                   END AS nombre_completo,
+                   UPPER(CONCAT(p.nombres, ' ', p.apellidos)) as nombre, 
                    COALESCE(condicion, '-') AS condicion, 
                    COALESCE(telefonomovil, COALESCE(telefonofijo, '-')) AS telefono, 
                    deleted_at 
-            FROM persona";
+            FROM persona AS p";
 
 // Aplicar filtros
 $sqlFiltro = " WHERE 1=1";

@@ -1,6 +1,6 @@
 <?php
 include("cabecera.php");
-
+$sucursal_id = isset($_SESSION['sucursal_id']) ? $_SESSION['sucursal_id'] : null;
 ?>
 
 <div
@@ -29,10 +29,10 @@ include("cabecera.php");
                             </thead>
                             <tbody>
                                 <?php
-                                foreach (listarVentasNoDeclaradas() as $datos) {
+                                foreach (listarVentasNoDeclaradas($sucursal_id) as $datos) {
                                     $datosJSON = ($datos);
                                     $js_detalle = ($datos["js_detalle_venta"]);
-                                    $datosEmisorJSON = (fnListarEmisor()[0]);
+                                    $datosEmisorJSON = (fnListarEmisor($sucursal_id)[0]);
 
                                     $datax_completo = array("datos_query" => $datosJSON, "js_detalle" => $js_detalle, "emisor" => $datosEmisorJSON);
 

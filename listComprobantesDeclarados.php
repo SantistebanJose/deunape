@@ -349,7 +349,8 @@ $(document).ready(function() {
             sInfoFiltered : "(filtrado de _MAX_ registros)",
             sSearch       : "Buscar:",
             oPaginate     : { sFirst:"Primero", sPrevious:"Anterior", sNext:"Siguiente", sLast:"Último" }
-        }
+        },
+         order: [[0, "desc"]]
     });
 });
 

@@ -35,7 +35,7 @@ if (!$sucursal_id) {
                 <div class="tab-content mt-2 mb-3" id="pills-without-border-tabContent">
                     <div class="tab-pane fade show active" id="pills-home-nobd" role="tabpanel" aria-labelledby="pills-home-tab-nobd" id="tab-registro-compras">
 
-                                            <!-- ── PANEL DE FILTROS ─────────────────────────────────── -->
+                        <!-- ── PANEL DE FILTROS ─────────────────────────────────── -->
                         <div class="card mb-3">
                             <div class="card-body">
                                 <h5 class="card-title mb-3">
@@ -80,11 +80,11 @@ if (!$sucursal_id) {
                                     <!-- Botones -->
                                     <div class="col-12 col-sm-12 col-md-2 d-flex gap-2">
                                         <button class="btn btn-primary btn-round flex-fill"
-                                                onclick="fnAplicarFiltros()">
+                                            onclick="fnAplicarFiltros()">
                                             <i class="fas fa-search"></i> Filtrar
                                         </button>
                                         <button class="btn btn-secondary btn-round flex-fill"
-                                                onclick="fnLimpiarFiltros()">
+                                            onclick="fnLimpiarFiltros()">
                                             <i class="fas fa-times"></i> Limpiar
                                         </button>
                                     </div>
@@ -167,7 +167,7 @@ if (!$sucursal_id) {
                                                 <th>Proveedor</th>
                                                 <th>Fecha Compra</th>
                                                 <th>Total</th>
-                                                <th>Total Por Productos</th>  <!-- ← AGREGAR -->
+                                                <th>Total Por Productos</th> <!-- ← AGREGAR -->
                                                 <th>Fecha Registro</th>
                                                 <th>Hora</th>
                                                 <th>Acción</th>
@@ -189,8 +189,8 @@ if (!$sucursal_id) {
                                                     <td>
                                                         <div class="mt-2 text-center">
                                                             <a onclick='abrirDetalle(<?php echo $datosJSON ?>)'
-                                                            class="btn btn-secondary btn-round btn-sm"
-                                                            role="button">
+                                                                class="btn btn-secondary btn-round btn-sm"
+                                                                role="button">
                                                                 <i class="fas fa-external-link-square-alt"></i>
                                                             </a>
                                                         </div>
@@ -977,101 +977,202 @@ if (!$sucursal_id) {
     </div>
 </div>
 
-<div
-    class="modal fade"
-    id="modalDetalleCompra"
-    tabindex="-1"
-    role="dialog"
-    aria-labelledby="modalTitleId"
-    aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-dialog-custom" role="document"> <!-- Usamos la clase personalizada aquí -->
-        <div class="modal-content">
-            <div class="modal-body">
-                <div class="card border-primary">
-                    <button type="button" class="btn-close position-absolute top-0 end-0 m-2" data-bs-dismiss="modal" aria-label="Close"></button>
-                    <div class="card-body">
-                        <h4 class="card-title text-center" style="font-size: 28px;"><i class="fas fa-shopping-bag"></i> Compra <strong id="idMontoVenta"></strong></h4>
-                        <hr>
-                        <div class="card-sub text-center">
-                            Aquí podrás revisar los datos de la Compra. Revisa el detalle de la compra de articulos.
+<!-- ============================================================
+     MODAL DETALLE DE COMPRA — sin acordeón
+     ============================================================ -->
+
+<div class="modal fade" id="modalDetalleCompra" tabindex="-1" role="dialog"
+    aria-labelledby="modalDetalleCompraLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+        <div class="modal-content border-0 shadow-sm" style="border-radius:14px; overflow:hidden;">
+
+            <!-- ── HEADER ── -->
+            <div class="modal-header border-0 px-4 py-3" style="background:var(--bs-secondary-bg,#f8f9fa);">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="d-flex align-items-center justify-content-center rounded-3"
+                        style="width:40px; height:40px; background:#e8f0fe;">
+                        <i class="fas fa-shopping-bag" style="color:#3b5bdb; font-size:17px;"></i>
+                    </div>
+                    <div>
+                        <h6 class="mb-0 fw-semibold" id="modalDetalleCompraLabel">
+                            Detalle de compra <span id="idMontoVenta" class="text-primary"></span>
+                        </h6>
+                        <small class="text-muted" id="idNumeroCompra">Cargando...</small>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center gap-2 ms-auto">
+                    <span class="badge rounded-pill" id="idBadgeEstado"
+                        style="background:#d3f9d8; color:#2b8a3e; font-size:11px; padding:5px 12px;">
+                        Completada
+                    </span>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+            </div>
+
+            <!-- ── BODY ── -->
+            <div class="modal-body p-4 d-flex flex-column gap-3">
+
+                <!-- Tarjetas métricas -->
+                <div class="row g-2">
+                    <div class="col-4">
+                        <div class="rounded-3 p-3" style="background:var(--bs-secondary-bg,#f8f9fa);">
+                            <p class="mb-1 text-muted" style="font-size:11px; text-transform:uppercase; letter-spacing:.04em;">
+                                Monto registrado
+                            </p>
+                            <p class="mb-0 fw-semibold" style="font-size:20px;" id="idMontoRegistrado">S/ —</p>
                         </div>
-                        <div class="row justify-content-center align-items-center sm-2">
-                            <div class="col-sm-12">
-                                <div class="card text-start">
-                                    <div class="card-body">
-                                        <h4 class="card-title"><i class="fas fa-user"> </i> Usuario</h4>
-                                        <hr>
-                                        <div><strong>Registrado Por: </strong> <span id="idUsuario"></span></div>
-                                        <div><strong>Fecha de Compra:</strong> <span id="idFechaComprav2"></span></div>
-                                        <div><strong>Fecha de Registro:</strong> <span id="idFechaRegistro"></span></div>
-                                        <div><strong>Hora de Registro:</strong> <span id="idHoraRegistro"></span></div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-sm-6">
-                                <div class="card text-start">
-                                    <div class="card-body">
-                                        <h4 class="card-title"><i class="fas fa-user"> </i> Proveedor</h4>
-                                        <p class="card-text" id="nombreCliente"></p>
-                                        <hr>
-                                        <div><strong>N° DOCUMENTO:</strong> <span id="docProveedor"></span></div>
-                                        <div><strong>Proveedor:</strong> <span id="idProveedorNombre"></span></div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-sm-6">
-                                <div class="card text-start">
-                                    <div class="card-body">
-                                        <h4 class="card-title"><i class="fas fa-credit-card"> </i> Montos S/ </h4>
-                                        <hr>
-                                        <div><strong>Monto Registrado:</strong> <span id="idMontoRegistrado"></span></div>
-                                        <div><strong>Total Por Articulos:</strong> <span id="idMontoTotalArticulos"></span></div>
-                                    </div>
-                                </div>
-                            </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="rounded-3 p-3" style="background:var(--bs-secondary-bg,#f8f9fa);">
+                            <p class="mb-1 text-muted" style="font-size:11px; text-transform:uppercase; letter-spacing:.04em;">
+                                Total artículos
+                            </p>
+                            <p class="mb-0 fw-semibold" style="font-size:20px;" id="idMontoTotalArticulos">S/ —</p>
                         </div>
-
-
-
-                        <div class="card">
-                            <div class="card-body">
-                                <div class="accordion accordion-flush" id="accordionFlushExample">
-                                    <div class="accordion-item">
-                                        <h2 class="accordion-header" id="flush-headingOne">
-                                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapseOne" aria-expanded="false" aria-controls="flush-collapseOne">
-                                                <strong><i class="fas fa-cart-arrow-down"></i> Detalle de Compra</strong>
-                                            </button>
-                                        </h2>
-                                        <div id="flush-collapseOne" class="accordion-collapse collapse" aria-labelledby="flush-headingOne" data-bs-parent="#accordionFlushExample">
-                                            <div class="accordion-body">
-                                                <div class="card-sub">
-                                                    Revisa tu detalle de compra :)
-                                                </div>
-                                                <div>
-                                                    <ul id="idContenidoUlDetalle">
-
-                                                    </ul>
-                                                </div>
-
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="rounded-3 p-3" style="background:var(--bs-secondary-bg,#f8f9fa);">
+                            <p class="mb-1 text-muted" style="font-size:11px; text-transform:uppercase; letter-spacing:.04em;">
+                                Artículos
+                            </p>
+                            <p class="mb-0 fw-semibold" style="font-size:20px;" id="idCantidadArticulos">—</p>
                         </div>
-
                     </div>
                 </div>
 
+                <!-- Proveedor + Registro -->
+                <div class="row g-2">
+                    <div class="col-sm-6">
+                        <div class="border rounded-3 p-3 h-100" style="border-color:rgba(0,0,0,.1) !important;">
+                            <p class="mb-2 text-muted d-flex align-items-center gap-2" style="font-size:13px; font-weight:500;">
+                                <i class="fas fa-store" style="font-size:13px;"></i> Proveedor
+                            </p>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="d-flex align-items-center justify-content-center rounded-circle flex-shrink-0"
+                                    style="width:34px; height:34px; background:#fff3bf; font-size:12px; font-weight:600; color:#e67700;"
+                                    id="idProveedorAvatar">??</div>
+                                <div>
+                                    <p class="mb-0 fw-semibold" style="font-size:13px;" id="idProveedorNombre">—</p>
+                                    <p class="mb-0 text-muted" style="font-size:11px;">
+                                        N° Doc: <span id="docProveedor">—</span>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-6">
+                        <div class="border rounded-3 p-3 h-100" style="border-color:rgba(0,0,0,.1) !important;">
+                            <p class="mb-2 text-muted d-flex align-items-center gap-2" style="font-size:13px; font-weight:500;">
+                                <i class="fas fa-user-clock" style="font-size:13px;"></i> Registro
+                            </p>
+                            <div class="d-flex flex-column gap-1">
+                                <div class="d-flex justify-content-between" style="font-size:12px;">
+                                    <span class="text-muted">Registrado por</span>
+                                    <span class="fw-semibold" id="idUsuario">—</span>
+                                </div>
+                                <div class="d-flex justify-content-between" style="font-size:12px;">
+                                    <span class="text-muted">Fecha de compra</span>
+                                    <span id="idFechaComprav2">—</span>
+                                </div>
+                                <div class="d-flex justify-content-between" style="font-size:12px;">
+                                    <span class="text-muted">Fecha de registro</span>
+                                    <span id="idFechaRegistro">—</span>
+                                </div>
+                                <div class="d-flex justify-content-between" style="font-size:12px;">
+                                    <span class="text-muted">Hora</span>
+                                    <span id="idHoraRegistro">—</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Detalle de artículos — directo, sin acordeón -->
+                <div class="border rounded-3 overflow-hidden" style="border-color:rgba(0,0,0,.1) !important;">
+                    <div class="px-3 py-2 d-flex align-items-center gap-2"
+                        style="background:var(--bs-secondary-bg,#f8f9fa); border-bottom:1px solid rgba(0,0,0,.07);">
+                        <i class="fas fa-list-ul text-muted" style="font-size:13px;"></i>
+                        <span style="font-size:13px; font-weight:500;">Detalle de artículos</span>
+                    </div>
+
+                    <ul class="list-unstyled mb-0 px-3" id="idContenidoUlDetalle">
+                        <!-- Los <li> se generan desde JS — mismo id que antes -->
+                    </ul>
+
+                    <div class="d-flex justify-content-between align-items-center px-3 py-2"
+                        style="border-top:1px solid rgba(0,0,0,.07); background:var(--bs-secondary-bg,#f8f9fa);">
+                        <span class="text-muted" style="font-size:13px;">Total</span>
+                        <span class="fw-semibold" style="font-size:15px;" id="idTotalDetalleCompra">S/ —</span>
+                    </div>
+                </div>
+
+            </div><!-- /modal-body -->
+
+            <!-- ── FOOTER ── -->
+            <div class="modal-footer border-0 px-4 py-3 gap-2"
+                style="background:var(--bs-secondary-bg,#f8f9fa); justify-content:flex-end;">
+                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i> Cerrar
+                </button>
+                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="window.print()">
+                    <i class="fas fa-print me-1"></i> Imprimir
+                </button>
             </div>
-
-
 
         </div>
     </div>
 </div>
 
+<!-- ============================================================
+     JS
+     ============================================================ -->
+<script>
+    /* Avatar de iniciales del proveedor */
+    function setProveedorAvatar(nombre) {
+        const el = document.getElementById('idProveedorAvatar');
+        if (!el || !nombre) return;
+        const partes = nombre.trim().split(' ');
+        el.textContent = partes.length >= 2 ?
+            (partes[0][0] + partes[1][0]).toUpperCase() :
+            nombre.substring(0, 2).toUpperCase();
+    }
 
+    /* Ejemplo de cómo llenar el modal desde tu función existente:
+
+    function fnAbrirDetalleCompra(datos) {
+      document.getElementById('idMontoVenta').textContent           = 'C-' + datos.id;
+      document.getElementById('idNumeroCompra').textContent         = 'Compra #C-' + datos.id;
+      document.getElementById('idMontoRegistrado').textContent      = 'S/ ' + datos.monto;
+      document.getElementById('idMontoTotalArticulos').textContent  = 'S/ ' + datos.total_articulos;
+      document.getElementById('idCantidadArticulos').textContent    = datos.articulos.length + ' items';
+      document.getElementById('idProveedorNombre').textContent      = datos.proveedor;
+      document.getElementById('docProveedor').textContent           = datos.ruc_proveedor;
+      document.getElementById('idUsuario').textContent              = datos.usuario;
+      document.getElementById('idFechaComprav2').textContent        = datos.fecha_compra;
+      document.getElementById('idFechaRegistro').textContent        = datos.fecha_registro;
+      document.getElementById('idHoraRegistro').textContent         = datos.hora_registro;
+      document.getElementById('idTotalDetalleCompra').textContent   = 'S/ ' + datos.total_articulos;
+      setProveedorAvatar(datos.proveedor);
+
+      const ul = document.getElementById('idContenidoUlDetalle');
+      ul.innerHTML = '';
+      datos.articulos.forEach((art, i) => {
+        const isLast = i === datos.articulos.length - 1;
+        ul.innerHTML += `
+          <li class="py-2 d-flex justify-content-between align-items-center ${isLast ? '' : 'border-bottom'}">
+            <div>
+              <p class="mb-0 fw-semibold" style="font-size:13px;">${art.nombre}</p>
+              <p class="mb-0 text-muted" style="font-size:11px;">Cód: ${art.codigo} · ${art.cantidad} unid.</p>
+            </div>
+            <span class="fw-semibold" style="font-size:13px;">S/ ${art.subtotal}</span>
+          </li>`;
+      });
+
+      new bootstrap.Modal(document.getElementById('modalDetalleCompra')).show();
+    }
+    */
+</script>
 
 
 <!-- Incluir el CSS de DataTables -->
@@ -1105,7 +1206,7 @@ if (!$sucursal_id) {
                     data: {
                         accion: "BUSQUEDAD_PROVEEDOR",
                         cadenaBusqueda: busqueda, // El valor de lo que escribe el usuario
-                        sucursal_id: SUCURSAL_ID 
+                        sucursal_id: SUCURSAL_ID
                     },
                     dataType: 'json',
                     success: function(data) {
@@ -1265,49 +1366,55 @@ if (!$sucursal_id) {
 
     });
     // ── Cargar locaciones en los selectores de destino ──────────
-$.ajax({
-    url: 'logica/clssInventario.php',
-    type: 'POST',
-    data: { accion: 'LISTAR_LOCACIONES', sucursal_id: SUCURSAL_ID },
-    dataType: 'json',
-    success: function(res) {
-        if (res.success && res.data.length > 0) {
-            var opts = '<option value="">Seleccione locación...</option>';
-            res.data.forEach(function(loc) {
-                opts += '<option value="' + loc.id + '">[' + loc.tipo + '] ' + loc.nombre + '</option>';
-            });
-            $('#ca-idLocacion, #caj-idLocacion').html(opts);
-        }
-    }
-});
-
-// ── Cascada: al cambiar locación, cargar estructuras ─────────
-$(document).on('change', '#ca-idLocacion', function() {
-    fnCargarEstructuras($(this).val(), '#ca-idEstructura');
-});
-$(document).on('change', '#caj-idLocacion', function() {
-    fnCargarEstructuras($(this).val(), '#caj-idEstructura');
-});
-
-function fnCargarEstructuras(locacion_id, targetSel) {
-    $(targetSel).html('<option value="">— Sin estructura —</option>');
-    if (!locacion_id) return;
     $.ajax({
         url: 'logica/clssInventario.php',
         type: 'POST',
-        data: { accion: 'LISTAR_ESTRUCTURAS', locacion_id: locacion_id },
+        data: {
+            accion: 'LISTAR_LOCACIONES',
+            sucursal_id: SUCURSAL_ID
+        },
         dataType: 'json',
         success: function(res) {
             if (res.success && res.data.length > 0) {
-                res.data.forEach(function(est) {
-                    $(targetSel).append(
-                        '<option value="' + est.id + '">[' + est.tipo + '] ' + est.nombre + '</option>'
-                    );
+                var opts = '<option value="">Seleccione locación...</option>';
+                res.data.forEach(function(loc) {
+                    opts += '<option value="' + loc.id + '">[' + loc.tipo + '] ' + loc.nombre + '</option>';
                 });
+                $('#ca-idLocacion, #caj-idLocacion').html(opts);
             }
         }
     });
-}
+
+    // ── Cascada: al cambiar locación, cargar estructuras ─────────
+    $(document).on('change', '#ca-idLocacion', function() {
+        fnCargarEstructuras($(this).val(), '#ca-idEstructura');
+    });
+    $(document).on('change', '#caj-idLocacion', function() {
+        fnCargarEstructuras($(this).val(), '#caj-idEstructura');
+    });
+
+    function fnCargarEstructuras(locacion_id, targetSel) {
+        $(targetSel).html('<option value="">— Sin estructura —</option>');
+        if (!locacion_id) return;
+        $.ajax({
+            url: 'logica/clssInventario.php',
+            type: 'POST',
+            data: {
+                accion: 'LISTAR_ESTRUCTURAS',
+                locacion_id: locacion_id
+            },
+            dataType: 'json',
+            success: function(res) {
+                if (res.success && res.data.length > 0) {
+                    res.data.forEach(function(est) {
+                        $(targetSel).append(
+                            '<option value="' + est.id + '">[' + est.tipo + '] ' + est.nombre + '</option>'
+                        );
+                    });
+                }
+            }
+        });
+    }
 </script>
 
 <!-- vamos hacer unos calculos de mrd -->
@@ -1325,7 +1432,7 @@ function fnCargarEstructuras(locacion_id, targetSel) {
                 $("#ca-idPrecioCalculado").val("0.0000"); // Cambiado de 0.00 a 0.0000
             }
         });
-    });   
+    });
     ////////////////////////////////////////////////////
     $(document).ready(function() {
         $(document).on('input', '#caj-idCantidadCajas, #caj-idUnidadesPorCaja, #caj-idPrecioUnitarioCaja', function() {
@@ -1337,7 +1444,7 @@ function fnCargarEstructuras(locacion_id, targetSel) {
                 var totalCajas = precioUnitarioCaja * cantidadCajas;
                 var unidadesTotales = unidadesPorCaja * cantidadCajas;
                 var puCalculado = totalCajas / unidadesTotales;
-                
+
                 $("#caj-idTotalCajas").val(totalCajas.toFixed(4)); // Cambiado de 2 a 4
                 $("#caj-idUnidadesCalculadas").val(unidadesTotales.toFixed(4)); // Cambiado de 2 a 4
                 $("#caj-idPrecioUnitarioCalculado").val(puCalculado.toFixed(4)); // Cambiado de 2 a 4
@@ -1416,163 +1523,175 @@ function fnCargarEstructuras(locacion_id, targetSel) {
 </script>
 <script>
     function fn_agregar_cantidad_exacta() {
-    try {
-        var articulo_id = document.getElementById("idArticuloEncontrado").value;
-        var articulo    = document.getElementById("idBuscarArticulos").value;
-        var cantidad    = document.getElementById("ca-idCantidadArticulos").value;
-        var total_compra       = document.getElementById("ca-idTotalCompraArticulo").value;
-        var precio_calculado   = document.getElementById("ca-idPrecioCalculado").value;
-        var precio_venta       = parseFloat(document.getElementById("ca-idPrecioVenta").value).toFixed(4);
+        try {
+            var articulo_id = document.getElementById("idArticuloEncontrado").value;
+            var articulo = document.getElementById("idBuscarArticulos").value;
+            var cantidad = document.getElementById("ca-idCantidadArticulos").value;
+            var total_compra = document.getElementById("ca-idTotalCompraArticulo").value;
+            var precio_calculado = document.getElementById("ca-idPrecioCalculado").value;
+            var precio_venta = parseFloat(document.getElementById("ca-idPrecioVenta").value).toFixed(4);
 
-        // ── Destino de inventario ────────────────────────────────
-        var locacion_id    = document.getElementById("ca-idLocacion").value;
-        var locacion_texto = $('#ca-idLocacion option:selected').text();
-        var estructura_id  = document.getElementById("ca-idEstructura").value || null;
-        var estructura_txt = estructura_id ? $('#ca-idEstructura option:selected').text() : '';
+            // ── Destino de inventario ────────────────────────────────
+            var locacion_id = document.getElementById("ca-idLocacion").value;
+            var locacion_texto = $('#ca-idLocacion option:selected').text();
+            var estructura_id = document.getElementById("ca-idEstructura").value || null;
+            var estructura_txt = estructura_id ? $('#ca-idEstructura option:selected').text() : '';
 
-        console.log("Precio de Venta:", precio_venta);
+            console.log("Precio de Venta:", precio_venta);
 
-        if (variable_global_js_articulo === null && (isNaN(precio_venta) || precio_venta === "")) {
-            swal("Error", "El producto no tiene precio de venta (S/)", {
-                icon: "error",
-                buttons: { confirm: { className: "btn btn-danger" } }
-            });
-            return;
-        }
+            if (variable_global_js_articulo === null && (isNaN(precio_venta) || precio_venta === "")) {
+                swal("Error", "El producto no tiene precio de venta (S/)", {
+                    icon: "error",
+                    buttons: {
+                        confirm: {
+                            className: "btn btn-danger"
+                        }
+                    }
+                });
+                return;
+            }
 
-        if (precio_venta === "" || isNaN(precio_venta)) {
-            precio_venta = variable_global_js_articulo.precio_venta;
-        }
+            if (precio_venta === "" || isNaN(precio_venta)) {
+                precio_venta = variable_global_js_articulo.precio_venta;
+            }
 
-        if (precio_venta === null) {
-            swal("Error", "El producto no tiene precio de venta (S/)", {
-                icon: "error",
-                buttons: { confirm: { className: "btn btn-danger" } }
-            });
-            return;
-        }
+            if (precio_venta === null) {
+                swal("Error", "El producto no tiene precio de venta (S/)", {
+                    icon: "error",
+                    buttons: {
+                        confirm: {
+                            className: "btn btn-danger"
+                        }
+                    }
+                });
+                return;
+            }
 
-        // ── Validaciones ─────────────────────────────────────────
-        if (articulo_id === "" || isNaN(cantidad) || isNaN(total_compra) || isNaN(precio_calculado)) {
-            alert("Por favor, completa todos los campos del artículo.");
-            return;
-        }
+            // ── Validaciones ─────────────────────────────────────────
+            if (articulo_id === "" || isNaN(cantidad) || isNaN(total_compra) || isNaN(precio_calculado)) {
+                alert("Por favor, completa todos los campos del artículo.");
+                return;
+            }
 
-        if (!locacion_id) {
-            swal("Upps", "Debes seleccionar una locación destino para el artículo.", {
-                icon: "warning",
-                buttons: { confirm: { className: "btn btn-warning" } }
-            });
-            return;
-        }
+            if (!locacion_id) {
+                swal("Upps", "Debes seleccionar una locación destino para el artículo.", {
+                    icon: "warning",
+                    buttons: {
+                        confirm: {
+                            className: "btn btn-warning"
+                        }
+                    }
+                });
+                return;
+            }
 
-        // ── Armar objeto ─────────────────────────────────────────
-        var js_cantidad_exacta = {
-            "articulo_id":      articulo_id,
-            "cantidad_":        cantidad,
-            "precio_unitario_": precio_calculado,
-            "sub_total_":       total_compra,
-            "precio_venta_":    precio_venta,
-            // destino
-            "locacion_id":      locacion_id,
-            "locacion_texto":   locacion_texto,
-            "estructura_id":    estructura_id,
-            "estructura_txt":   estructura_txt,
-            // flags
-            "ca":                                    "si",
-            "ca-cantidad_exacta":                    "si",
-            "ca-cantidad_articulos":                 cantidad,
-            "ca-total_compra":                       total_compra,
-            "ca-precio_unitario_calculado_articulo": precio_calculado,
-            "ca-precio_venta":                       precio_venta,
-            "caja":                                  "no",
-            "caj-caja":                              "no",
-            "caj-cantidad_cajas":                    0,
-            "caj-unidades_por_caja":                 0,
-            "caj-precio_unitario_de_caja":           0,
-            "caj-total":                             0,
-            "caj-precio_unitario_articulo_calculado":0,
-            "caj-unidades_calculadas":               0,
-            "caj-precio_venta_por_articulo":         0,
-            "json_producto": variable_global_js_articulo
-        };
+            // ── Armar objeto ─────────────────────────────────────────
+            var js_cantidad_exacta = {
+                "articulo_id": articulo_id,
+                "cantidad_": cantidad,
+                "precio_unitario_": precio_calculado,
+                "sub_total_": total_compra,
+                "precio_venta_": precio_venta,
+                // destino
+                "locacion_id": locacion_id,
+                "locacion_texto": locacion_texto,
+                "estructura_id": estructura_id,
+                "estructura_txt": estructura_txt,
+                // flags
+                "ca": "si",
+                "ca-cantidad_exacta": "si",
+                "ca-cantidad_articulos": cantidad,
+                "ca-total_compra": total_compra,
+                "ca-precio_unitario_calculado_articulo": precio_calculado,
+                "ca-precio_venta": precio_venta,
+                "caja": "no",
+                "caj-caja": "no",
+                "caj-cantidad_cajas": 0,
+                "caj-unidades_por_caja": 0,
+                "caj-precio_unitario_de_caja": 0,
+                "caj-total": 0,
+                "caj-precio_unitario_articulo_calculado": 0,
+                "caj-unidades_calculadas": 0,
+                "caj-precio_venta_por_articulo": 0,
+                "json_producto": variable_global_js_articulo
+            };
 
-        // ── Formatear nombre del artículo ────────────────────────
-        var articuloJsFormat = variable_global_js_articulo === null
-            ? document.getElementById("idBuscarArticulos").value
-            : variable_global_js_articulo.articulo +
-              " | Tipo: "    + variable_global_js_articulo.tipo +
-              " | Dimensión: " + variable_global_js_articulo.dimension;
+            // ── Formatear nombre del artículo ────────────────────────
+            var articuloJsFormat = variable_global_js_articulo === null ?
+                document.getElementById("idBuscarArticulos").value :
+                variable_global_js_articulo.articulo +
+                " | Tipo: " + variable_global_js_articulo.tipo +
+                " | Dimensión: " + variable_global_js_articulo.dimension;
 
-        // ── Badge de destino ─────────────────────────────────────
-        var destinoBadge =
-            '<span class="badge bg-info text-dark ms-1">' +
+            // ── Badge de destino ─────────────────────────────────────
+            var destinoBadge =
+                '<span class="badge bg-info text-dark ms-1">' +
                 '<i class="fas fa-map-marker-alt me-1"></i>' +
                 locacion_texto +
                 (estructura_id ? ' / ' + estructura_txt : '') +
-            '</span>';
+                '</span>';
 
-        // ── Insertar fila en la tabla ────────────────────────────
-        var tablita = document.getElementById("idTablitaCompra").getElementsByTagName('tbody')[0];
-        var newRow  = tablita.insertRow(tablita.rows.length);
+            // ── Insertar fila en la tabla ────────────────────────────
+            var tablita = document.getElementById("idTablitaCompra").getElementsByTagName('tbody')[0];
+            var newRow = tablita.insertRow(tablita.rows.length);
 
-        var cell1 = newRow.insertCell(0); // ID
-        var cell2 = newRow.insertCell(1); // Artículo + destino
-        var cell3 = newRow.insertCell(2); // Cantidad
-        var cell4 = newRow.insertCell(3); // Precio Unitario
-        var cell5 = newRow.insertCell(4); // Sub Total
-        var cell6 = newRow.insertCell(5); // Precio Venta
-        var cell7 = newRow.insertCell(6); // Botón eliminar
+            var cell1 = newRow.insertCell(0); // ID
+            var cell2 = newRow.insertCell(1); // Artículo + destino
+            var cell3 = newRow.insertCell(2); // Cantidad
+            var cell4 = newRow.insertCell(3); // Precio Unitario
+            var cell5 = newRow.insertCell(4); // Sub Total
+            var cell6 = newRow.insertCell(5); // Precio Venta
+            var cell7 = newRow.insertCell(6); // Botón eliminar
 
-        var btnEliminar = document.createElement("button");
-        btnEliminar.innerHTML = '<i class="fas fa-times"></i>';
-        btnEliminar.classList.add("btn", "btn-danger", "btn-round", "btn-sm");
-        btnEliminar.onclick = function() {
-            var row       = this.closest('tr');
-            var indice    = Array.from(tablita.rows).indexOf(row);
-            row.remove();
-            listaArticulosCantidades.splice(indice, 1);
+            var btnEliminar = document.createElement("button");
+            btnEliminar.innerHTML = '<i class="fas fa-times"></i>';
+            btnEliminar.classList.add("btn", "btn-danger", "btn-round", "btn-sm");
+            btnEliminar.onclick = function() {
+                var row = this.closest('tr');
+                var indice = Array.from(tablita.rows).indexOf(row);
+                row.remove();
+                listaArticulosCantidades.splice(indice, 1);
+                console.log("Lista actualizada:", listaArticulosCantidades);
+                showNotification('Eliminar');
+            };
+
+            cell1.innerHTML = articulo_id;
+            cell2.innerHTML = articuloJsFormat +
+                ' <span class="badge bg-info text-dark ms-1" title="Destino">' +
+                locacion_texto + (estructura_id ? ' / ' + estructura_txt : '') +
+                '</span>';
+            cell3.innerHTML = cantidad;
+            cell4.innerHTML = precio_calculado;
+            cell5.innerHTML = (cantidad * precio_calculado).toFixed(4);
+            cell6.innerHTML = precio_venta;
+            cell7.appendChild(btnEliminar);
+
+            listaArticulosCantidades.push(js_cantidad_exacta);
+
+            showNotification('Agregar',
+                variable_global_js_articulo === null ?
+                'Artículo agregado' :
+                'Artículo ' + variable_global_js_articulo.articulo
+            );
+
             console.log("Lista actualizada:", listaArticulosCantidades);
-            showNotification('Eliminar');
-        };
 
-        cell1.innerHTML = articulo_id;
-        cell2.innerHTML = articuloJsFormat + 
-        ' <span class="badge bg-info text-dark ms-1" title="Destino">' +
-        locacion_texto + (estructura_id ? ' / ' + estructura_txt : '') +
-        '</span>';
-        cell3.innerHTML = cantidad;
-        cell4.innerHTML = precio_calculado;
-        cell5.innerHTML = (cantidad * precio_calculado).toFixed(4);
-        cell6.innerHTML = precio_venta;
-        cell7.appendChild(btnEliminar);
+            // ── Limpiar campos ───────────────────────────────────────
+            document.getElementById("idBuscarArticulos").value = "";
+            document.getElementById("idArticuloEncontrado").value = "";
+            document.getElementById("ca-idCantidadArticulos").value = "";
+            document.getElementById("ca-idTotalCompraArticulo").value = "";
+            document.getElementById("ca-idPrecioCalculado").value = "";
+            document.getElementById("ca-idPrecioVenta").value = "";
+            document.getElementById("ca-idLocacion").value = "";
+            document.getElementById("ca-idEstructura").innerHTML =
+                '<option value="">— Sin estructura —</option>';
+            variable_global_js_articulo = null;
 
-        listaArticulosCantidades.push(js_cantidad_exacta);
-
-        showNotification('Agregar',
-            variable_global_js_articulo === null
-                ? 'Artículo agregado'
-                : 'Artículo ' + variable_global_js_articulo.articulo
-        );
-
-        console.log("Lista actualizada:", listaArticulosCantidades);
-
-        // ── Limpiar campos ───────────────────────────────────────
-        document.getElementById("idBuscarArticulos").value        = "";
-        document.getElementById("idArticuloEncontrado").value     = "";
-        document.getElementById("ca-idCantidadArticulos").value   = "";
-        document.getElementById("ca-idTotalCompraArticulo").value = "";
-        document.getElementById("ca-idPrecioCalculado").value     = "";
-        document.getElementById("ca-idPrecioVenta").value         = "";
-        document.getElementById("ca-idLocacion").value            = "";
-        document.getElementById("ca-idEstructura").innerHTML      =
-            '<option value="">— Sin estructura —</option>';
-        variable_global_js_articulo = null;
-
-    } catch (error) {
-        console.error("Error en fn_agregar_cantidad_exacta:", error);
+        } catch (error) {
+            console.error("Error en fn_agregar_cantidad_exacta:", error);
+        }
     }
-}
     //////////////////////////////////////////////////////////////////////////////////
     function fn_agregar_cantidad_cajas() {
         var articulo_id = document.getElementById("idArticuloEncontrado").value;
@@ -1586,9 +1705,9 @@ function fnCargarEstructuras(locacion_id, targetSel) {
         var pu_calculado_articulo_x_caja = document.getElementById("caj-idPrecioUnitarioCalculado").value;
         var unidades_calculadas = document.getElementById("caj-idUnidadesCalculadas").value;
 
-        var locacion_id    = document.getElementById("caj-idLocacion").value;
-        var locacion_text  = $('#caj-idLocacion option:selected').text();
-        var estructura_id  = document.getElementById("caj-idEstructura").value || null;
+        var locacion_id = document.getElementById("caj-idLocacion").value;
+        var locacion_text = $('#caj-idLocacion option:selected').text();
+        var estructura_id = document.getElementById("caj-idEstructura").value || null;
         var estructura_txt = $('#caj-idEstructura option:selected').text();
 
         if (!locacion_id) {
@@ -1659,9 +1778,9 @@ function fnCargarEstructuras(locacion_id, targetSel) {
                     "caj-precio_venta_por_articulo": precio_venta_articulos,
                     "json_producto": variable_global_js_articulo,
                     // En js_cantidad_cajas, agrega:
-                    "locacion_id":    locacion_id,
+                    "locacion_id": locacion_id,
                     "locacion_texto": locacion_text,
-                    "estructura_id":  estructura_id,
+                    "estructura_id": estructura_id,
                     "estructura_txt": estructura_txt
                 };
 
@@ -1769,7 +1888,7 @@ function fnCargarEstructuras(locacion_id, targetSel) {
 
     //////////////////
     function fnRegistrarProveedor() {
-        if ((document.getElementById("idNombreComercialProveedor").value).length <= 0 || 
+        if ((document.getElementById("idNombreComercialProveedor").value).length <= 0 ||
             document.getElementById("idNombreComercialProveedor").value === "") {
             swal("Upps", "Debes de ingresar el nombre comercial del proveedor 😥", {
                 icon: "error",
@@ -1779,8 +1898,8 @@ function fnCargarEstructuras(locacion_id, targetSel) {
                     },
                 },
             });
-        } else if ((document.getElementById("idRucProveedor").value).length <= 0 || 
-                   document.getElementById("idNombreComercialProveedor").value === "") {
+        } else if ((document.getElementById("idRucProveedor").value).length <= 0 ||
+            document.getElementById("idNombreComercialProveedor").value === "") {
             swal("Upps", "Debes de ingresar el RUC del Proveedor 😥", {
                 icon: "error",
                 buttons: {
@@ -1795,18 +1914,18 @@ function fnCargarEstructuras(locacion_id, targetSel) {
                 "nombre_comercial": document.getElementById("idNombreComercialProveedor").value,
                 "razon_social": document.getElementById("idRazonSocialProveedor").value,
                 "numero_documento": document.getElementById("idRucProveedor").value,
-                "telefonofijo": document.getElementById("idNumTelefonoFijoProveedor").value === "" ? 
+                "telefonofijo": document.getElementById("idNumTelefonoFijoProveedor").value === "" ?
                     null : document.getElementById("idNumTelefonoFijoProveedor").value,
-                "telefonomovil": document.getElementById("idNumCelularProveedor").value === "" ? 
+                "telefonomovil": document.getElementById("idNumCelularProveedor").value === "" ?
                     null : document.getElementById("idNumCelularProveedor").value,
-                "email": document.getElementById("idCorreoProveedor").value === "" ? 
+                "email": document.getElementById("idCorreoProveedor").value === "" ?
                     null : document.getElementById("idCorreoProveedor").value,
                 "tipo_persona": "JURIDICA",
                 "condicion": "PROVEEDOR"
             };
-            
+
             console.log("📤 Datos de proveedor:", jsDatosProveedor);
-            
+
             $.ajax({
                 url: 'logica/clssInsertPA.php',
                 type: 'POST',
@@ -1831,7 +1950,7 @@ function fnCargarEstructuras(locacion_id, targetSel) {
                         if (result.estado === true) {
                             document.getElementById("proveedor").value = result.proveedor;
                             document.getElementById("proveedor_id").value = result.ultimo_id_proveedor;
-                            
+
                             swal({
                                 title: "¡Proveedor Registrado!",
                                 text: result.mensaje,
@@ -1878,14 +1997,14 @@ function fnCargarEstructuras(locacion_id, targetSel) {
         }
     }
     //////////////
-function fn_registrar_articulo() {
+    function fn_registrar_articulo() {
         if ((document.getElementById("idRegistroNombreArticulo").value).length > 0) {
             let categoriaSelect = document.getElementById("idRegistoCategoria");
             let categoria = categoriaSelect.selectedIndex === 0 ? null : categoriaSelect.value;
-            
+
             let tipoSelect = document.getElementById("idRegistoTipo");
             let tipo = tipoSelect.selectedIndex === 0 ? null : tipoSelect.value;
-            
+
             let dimensionSelect = document.getElementById("idRegistroDimension");
             let dimension = dimensionSelect.selectedIndex === 0 ? null : dimensionSelect.value;
 
@@ -1904,7 +2023,7 @@ function fn_registrar_articulo() {
 
             let colorEscrito = document.getElementById("idRegistroColor").value;
             let color = (colorEscrito).length > 0 ? colorEscrito : null;
-            
+
             let marcaEscrita = document.getElementById("idRegistroMarca").value;
             let marca = (marcaEscrita).length > 0 ? marcaEscrita : null;
 
@@ -1919,7 +2038,7 @@ function fn_registrar_articulo() {
                 "color": color,
                 "marca": document.getElementById("idRegistroMarca").value
             };
-            
+
             console.log("📤 Datos de artículo:", jsArticulo);
 
             $.ajax({
@@ -1940,7 +2059,7 @@ function fn_registrar_articulo() {
                 },
                 success: function(response) {
                     console.log("📥 Respuesta del servidor:", response);
-                    
+
                     try {
                         var result = JSON.parse(response);
                         if (result.estado === true) {
@@ -1954,7 +2073,7 @@ function fn_registrar_articulo() {
                                 variable_global_js_articulo = null;
                                 $('#idBuscarArticulos').val(result.articulo_formato);
                                 $('#idArticuloEncontrado').val(result.ultimo_id);
-                                
+
                                 // Limpiar formulario
                                 document.getElementById("idRegistoCategoria").selectedIndex = 0;
                                 document.getElementById("idRegistoTipo").selectedIndex = 0;
@@ -2024,11 +2143,11 @@ function fn_registrar_articulo() {
             total: parseFloat(document.getElementById("idCompraTotalDeCompra").value),
             js_detalle_compra: listaArticulosCantidades,
         };
-        
+
         console.log("📤 Datos de compra a enviar:", json_compra);
         console.log("📋 Detalle de compra:", listaArticulosCantidades);
-        
-        if (document.getElementById("idFechaCompra").value === "" || 
+
+        if (document.getElementById("idFechaCompra").value === "" ||
             (document.getElementById("idFechaCompra").value).length === 0) {
             swal("Ups!", "Necesitas ingresar la fecha de compra para realizar el registro.", {
                 icon: "error",
@@ -2114,52 +2233,87 @@ function fn_registrar_articulo() {
 <script>
     function abrirDetalle(json_datos) {
         $('#modalDetalleCompra').modal('show');
-        console.log("Datos del jSON de mrd");
-        console.log(json_datos);
-        document.getElementById("idUsuario").innerText = json_datos.realizada_por;
-        document.getElementById("idFechaComprav2").innerText = json_datos.fecha_compra;
-        document.getElementById("idFechaRegistro").innerText = json_datos.fecha_registro;
-        document.getElementById("idHoraRegistro").innerText = json_datos.hora;
+        console.log("Datos de compra:", json_datos);
 
-        //////////////////////////////
-        document.getElementById("docProveedor").innerText = json_datos.proveedor_num_doc;
-        document.getElementById("idProveedorNombre").innerText = json_datos.nombre_comercial_proveedor;
-        ////#
+        // ── Header ───────────────────────────────────────────────
+        document.getElementById("idMontoVenta").innerText = '#' + (json_datos.compra_id || '');
+        document.getElementById("idNumeroCompra").innerText = 'Compra registrada el ' + (json_datos.fecha_registro || '');
 
-        document.getElementById("idMontoRegistrado").innerText = json_datos.total;
+        // ── Registro ─────────────────────────────────────────────
+        document.getElementById("idUsuario").innerText = json_datos.realizada_por || '—';
+        document.getElementById("idFechaComprav2").innerText = json_datos.fecha_compra || '—';
+        document.getElementById("idFechaRegistro").innerText = json_datos.fecha_registro || '—';
+        document.getElementById("idHoraRegistro").innerText = json_datos.hora || '—';
 
+        // ── Proveedor ────────────────────────────────────────────
+        document.getElementById("docProveedor").innerText = json_datos.proveedor_num_doc || '—';
+        document.getElementById("idProveedorNombre").innerText = json_datos.nombre_comercial_proveedor || json_datos.proveedor || '—';
+        setProveedorAvatar(json_datos.nombre_comercial_proveedor || json_datos.proveedor || '');
+
+        // ── Monto registrado ─────────────────────────────────────
+        var montoReg = parseFloat(json_datos.total || 0);
+        document.getElementById("idMontoRegistrado").innerText =
+            montoReg > 0 ? 'S/ ' + montoReg.toFixed(2) : 'S/ —';
+
+        // ── Detalle de artículos ─────────────────────────────────
         var totalArticulo = 0;
+        var tablaFilas = '';
+        var cantItems = 0;
 
-        console.log(json_datos.js_detalle_compra);
+        try {
+            var detalle = typeof json_datos.js_detalle_compra === 'string' ?
+                JSON.parse(json_datos.js_detalle_compra) :
+                json_datos.js_detalle_compra;
 
-        var json_detalle_compra = JSON.parse(json_datos.js_detalle_compra)
-        console.log(json_detalle_compra)
+            cantItems = detalle.length;
 
-        ////////////////////////////////
-        var tablaFilasDetalleCompra = '';
-        json_detalle_compra.forEach(function(item) {
-            var jsArticulo = item.json_producto;
-            totalArticulo = totalArticulo + parseFloat(item.sub_total_);
-            console.log(item);
-            console.log(item.json_producto);
-            let cadenaCantidades;
-            if (item.caja === "si") {
-                cadenaCantidades = "Compra por Cajas [" + item['caj-cantidad_cajas'] + " cajas de " + item['caj-unidades_por_caja'] + " unidades c/u] = " + item.cantidad_ + " unidades | [P.U de Caja: " + item['caj-precio_unitario_de_caja'] + ") | <b>Monto Total = S/" + item["sub_total_"] + "</b>";
-            } else {
-                cadenaCantidades = "Compra por Unidades [" + item['cantidad_'] + " UNI X <b>" + item["ca-precio_unitario_calculado_articulo"] + " P.U</b>] = <b> S/ " + item['sub_total_'] + "</b>";
-            }
-            let unidades = item.ca === "si" ? "Unidades Exactas" : "cajas"
-            tablaFilasDetalleCompra += `
-            <li>
-                <strong>${item.json_producto.articulo}</strong> - ${cadenaCantidades}
-            </li>`;
+            detalle.forEach(function(item, i) {
+                totalArticulo += parseFloat(item.sub_total_ || 0);
+                var isLast = i === detalle.length - 1;
 
-        });
-        document.getElementById("idContenidoUlDetalle").innerHTML = tablaFilasDetalleCompra;
-        document.getElementById("idMontoTotalArticulos").innerText = "S/ " + totalArticulo;
+                var cadenaCantidades;
+                if (item.caja === "si") {
+                    cadenaCantidades =
+                        'Por cajas: ' + item['caj-cantidad_cajas'] + ' cajas × ' +
+                        item['caj-unidades_por_caja'] + ' und = <strong>' +
+                        item.cantidad_ + ' und</strong> | P.U caja: S/' +
+                        item['caj-precio_unitario_de_caja'] + ' | <strong>Total: S/' +
+                        parseFloat(item.sub_total_).toFixed(2) + '</strong>';
+                } else {
+                    cadenaCantidades =
+                        item['cantidad_'] + ' und × S/' +
+                        item['ca-precio_unitario_calculado_articulo'] +
+                        ' = <strong>S/' + parseFloat(item.sub_total_).toFixed(2) + '</strong>';
+                }
 
+                var nombreArticulo = item.json_producto ?
+                    item.json_producto.articulo :
+                    'Artículo';
 
+                tablaFilas +=
+                    '<li class="py-2 d-flex justify-content-between align-items-start ' +
+                    (isLast ? '' : 'border-bottom') + '">' +
+                    '<div>' +
+                    '<p class="mb-0 fw-semibold" style="font-size:13px;">' + nombreArticulo + '</p>' +
+                    '<p class="mb-0 text-muted" style="font-size:11px;">' + cadenaCantidades + '</p>' +
+                    '</div>' +
+                    '<span class="fw-semibold ms-3" style="font-size:13px;white-space:nowrap;">S/ ' +
+                    parseFloat(item.sub_total_).toFixed(2) +
+                    '</span>' +
+                    '</li>';
+            });
 
+        } catch (e) {
+            console.error("Error parseando detalle:", e);
+            tablaFilas = '<li class="py-2 text-muted">No se pudo cargar el detalle.</li>';
+        }
+
+        document.getElementById("idContenidoUlDetalle").innerHTML = tablaFilas;
+
+        // ── Tarjetas métricas ────────────────────────────────────
+        document.getElementById("idMontoTotalArticulos").innerText = 'S/ ' + totalArticulo.toFixed(2);
+        document.getElementById("idCantidadArticulos").innerText = cantItems + (cantItems === 1 ? ' item' : ' items');
+        document.getElementById("idTotalDetalleCompra").innerText = 'S/ ' + totalArticulo.toFixed(2);
     }
 </script>
 <!-- ============================================================
@@ -2167,243 +2321,248 @@ function fn_registrar_articulo() {
      junto con los demás bloques <script> existentes
      ============================================================ -->
 <script>
-// ── Estado del DataTable ─────────────────────────────────────
-var dtCompras = null;
+    // ── Estado del DataTable ─────────────────────────────────────
+    var dtCompras = null;
 
-$(document).ready(function () {
-    fnCargarStats();
-    fnCargarTablaInicial();
-});
-
-function fnCargarTablaInicial() {
-    $.ajax({
-        url: 'logica/clssFiltrosCompras.php',
-        type: 'POST',
-        data: {
-            accion:      'FILTRAR_COMPRAS',
-            sucursal_id: SUCURSAL_ID
-        },
-        dataType: 'json',
-        success: function (data) {
-            fnRenderizarTabla(data);
-        },
-        error: function (xhr, status, error) {
-            console.error('❌ Error AJAX fnCargarTablaInicial:', xhr.responseText);
-        }
+    $(document).ready(function() {
+        fnCargarStats();
+        fnCargarTablaInicial();
     });
-}
-// ── Aplicar filtros ──────────────────────────────────────────
-function fnAplicarFiltros() {
-    var proveedor   = $('#filtro-proveedor').val().trim();
-    var usuario     = $('#filtro-usuario').val().trim();
-    var fechaDesde  = $('#filtro-fecha-desde').val();
-    var fechaHasta  = $('#filtro-fecha-hasta').val();
 
-    // Mostrar spinner en tarjetas
-    fnMostrarLoadingStats();
-
-    // Cargar estadísticas
-    fnCargarStats(proveedor, usuario, fechaDesde, fechaHasta);
-
-    // Cargar tabla filtrada
-    $.ajax({
-        url: 'logica/clssFiltrosCompras.php',
-        type: 'POST',
-        data: {
-            accion:       'FILTRAR_COMPRAS',
-            sucursal_id:  SUCURSAL_ID,
-            proveedor:    proveedor,
-            usuario:      usuario,
-            fecha_desde:  fechaDesde,
-            fecha_hasta:  fechaHasta
-        },
-        dataType: 'json',
-        success: function (data) {
-            fnRenderizarTabla(data);
-        },
-        error: function () {
-            console.error('Error al filtrar compras');
-        }
-    });
-}
-
-// ── Limpiar filtros ──────────────────────────────────────────
-function fnLimpiarFiltros() {
-    $('#filtro-proveedor').val('');
-    $('#filtro-usuario').val('');
-    $('#filtro-fecha-desde').val('');
-    $('#filtro-fecha-hasta').val('');
-
-    fnCargarStats();
-
-    // Recargar datos originales (sin filtros = todos los de la sucursal)
-    $.ajax({
-        url: 'logica/clssFiltrosCompras.php',
-        type: 'POST',
-        data: {
-            accion:      'FILTRAR_COMPRAS',
-            sucursal_id: SUCURSAL_ID
-        },
-        dataType: 'json',
-        success: function (data) {
-            fnRenderizarTabla(data);
-        }
-    });
-}
-
-// ── Renderizar filas en la tabla ─────────────────────────────
-function fnRenderizarTabla(data) {
-    if ($.fn.DataTable.isDataTable('#TablaVentaDiaria')) {
-        $('#TablaVentaDiaria').DataTable().destroy();
-    }
-
-    var tbody = $('#tbody-compras');
-    tbody.empty();
-
-    if (!data || data.length === 0) {
-        tbody.append(
-            '<tr><td colspan="9" class="text-center text-muted py-3">' +
-            '<i class="fas fa-inbox"></i> Sin resultados para los filtros aplicados' +
-            '</td></tr>'
-        );
-    } else {
-        $.each(data, function (i, row) {
-
-            // ── Calcular total por productos ─────────────────
-            var totalProductos = 0;
-            try {
-                var detalle = typeof row.js_detalle_compra === 'string'
-                    ? JSON.parse(row.js_detalle_compra)
-                    : row.js_detalle_compra;
-
-                if (Array.isArray(detalle)) {
-                    detalle.forEach(function(item) {
-                        totalProductos += parseFloat(item.sub_total_ || 0);
-                    });
-                }
-            } catch(e) {
-                totalProductos = 0;
+    function fnCargarTablaInicial() {
+        $.ajax({
+            url: 'logica/clssFiltrosCompras.php',
+            type: 'POST',
+            data: {
+                accion: 'FILTRAR_COMPRAS',
+                sucursal_id: SUCURSAL_ID
+            },
+            dataType: 'json',
+            success: function(data) {
+                fnRenderizarTabla(data);
+            },
+            error: function(xhr, status, error) {
+                console.error('❌ Error AJAX fnCargarTablaInicial:', xhr.responseText);
             }
+        });
+    }
+    // ── Aplicar filtros ──────────────────────────────────────────
+    function fnAplicarFiltros() {
+        var proveedor = $('#filtro-proveedor').val().trim();
+        var usuario = $('#filtro-usuario').val().trim();
+        var fechaDesde = $('#filtro-fecha-desde').val();
+        var fechaHasta = $('#filtro-fecha-hasta').val();
 
-            // ── Guardar JSON en data-attribute (sin problemas de escape) ──
-            var $tr = $('<tr>');
-            $tr.append('<td>' + (row.compra_id     || '') + '</td>');
-            $tr.append('<td>' + (row.realizada_por  || '') + '</td>');
-            $tr.append('<td>' + (row.proveedor      || '') + '</td>');
-            $tr.append('<td>' + (row.fecha_compra   || '') + '</td>');
-            $tr.append('<td>' + (row.total          || '') + '</td>');
-            $tr.append('<td>S/ ' + totalProductos.toFixed(2) + '</td>');
-            $tr.append('<td>' + (row.fecha_registro || '') + '</td>');
-            $tr.append('<td>' + (row.hora           || '') + '</td>');
+        // Mostrar spinner en tarjetas
+        fnMostrarLoadingStats();
 
-            // ── Botón usando data-index para recuperar el objeto ──
-            var $btnTd = $('<td><div class="mt-2 text-center"></div></td>');
-            var $btn = $('<a class="btn btn-secondary btn-round btn-sm" role="button">' +
-                         '<i class="fas fa-external-link-square-alt"></i></a>');
+        // Cargar estadísticas
+        fnCargarStats(proveedor, usuario, fechaDesde, fechaHasta);
 
-            // Guardar el objeto completo en el elemento con $.data (sin serializar a HTML)
-            $btn.data('compra', row);
-            $btn.on('click', function() {
-                abrirDetalle($(this).data('compra'));
-            });
-
-            $btnTd.find('div').append($btn);
-            $tr.append($btnTd);
-
-            tbody.append($tr);
+        // Cargar tabla filtrada
+        $.ajax({
+            url: 'logica/clssFiltrosCompras.php',
+            type: 'POST',
+            data: {
+                accion: 'FILTRAR_COMPRAS',
+                sucursal_id: SUCURSAL_ID,
+                proveedor: proveedor,
+                usuario: usuario,
+                fecha_desde: fechaDesde,
+                fecha_hasta: fechaHasta
+            },
+            dataType: 'json',
+            success: function(data) {
+                fnRenderizarTabla(data);
+            },
+            error: function() {
+                console.error('Error al filtrar compras');
+            }
         });
     }
 
-    fnInicializarDTCompras();
-}
-// ── Inicializar / Reinicializar DataTable ────────────────────
-function fnInicializarDTCompras() {
-    if ($.fn.DataTable.isDataTable('#TablaVentaDiaria')) {
-        $('#TablaVentaDiaria').DataTable().destroy();
-    }
-    return $('#TablaVentaDiaria').DataTable({
-        order: [[0, 'desc']],
-        pageLength: 10,
-        lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, 'Todos']],
-        language: {
-            sProcessing:   "Procesando...",
-            sLengthMenu:   "Mostrar _MENU_ registros",
-            sZeroRecords:  "No se encontraron resultados",
-            sEmptyTable:   "Ningún dato disponible",
-            sInfo:         "Mostrando _START_ al _END_ de _TOTAL_ registros",
-            sInfoEmpty:    "Mostrando 0 registros",
-            sInfoFiltered: "(filtrado de _MAX_ registros)",
-            sSearch:       "Buscar:",
-            oPaginate: {
-                sFirst:    "Primero",
-                sPrevious: "Anterior",
-                sNext:     "Siguiente",
-                sLast:     "Último"
+    // ── Limpiar filtros ──────────────────────────────────────────
+    function fnLimpiarFiltros() {
+        $('#filtro-proveedor').val('');
+        $('#filtro-usuario').val('');
+        $('#filtro-fecha-desde').val('');
+        $('#filtro-fecha-hasta').val('');
+
+        fnCargarStats();
+
+        // Recargar datos originales (sin filtros = todos los de la sucursal)
+        $.ajax({
+            url: 'logica/clssFiltrosCompras.php',
+            type: 'POST',
+            data: {
+                accion: 'FILTRAR_COMPRAS',
+                sucursal_id: SUCURSAL_ID
+            },
+            dataType: 'json',
+            success: function(data) {
+                fnRenderizarTabla(data);
             }
+        });
+    }
+
+    // ── Renderizar filas en la tabla ─────────────────────────────
+    function fnRenderizarTabla(data) {
+        if ($.fn.DataTable.isDataTable('#TablaVentaDiaria')) {
+            $('#TablaVentaDiaria').DataTable().destroy();
         }
-    });
-}
-// ── Cargar estadísticas (tarjetas) ───────────────────────────
-function fnCargarStats(proveedor, usuario, fechaDesde, fechaHasta) {
-    proveedor  = proveedor  || '';
-    usuario    = usuario    || '';
-    fechaDesde = fechaDesde || '';
-    fechaHasta = fechaHasta || '';
 
-    $.ajax({
-        url: 'logica/clssFiltrosCompras.php',
-        type: 'POST',
-        data: {
-            accion:      'STATS_COMPRAS',
-            sucursal_id: SUCURSAL_ID,
-            proveedor:   proveedor,
-            usuario:     usuario,
-            fecha_desde: fechaDesde,
-            fecha_hasta: fechaHasta
-        },
-        dataType: 'json',
-        success: function (stats) {
-            fnActualizarCards(stats);
-        },
-        error: function () {
-            console.error('Error al cargar estadísticas');
+        var tbody = $('#tbody-compras');
+        tbody.empty();
+
+        if (!data || data.length === 0) {
+            tbody.append(
+                '<tr><td colspan="9" class="text-center text-muted py-3">' +
+                '<i class="fas fa-inbox"></i> Sin resultados para los filtros aplicados' +
+                '</td></tr>'
+            );
+        } else {
+            $.each(data, function(i, row) {
+
+                // ── Calcular total por productos ─────────────────
+                var totalProductos = 0;
+                try {
+                    var detalle = typeof row.js_detalle_compra === 'string' ?
+                        JSON.parse(row.js_detalle_compra) :
+                        row.js_detalle_compra;
+
+                    if (Array.isArray(detalle)) {
+                        detalle.forEach(function(item) {
+                            totalProductos += parseFloat(item.sub_total_ || 0);
+                        });
+                    }
+                } catch (e) {
+                    totalProductos = 0;
+                }
+
+                // ── Guardar JSON en data-attribute (sin problemas de escape) ──
+                var $tr = $('<tr>');
+                $tr.append('<td>' + (row.compra_id || '') + '</td>');
+                $tr.append('<td>' + (row.realizada_por || '') + '</td>');
+                $tr.append('<td>' + (row.proveedor || '') + '</td>');
+                $tr.append('<td>' + (row.fecha_compra || '') + '</td>');
+                $tr.append('<td>' + (row.total || '') + '</td>');
+                $tr.append('<td>S/ ' + totalProductos.toFixed(2) + '</td>');
+                $tr.append('<td>' + (row.fecha_registro || '') + '</td>');
+                $tr.append('<td>' + (row.hora || '') + '</td>');
+
+                // ── Botón usando data-index para recuperar el objeto ──
+                var $btnTd = $('<td><div class="mt-2 text-center"></div></td>');
+                var $btn = $('<a class="btn btn-secondary btn-round btn-sm" role="button">' +
+                    '<i class="fas fa-external-link-square-alt"></i></a>');
+
+                // Guardar el objeto completo en el elemento con $.data (sin serializar a HTML)
+                $btn.data('compra', row);
+                $btn.on('click', function() {
+                    abrirDetalle($(this).data('compra'));
+                });
+
+                $btnTd.find('div').append($btn);
+                $tr.append($btnTd);
+
+                tbody.append($tr);
+            });
         }
+
+        fnInicializarDTCompras();
+    }
+    // ── Inicializar / Reinicializar DataTable ────────────────────
+    function fnInicializarDTCompras() {
+        if ($.fn.DataTable.isDataTable('#TablaVentaDiaria')) {
+            $('#TablaVentaDiaria').DataTable().destroy();
+        }
+        return $('#TablaVentaDiaria').DataTable({
+            order: [
+                [0, 'desc']
+            ],
+            pageLength: 10,
+            lengthMenu: [
+                [10, 25, 50, 100, -1],
+                [10, 25, 50, 100, 'Todos']
+            ],
+            language: {
+                sProcessing: "Procesando...",
+                sLengthMenu: "Mostrar _MENU_ registros",
+                sZeroRecords: "No se encontraron resultados",
+                sEmptyTable: "Ningún dato disponible",
+                sInfo: "Mostrando _START_ al _END_ de _TOTAL_ registros",
+                sInfoEmpty: "Mostrando 0 registros",
+                sInfoFiltered: "(filtrado de _MAX_ registros)",
+                sSearch: "Buscar:",
+                oPaginate: {
+                    sFirst: "Primero",
+                    sPrevious: "Anterior",
+                    sNext: "Siguiente",
+                    sLast: "Último"
+                }
+            }
+        });
+    }
+    // ── Cargar estadísticas (tarjetas) ───────────────────────────
+    function fnCargarStats(proveedor, usuario, fechaDesde, fechaHasta) {
+        proveedor = proveedor || '';
+        usuario = usuario || '';
+        fechaDesde = fechaDesde || '';
+        fechaHasta = fechaHasta || '';
+
+        $.ajax({
+            url: 'logica/clssFiltrosCompras.php',
+            type: 'POST',
+            data: {
+                accion: 'STATS_COMPRAS',
+                sucursal_id: SUCURSAL_ID,
+                proveedor: proveedor,
+                usuario: usuario,
+                fecha_desde: fechaDesde,
+                fecha_hasta: fechaHasta
+            },
+            dataType: 'json',
+            success: function(stats) {
+                fnActualizarCards(stats);
+            },
+            error: function() {
+                console.error('Error al cargar estadísticas');
+            }
+        });
+    }
+
+    // ── Actualizar tarjetas con los datos recibidos ──────────────
+    function fnActualizarCards(stats) {
+        var encontradas = parseInt(stats.total_compras_filtrado || 0);
+        var totalRango = parseFloat(stats.total_productos_filtrado || 0).toFixed(2); // ← mismo campo
+        var totalProd = parseFloat(stats.total_productos_filtrado || 0).toFixed(2);
+        var granTotal = parseFloat(stats.gran_total_historico || 0).toFixed(2);
+
+        $('#stat-compras-encontradas').text(encontradas);
+        $('#stat-total-rango').text('S/ ' + fnFormatearMonto(totalRango));
+        $('#stat-total-productos').text('S/ ' + fnFormatearMonto(totalProd));
+        $('#stat-gran-total').text('S/ ' + fnFormatearMonto(granTotal));
+    }
+
+    // ── Loading placeholder en tarjetas ─────────────────────────
+    function fnMostrarLoadingStats() {
+        $('#stat-compras-encontradas').html('<span class="spinner-border spinner-border-sm"></span>');
+        $('#stat-total-rango').html('<span class="spinner-border spinner-border-sm"></span>');
+        $('#stat-total-productos').html('<span class="spinner-border spinner-border-sm"></span>');
+        $('#stat-gran-total').html('<span class="spinner-border spinner-border-sm"></span>');
+    }
+
+    // ── Formatea número con separador de miles ───────────────────
+    function fnFormatearMonto(num) {
+        return parseFloat(num).toLocaleString('es-PE', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+    }
+
+    // ── Permitir buscar con Enter en los inputs de filtro ────────
+    $(document).on('keydown', '#filtro-proveedor, #filtro-usuario, #filtro-fecha-desde, #filtro-fecha-hasta', function(e) {
+        if (e.key === 'Enter') fnAplicarFiltros();
     });
-}
-
-// ── Actualizar tarjetas con los datos recibidos ──────────────
-function fnActualizarCards(stats) {
-    var encontradas = parseInt(stats.total_compras_filtrado    || 0);
-    var totalRango  = parseFloat(stats.total_productos_filtrado || 0).toFixed(2); // ← mismo campo
-    var totalProd   = parseFloat(stats.total_productos_filtrado || 0).toFixed(2);
-    var granTotal   = parseFloat(stats.gran_total_historico    || 0).toFixed(2);
-
-    $('#stat-compras-encontradas').text(encontradas);
-    $('#stat-total-rango').text('S/ ' + fnFormatearMonto(totalRango));
-    $('#stat-total-productos').text('S/ ' + fnFormatearMonto(totalProd));
-    $('#stat-gran-total').text('S/ ' + fnFormatearMonto(granTotal));
-}
-
-// ── Loading placeholder en tarjetas ─────────────────────────
-function fnMostrarLoadingStats() {
-    $('#stat-compras-encontradas').html('<span class="spinner-border spinner-border-sm"></span>');
-    $('#stat-total-rango').html('<span class="spinner-border spinner-border-sm"></span>');
-    $('#stat-total-productos').html('<span class="spinner-border spinner-border-sm"></span>');
-    $('#stat-gran-total').html('<span class="spinner-border spinner-border-sm"></span>');
-}
-
-// ── Formatea número con separador de miles ───────────────────
-function fnFormatearMonto(num) {
-    return parseFloat(num).toLocaleString('es-PE', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-    });
-}
-
-// ── Permitir buscar con Enter en los inputs de filtro ────────
-$(document).on('keydown', '#filtro-proveedor, #filtro-usuario, #filtro-fecha-desde, #filtro-fecha-hasta', function (e) {
-    if (e.key === 'Enter') fnAplicarFiltros();
-});
 </script>
 
 

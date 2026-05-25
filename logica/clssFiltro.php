@@ -69,7 +69,8 @@ function consultapersonaventa($data, $sucursal_id = null): void
                     WHEN p.razon_social IS NOT NULL
                         THEN CONCAT(p.numero_documento, ' - ', p.razon_social)
                     ELSE p.numero_documento
-                END AS persona_concatenada,
+                END AS persona_concatenada_version_complete,
+                CONCAT(p.numero_documento, ' - ', p.nombres, ' ', p.apellidos) as persona_concatenada,
                 p.nombres,
                 p.apellidos,
                 p.numero_documento,

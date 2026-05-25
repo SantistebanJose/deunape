@@ -8,6 +8,7 @@ include("cabecera.php");
         --accent: #667eea;
         --success: #11998e;
         --danger: #dc3545;
+        --warning: #f59e0b;
         --border-soft: #e3e6f5;
         --bg-card: #f8f9ff;
         --shadow-card: 0 4px 20px rgba(42,47,91,.10);
@@ -69,11 +70,6 @@ include("cabecera.php");
     .badge-boleta  { background: #dbeafe; color: #1d4ed8; border-radius: 20px; padding: 3px 12px; font-weight: 700; font-size: .75rem; }
     .badge-factura { background: #d1fae5; color: #065f46; border-radius: 20px; padding: 3px 12px; font-weight: 700; font-size: .75rem; }
 
-    /* Estado envío */
-    .badge-pendiente { background: #fef3c7; color: #92400e; border-radius: 20px; padding: 3px 12px; font-weight: 700; font-size: .75rem; }
-    .badge-enviado   { background: #d1fae5; color: #065f46; border-radius: 20px; padding: 3px 12px; font-weight: 700; font-size: .75rem; }
-    .badge-error     { background: #fee2e2; color: #991b1b; border-radius: 20px; padding: 3px 12px; font-weight: 700; font-size: .75rem; }
-
     /* Botón enviar */
     .btn-enviar-sunat {
         background: #0033A0;
@@ -106,6 +102,47 @@ include("cabecera.php");
         cursor: default;
     }
 
+    /* Botón declarar con fecha hoy */
+    .btn-fecha-hoy {
+        background: #f59e0b;
+        border: none;
+        color: white;
+        border-radius: 10px;
+        padding: 6px 14px;
+        font-size: .78rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all .2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        margin-top: 4px;
+    }
+    .btn-fecha-hoy:hover {
+        background: #d97706;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(245,158,11,.35);
+        color: white;
+    }
+    .btn-fecha-hoy:disabled {
+        background: #9ca3af;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+    }
+
+    /* Badge fecha antigua */
+    .badge-fecha-antigua {
+        background: #fff3cd;
+        color: #92400e;
+        border-radius: 6px;
+        padding: 2px 8px;
+        font-size: .72rem;
+        font-weight: 600;
+        display: block;
+        margin-top: 3px;
+    }
+
     /* Spinner inline */
     .spinner-sm {
         width: 14px; height: 14px;
@@ -125,6 +162,14 @@ include("cabecera.php");
         font-weight: 600;
     }
     .resp-sunat.error { color: var(--danger); }
+
+    /* Tooltip fecha hoy */
+    .tooltip-fecha {
+        font-size: .72rem;
+        color: #6b7280;
+        margin-top: 2px;
+        font-style: italic;
+    }
 </style>
 
 <div class="container">
@@ -145,7 +190,10 @@ include("cabecera.php");
                             <i class="fas fa-list-ul me-2" style="color:var(--accent);"></i>
                             Ventas pendientes de declarar
                         </h5>
-                        <small class="text-muted">Presiona el botón verde para enviar cada comprobante individualmente.</small>
+                        <small class="text-muted">
+                            Presiona <strong>Enviar</strong> para declarar con la fecha original.
+                            Si la fecha tiene más de 5 días, usa <strong style="color:#d97706;">Declarar hoy</strong>.
+                        </small>
                     </div>
                 </div>
 
@@ -164,19 +212,17 @@ include("cabecera.php");
                         </thead>
                         <tbody>
                         <?php
+                        $hoy = date('Y-m-d');
                         foreach (listarVentasPagadasParaComprobantes($_SESSION["sucursal_id"]) as $datos):
                             $emisor        = fnListarEmisor($_SESSION["sucursal_id"])[0];
-                            
-                            #$emisorDebug = fnListarEmisor($_SESSION["sucursal_id"])[0];
-                            #echo '<pre>';
-                            #echo 'sucursal: ' . $emisorDebug['sucursal'] . "\n";
-                            #echo 'certificado: ' . $emisorDebug['certificado'] . "\n";
-                            #echo 'direccion_firma_digital: ' . $emisorDebug['direccion_firma_digital'] . "\n";
-                            #echo '</pre>';
                             $tipo_comp     = strtoupper($datos['tipo_comprobante'] ?? 'BOLETA');
                             $tipo_ref      = $tipo_comp === 'BOLETA' ? '03' : '01';
 
-                            // Payload completo para el JS
+                            // Calcular si la fecha es antigua (más de 5 días)
+                            $fecha_venta   = $datos['fecha'] ?? $hoy;
+                            $dias_diff     = (strtotime($hoy) - strtotime($fecha_venta)) / 86400;
+                            $es_antigua    = $dias_diff > 5;
+
                             $payload = json_encode([
                                 'datos_query' => $datos,
                                 'js_detalle'  => $datos['js_detalle_venta'],
@@ -195,14 +241,34 @@ include("cabecera.php");
                                 <td><?php echo $datos['ca_cliente_numero_documento_sunat'] ?></td>
                                 <td><?php echo $datos['ca_cliente_cliente_sunat'] ?></td>
                                 <td><strong>S/ <?php echo number_format($datos['monto_venta_final'], 2) ?></strong></td>
-                                <td><?php echo date('d/m/Y', strtotime($datos['fecha'])) ?></td>
+                                <td>
+                                    <?php echo date('d/m/Y', strtotime($datos['fecha'])) ?>
+                                    <?php if($es_antigua): ?>
+                                        <span class="badge-fecha-antigua">
+                                            <i class="fas fa-exclamation-triangle"></i>
+                                            Hace <?php echo (int)$dias_diff ?> días
+                                        </span>
+                                    <?php endif; ?>
+                                </td>
                                 <td style="text-align:center;">
                                     <div id="accion-<?php echo $datos['venta_id'] ?>">
+                                        <!-- Botón enviar con fecha original -->
                                         <button
                                             class="btn-enviar-sunat"
-                                            onclick='fn_enviar_sunat_por_fila(<?php echo $payload ?>, this)'>
+                                            onclick='fn_enviar_sunat_por_fila(<?php echo $payload ?>, this, false)'>
                                             <i class="fas fa-paper-plane"></i> Enviar
                                         </button>
+
+                                        <?php if($es_antigua): ?>
+                                        <!-- Botón declarar con fecha hoy -->
+                                        <button
+                                            class="btn-fecha-hoy"
+                                            onclick='fn_enviar_sunat_por_fila(<?php echo $payload ?>, this, true)'
+                                            title="Declara este comprobante con la fecha de hoy (<?php echo date('d/m/Y') ?>)">
+                                            <i class="fas fa-calendar-day"></i> Declarar hoy
+                                        </button>
+                                        <div class="tooltip-fecha">Se usará fecha <?php echo date('d/m/Y') ?></div>
+                                        <?php endif; ?>
                                     </div>
                                 </td>
                             </tr>
@@ -221,13 +287,32 @@ include("cabecera.php");
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
-function fn_enviar_sunat_por_fila(jsDatos, btnEl) {
+function fn_enviar_sunat_por_fila(jsDatos, btnEl, usarFechaHoy) {
 
     var jsDatosEmisor    = jsDatos["emisor"];
     var jsonDetalleArray = JSON.parse(jsDatos["js_detalle"]);
     var datos_query      = jsDatos["datos_query"];
 
-    // ── Calcular totales con descuento ────────────────────────
+    // ── Fecha: original o hoy ─────────────────────────────────
+    const fechaOriginal = datos_query["fecha"];
+    const fechaHoy      = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+    const horaHoy       = new Date().toTimeString().split(' ')[0].substring(0, 8); // HH:MM:SS
+    const fechaUsar     = usarFechaHoy ? fechaHoy      : fechaOriginal;
+    const horaUsar      = usarFechaHoy ? horaHoy       : (datos_query["hora"] || '00:00:00');
+
+    // ── Confirmar si es fecha hoy ─────────────────────────────
+    if (usarFechaHoy) {
+        const fechaMostrar = new Date(fechaOriginal).toLocaleDateString('es-PE', {day:'2-digit', month:'2-digit', year:'numeric'});
+        const hoyMostrar   = new Date(fechaHoy + 'T00:00:00').toLocaleDateString('es-PE', {day:'2-digit', month:'2-digit', year:'numeric'});
+
+        if (!confirm(
+            `¿Declarar este comprobante con fecha de HOY (${hoyMostrar})?\n\n` +
+            `La fecha original de la venta es: ${fechaMostrar}\n\n` +
+            `Esto es para comprobantes con más de 5 días que SUNAT ya no acepta con fecha original.`
+        )) return;
+    }
+
+    // ── Calcular totales ──────────────────────────────────────
     var descuentoTotal   = parseFloat(datos_query["descuento"] || 0);
     var operaciones_gravadas = 0;
     var igv = 0;
@@ -265,10 +350,8 @@ function fn_enviar_sunat_por_fila(jsDatos, btnEl) {
         igv += parseFloat(item["IGV"] || 0);
     });
 
-    // ── Tipo de comprobante ───────────────────────────────────
     const tipo_comprobante_ref = datos_query["tipo_comprobante"] === "BOLETA" ? "03" : "01";
 
-    // ── Armar cliente ─────────────────────────────────────────
     const numDoc = datos_query["ca_cliente_numero_documento_sunat"] || '';
     const datos_cliente = {
         "tipo_documento"     : datos_query["ca_cliente_tipo_documento_sunat"] || (numDoc.length === 11 ? '6' : '1'),
@@ -277,7 +360,6 @@ function fn_enviar_sunat_por_fila(jsDatos, btnEl) {
         "direccion"          : datos_query["ca_cliente_direccion_sunat"] || ''
     };
 
-    // ── Armar cabecera ────────────────────────────────────────
     const datos_cabecera = {
         "venta_id"                : datos_query["venta_id"],
         "tipo_operacion"          : "0101",
@@ -296,9 +378,9 @@ function fn_enviar_sunat_por_fila(jsDatos, btnEl) {
         "total_a_pagar"           : (parseFloat(operaciones_gravadas) + parseFloat(igv)).toFixed(2),
         "tipo_comp_ref"           : "03",
         "serie_correletaivo_ref"  : datos_query["serie_correltavio_referencial"] || '',
-        "fecha_emision"           : datos_query["fecha"],
-        "fecha_vencimiento"       : datos_query["fecha"],
-        "hora_emision"            : datos_query["hora"] || '00:00:00',
+        "fecha_emision"           : fechaUsar,       // ← fecha original o hoy
+        "fecha_vencimiento"       : fechaUsar,       // ← fecha original o hoy
+        "hora_emision"            : horaUsar,        // ← hora original o actual
         "descuento"               : parseFloat(datos_query["descuento"] || 0).toFixed(2)
     };
 
@@ -309,11 +391,12 @@ function fn_enviar_sunat_por_fila(jsDatos, btnEl) {
         "detalles": js_detalles
     };
 
-    // ── UI: spinner mientras envía ────────────────────────────
-    const ventaId   = datos_query["venta_id"];
+    // ── UI: spinner ───────────────────────────────────────────
+    const ventaId    = datos_query["venta_id"];
     const contenedor = document.getElementById('accion-' + ventaId);
 
-    btnEl.disabled = true;
+    // Deshabilitar ambos botones mientras envía
+    contenedor.querySelectorAll('button').forEach(b => b.disabled = true);
     btnEl.innerHTML = '<span class="spinner-sm"></span> Enviando...';
 
     // ── AJAX ──────────────────────────────────────────────────
@@ -329,14 +412,17 @@ function fn_enviar_sunat_por_fila(jsDatos, btnEl) {
             try { res = JSON.parse(response); } catch(e) { res = { estado: false, mensaje: response }; }
 
             if (res.estado) {
-                // ── Éxito ─────────────────────────────────────
+                const etiquetaFecha = usarFechaHoy
+                    ? `<span style="color:#d97706;font-size:.75rem;">📅 Declarado con fecha de hoy</span>`
+                    : '';
+
                 contenedor.innerHTML = `
                     <button class="btn-enviar-sunat enviado" disabled>
                         <i class="fas fa-check-circle"></i> Enviado
                     </button>
+                    ${etiquetaFecha}
                     <div class="resp-sunat">${res.mensaje || 'Aceptado por SUNAT'}</div>`;
 
-                // Marcar fila visualmente
                 const fila = document.getElementById('fila-' + ventaId);
                 if (fila) {
                     fila.style.background = '#f0fff8';
@@ -345,17 +431,21 @@ function fn_enviar_sunat_por_fila(jsDatos, btnEl) {
 
                 Swal.fire({
                     title            : '¡Enviado!',
-                    html             : `<b>${tipo_comprobante_ref === '03' ? 'Boleta' : 'Factura'}</b> declarada correctamente.<br><small class="text-muted">${res.mensaje || ''}</small>`,
+                    html             : `<b>${tipo_comprobante_ref === '03' ? 'Boleta' : 'Factura'}</b> declarada correctamente.` +
+                                       (usarFechaHoy ? `<br><small style="color:#d97706;">Declarado con fecha de hoy</small>` : '') +
+                                       `<br><small class="text-muted">${res.mensaje || ''}</small>`,
                     icon             : 'success',
                     timer            : 2500,
                     showConfirmButton: false
                 });
 
             } else {
-                // ── Error SUNAT ───────────────────────────────
                 contenedor.innerHTML = `
-                    <button class="btn-enviar-sunat" onclick='fn_enviar_sunat_por_fila(${JSON.stringify(jsDatos).replace(/'/g,"&#39;")}, this)'>
+                    <button class="btn-enviar-sunat" onclick='fn_enviar_sunat_por_fila(${JSON.stringify(jsDatos).replace(/'/g,"&#39;")}, this, false)'>
                         <i class="fas fa-redo"></i> Reintentar
+                    </button>
+                    <button class="btn-fecha-hoy" onclick='fn_enviar_sunat_por_fila(${JSON.stringify(jsDatos).replace(/'/g,"&#39;")}, this, true)'>
+                        <i class="fas fa-calendar-day"></i> Declarar hoy
                     </button>
                     <div class="resp-sunat error">${res.mensaje || 'Error al enviar'}</div>`;
 
@@ -367,17 +457,16 @@ function fn_enviar_sunat_por_fila(jsDatos, btnEl) {
             }
         },
         error: function(xhr) {
-            // ── Error de red ──────────────────────────────────
-            btnEl.disabled = false;
-            btnEl.innerHTML = '<i class="fas fa-paper-plane"></i> Enviar';
+            contenedor.querySelectorAll('button').forEach(b => b.disabled = false);
+            btnEl.innerHTML = usarFechaHoy
+                ? '<i class="fas fa-calendar-day"></i> Declarar hoy'
+                : '<i class="fas fa-paper-plane"></i> Enviar';
 
             Swal.fire({
                 title: 'Error de conexión',
                 text : 'No se pudo conectar con el servidor. Inténtalo de nuevo.',
                 icon : 'error'
             });
-
-            console.error('Error:', xhr.responseText);
         }
     });
 }

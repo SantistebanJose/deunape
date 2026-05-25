@@ -377,7 +377,6 @@ $sucursal_id = $_SESSION["sucursal_id"];
         vertical-align: middle;
     }
 
-    /* Ocultar columnas internas: ID(0), ID_MOV(6), NOTA(7), IMPUESTO(8), MODALIDAD(9), TASA(10) */
     #tabla_articulos th:nth-child(1),
     #tabla_articulos td:nth-child(1),
     #tabla_articulos th:nth-child(7),
@@ -756,6 +755,7 @@ $sucursal_id = $_SESSION["sucursal_id"];
         margin-top: 12px;
     }
 
+    /* === VUELTO (oculto por defecto, se activa con botón) === */
     #seccionVuelto {
         background: #f0fff8;
         border: 1.5px solid #a7f3d0;
@@ -775,6 +775,33 @@ $sucursal_id = $_SESSION["sucursal_id"];
             opacity: 1;
             transform: translateY(0);
         }
+    }
+
+    /* === Botón activar vuelto === */
+    .btn-vuelto-toggle {
+        background: white;
+        border: 1.5px dashed #a7f3d0;
+        border-radius: 10px;
+        padding: 7px 16px;
+        font-size: .8rem;
+        font-weight: 700;
+        color: var(--success);
+        cursor: pointer;
+        transition: all .2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .btn-vuelto-toggle:hover {
+        background: #e8fdf5;
+        border-color: var(--success);
+    }
+
+    .btn-vuelto-toggle.activo {
+        background: #d1fae5;
+        border-color: var(--success);
+        border-style: solid;
     }
 
     /* === DESGLOSE IMPUESTOS EN MODAL PAGO === */
@@ -1080,6 +1107,65 @@ $sucursal_id = $_SESSION["sucursal_id"];
             border: 1.5px solid var(--border-soft);
             border-radius: 10px;
         }
+    }
+
+    /* === PRECIOS POR MAYOR === */
+    .precio-mayor-pills {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        justify-content: center;
+    }
+
+    .precio-mayor-pill {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2px;
+        background: white;
+        border: 2px solid var(--border-soft);
+        border-radius: 14px;
+        padding: 8px 14px;
+        cursor: pointer;
+        transition: all .2s;
+        min-width: 90px;
+    }
+
+    .precio-mayor-pill:hover {
+        border-color: var(--accent);
+        box-shadow: 0 3px 10px rgba(102, 126, 234, .15);
+        transform: translateY(-1px);
+    }
+
+    .precio-mayor-pill.active {
+        background: var(--gradient-main);
+        border-color: transparent;
+        color: white;
+        box-shadow: 0 4px 14px rgba(0, 51, 160, .3);
+        transform: translateY(-1px);
+    }
+
+    .precio-mayor-pill .pill-nombre {
+        font-weight: 700;
+        font-size: .78rem;
+        text-transform: uppercase;
+        letter-spacing: .3px;
+    }
+
+    .precio-mayor-pill .pill-precio {
+        font-weight: 800;
+        font-size: .92rem;
+    }
+
+    .precio-mayor-pill .pill-inc-igv {
+        font-size: .65rem;
+        opacity: .75;
+        font-weight: 500;
+    }
+
+    .precio-mayor-pill.active .pill-nombre,
+    .precio-mayor-pill.active .pill-precio {
+        color: white;
     }
 </style>
 
@@ -1398,6 +1484,16 @@ $sucursal_id = $_SESSION["sucursal_id"];
                         <button class="qty-btn qty-btn-plus" id="btnSumarCantidad">+</button>
                     </div>
                 </div>
+                <div id="seccionPreciosMayor" style="display:none;">
+                    <hr style="border-color:var(--border-soft);">
+                    <div class="text-center mb-1">
+                        <label class="fw-bold d-block mb-2" style="font-size:.85rem;color:var(--primary);">
+                            <i class="fas fa-boxes me-1" style="color:var(--accent);"></i>
+                            Presentación / Precio al por mayor
+                        </label>
+                        <div id="pillsPreciosMayor" class="precio-mayor-pills"></div>
+                    </div>
+                </div>
                 <div id="seccionCorte" style="display:none;">
                     <hr style="border-color:var(--border-soft);">
                     <div class="row g-3">
@@ -1555,8 +1651,8 @@ $sucursal_id = $_SESSION["sucursal_id"];
 
                 <!-- TABS PAGO -->
                 <ul class="nav nav-venta mb-3">
-                    <li class="nav-item flex-fill"><a class="nav-link active text-center" data-bs-toggle="pill" href="#pago-directo"><i class="fas fa-money-bill-wave me-1"></i>Pago Directo</a></li>
-                    <li class="nav-item flex-fill ms-2"><a class="nav-link text-center" data-bs-toggle="pill" href="#pago-credito"><i class="fas fa-credit-card me-1"></i>A Crédito</a></li>
+                    <li class="nav-item flex-fill"><a class="nav-link active text-center" data-bs-toggle="pill" href="#pago-directo" id="tabPagoDirecto"><i class="fas fa-money-bill-wave me-1"></i>Pago Directo</a></li>
+                    <li class="nav-item flex-fill ms-2"><a class="nav-link text-center" data-bs-toggle="pill" href="#pago-credito" id="tabPagoCredito"><i class="fas fa-credit-card me-1"></i>A Crédito</a></li>
                 </ul>
 
                 <div class="tab-content">
@@ -1572,39 +1668,96 @@ $sucursal_id = $_SESSION["sucursal_id"];
                                     <label class="btn btn-outline-primary" for="factura" style="border-radius:0 10px 10px 0;font-weight:700;">Factura</label>
                                 </div>
                             </div>
-                            <div class="text-center mb-3">
-                                <button id="btnAgregarPago" class="btn btn-outline-secondary btn-sm rounded-pill" type="button">
-                                    <i class="fas fa-plus me-1"></i>Agregar Forma de Pago
-                                </button>
+
+                            <!-- ══ TOGGLE PAGO ÚNICO / POR PARTES ══ -->
+                            <div class="d-flex align-items-center justify-content-center gap-3 mb-3 p-3"
+                                style="background:#f8f9ff;border:1.5px solid var(--border-soft);border-radius:14px;">
+                                <span style="font-size:.85rem;font-weight:600;color:var(--primary);">
+                                    <i class="fas fa-coins me-1" style="color:var(--accent);"></i>Modalidad de Pago:
+                                </span>
+                                <div class="d-flex gap-2">
+                                    <input type="radio" class="btn-check" name="modalidadPago" id="pagoUnico" value="unico" checked
+                                        onchange="toggleModalidadPago()">
+                                    <label class="btn btn-sm btn-outline-success fw-bold" for="pagoUnico"
+                                        style="border-radius:10px;font-size:.8rem;padding:6px 14px;">
+                                        <i class="fas fa-check-circle me-1"></i>Pago Único
+                                    </label>
+                                    <input type="radio" class="btn-check" name="modalidadPago" id="pagoPartes" value="partes"
+                                        onchange="toggleModalidadPago()">
+                                    <label class="btn btn-sm btn-outline-warning fw-bold" for="pagoPartes"
+                                        style="border-radius:10px;font-size:.8rem;padding:6px 14px;color:var(--primary);">
+                                        <i class="fas fa-layer-group me-1"></i>Pago por Partes
+                                    </label>
+                                </div>
                             </div>
-                            <div class="pago-row">
-                                <div class="row g-2">
+
+                            <!-- Fila única de pago: monto BLOQUEADO en pago único -->
+                            <div class="pago-row" id="filaUnicaPago">
+                                <div class="row g-2 align-items-center">
                                     <div class="col-md-6">
-                                        <select class="form-control" name="formaPago" id="formaPagoSelect">
+                                        <select class="form-control" name="formaPago" id="formaPagoSelect"
+                                            onchange="detectarEfectivo()">
                                             <?php foreach (listarFormaPago_v2($sucursal_id) as $fp): ?>
                                                 <option value="<?php echo $fp["id"] ?>"><?php echo $fp["nombre"] ?></option>
                                             <?php endforeach; ?>
                                         </select>
                                     </div>
-                                    <div class="col-md-6"><input type="number" class="form-control" placeholder="Monto S/" min="0" name="monto" id="montoSelect_0" step="0.01"></div>
+                                    <div class="col-md-6">
+                                        <div class="input-group">
+                                            <span class="input-group-text" style="background:#f0f3ff;border:1.5px solid var(--border-soft);">S/</span>
+                                            <!-- readonly en pago único, editable en pago por partes -->
+                                            <input type="number" class="form-control fw-bold" placeholder="Monto" min="0"
+                                                name="monto" id="montoSelect_0" step="0.01"
+                                                readonly style="background:#f8f9ff;"
+                                                oninput="detectarEfectivo()">
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                            <div id="contenedorPagos"></div>
 
+                            <!-- Sección para pagos adicionales (solo visible en "por partes") -->
+                            <div id="seccionPagosAdicionales" style="display:none;">
+                                <div id="contenedorPagos"></div>
+                                <div class="text-center mt-2">
+                                    <button id="btnAgregarPago" class="btn btn-outline-secondary btn-sm rounded-pill" type="button">
+                                        <i class="fas fa-plus me-1"></i>Agregar otra forma de pago
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- ══ BOTÓN CALCULAR VUELTO (desactivado por defecto) ══ -->
+                            <div class="text-center mt-3">
+                                <button type="button" class="btn-vuelto-toggle" id="btnToggleVuelto" onclick="toggleVuelto()">
+                                    <i class="fas fa-calculator"></i> Calcular vuelto
+                                </button>
+                            </div>
+
+                            <!-- SECCIÓN VUELTO (oculta por defecto) -->
                             <div id="seccionVuelto" style="display:none;">
-                                <h6 class="fw-bold mb-3" style="color:var(--success);"><i class="fas fa-calculator me-1"></i>Cálculo de Vuelto</h6>
+                                <h6 class="fw-bold mb-3 mt-3" style="color:var(--success);">
+                                    <i class="fas fa-calculator me-1"></i>Cálculo de Vuelto
+                                </h6>
                                 <div class="row g-3">
                                     <div class="col-md-4">
                                         <label class="fw-bold" style="font-size:.82rem;color:var(--primary);">Total a Pagar</label>
-                                        <div class="input-group mt-1"><span class="input-group-text" style="font-size:.82rem;">S/</span><input type="text" class="form-control fw-bold" id="totalAPagar" readonly style="background:#f8f9ff;"></div>
+                                        <div class="input-group mt-1">
+                                            <span class="input-group-text" style="font-size:.82rem;">S/</span>
+                                            <input type="text" class="form-control fw-bold" id="totalAPagar" readonly style="background:#f8f9ff;">
+                                        </div>
                                     </div>
                                     <div class="col-md-4">
                                         <label class="fw-bold" style="font-size:.82rem;color:var(--primary);">Paga con</label>
-                                        <div class="input-group mt-1"><span class="input-group-text" style="font-size:.82rem;">S/</span><input type="number" class="form-control fw-bold" id="pagaCon" placeholder="0.00" step="0.01"></div>
+                                        <div class="input-group mt-1">
+                                            <span class="input-group-text" style="font-size:.82rem;">S/</span>
+                                            <input type="number" class="form-control fw-bold" id="pagaCon" placeholder="0.00" step="0.01">
+                                        </div>
                                     </div>
                                     <div class="col-md-4">
                                         <label class="fw-bold" style="font-size:.82rem;color:var(--success);">Vuelto</label>
-                                        <div class="input-group mt-1"><span class="input-group-text" style="font-size:.82rem;">S/</span><input type="text" class="form-control fw-bold text-success" id="vuelto" readonly value="0.00"></div>
+                                        <div class="input-group mt-1">
+                                            <span class="input-group-text" style="font-size:.82rem;">S/</span>
+                                            <input type="text" class="form-control fw-bold text-success" id="vuelto" readonly value="0.00">
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="text-center mt-3">
@@ -1646,7 +1799,10 @@ $sucursal_id = $_SESSION["sucursal_id"];
                                             <?php endforeach; ?>
                                         </select>
                                     </div>
-                                    <div class="col-md-6"><input type="number" class="form-control" placeholder="Monto S/" min="0" name="montoCredito[]" id="montoSelectCredito_0" step="0.01"></div>
+                                    <div class="col-md-6">
+                                        <input type="number" class="form-control" placeholder="Monto S/" min="0"
+                                            name="montoCredito[]" id="montoSelectCredito_0" step="0.01">
+                                    </div>
                                 </div>
                             </div>
                             <div id="contenedorPagosCredito"></div>
@@ -1682,13 +1838,21 @@ $sucursal_id = $_SESSION["sucursal_id"];
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="assets/js/scriptNotify.js"></script>
+
 <script>
-    const products = <?php echo json_encode(listarProductosVenta1($sucursal_id)); ?>;
+    const products = <?php echo json_encode(listarProductosVenta2($sucursal_id)); ?>;
+    const unidadesCompra = <?php echo json_encode(listarUndiadesDeCompra($sucursal_id)); ?>;
+    const mapaUnidades = {};
+    unidadesCompra.forEach(u => {
+        mapaUnidades[u.id] = {
+            presentacion: u.presentacion,
+            cantidad: u.cantidad_numero
+        };
+    });
 
     document.addEventListener('DOMContentLoaded', () => {
         populateFilters();
         initEventListeners();
-        initVueltoListeners();
         checkCotizacion();
     });
 
@@ -1766,22 +1930,16 @@ $sucursal_id = $_SESSION["sucursal_id"];
         const col = document.getElementById('filterColor').value;
         const hint = document.getElementById('searchHint');
         const box = document.getElementById('resultadosProductos');
-
         if (!q && !cat && !tip && !dim && !col) {
             box.style.display = 'none';
             if (hint) hint.style.display = 'block';
             return;
         }
         if (hint) hint.style.display = 'none';
-
         const filtered = products.filter(p =>
-            (!cat || p.categoria === cat) &&
-            (!tip || p.tipo === tip) &&
-            (!dim || p.dimension === dim) &&
-            (!col || p.color === col) &&
-            (!q || p.articulo.toLowerCase().includes(q) ||
-                (p.categoria || '').toLowerCase().includes(q) ||
-                (p.tipo || '').toLowerCase().includes(q))
+            (!cat || p.categoria === cat) && (!tip || p.tipo === tip) &&
+            (!dim || p.dimension === dim) && (!col || p.color === col) &&
+            (!q || p.articulo.toLowerCase().includes(q) || (p.categoria || '').toLowerCase().includes(q) || (p.tipo || '').toLowerCase().includes(q))
         );
         box.innerHTML = '';
         if (!filtered.length) {
@@ -1794,10 +1952,11 @@ $sucursal_id = $_SESSION["sucursal_id"];
             const div = document.createElement('div');
             div.className = 'producto-item';
             div.innerHTML = `<div>
-            <div class="prod-nombre">${p.articulo}${sinStock ? '<span class="sin-stock-badge ms-1">Sin stock</span>' : ''}</div>
-            <div class="prod-info">${p.categoria||''} ${p.tipo ? '· '+p.tipo : ''} · Stock: ${p.stock}</div>
-        </div>
-        <div class="prod-precio">S/ ${parseFloat(p.precio_venta).toFixed(2)}</div>`;
+                <div class="prod-nombre">${p.articulo}${sinStock ? '<span class="sin-stock-badge ms-1">Sin stock</span>' : ''}</div>
+                <div class="prod-info">${p.categoria||''} ${p.tipo ? '· '+p.tipo : ''} · Stock: ${p.stock}</div>
+                <div class="prod-info"> | ${p.stock_por_locacion_js||''}</div>
+            </div>
+            <div class="prod-precio">S/ ${parseFloat(p.precio_venta).toFixed(2)}</div>`;
             if (!sinStock) {
                 div.addEventListener('click', () => fn_agregar_venta(p));
             } else {
@@ -1839,7 +1998,6 @@ $sucursal_id = $_SESSION["sucursal_id"];
             });
             return;
         }
-        // Artículo manual: sin ID → se tratará como IGV 18% en el cálculo
         agregarATabla([{
             id: '0',
             articulo: desc,
@@ -1871,6 +2029,55 @@ $sucursal_id = $_SESSION["sucursal_id"];
         const sc = document.getElementById('seccionCorte');
         sc.style.display = articulo.corte ? 'block' : 'none';
 
+        let precioSeleccionado = parseFloat(articulo.precio_venta);
+        let nombrePresentacionSeleccionada = 'Unidad';
+        const seccionPrecios = document.getElementById('seccionPreciosMayor');
+        const contenedorPills = document.getElementById('pillsPreciosMayor');
+        contenedorPills.innerHTML = '';
+
+        let precios = [];
+        try {
+            precios = typeof articulo.precios_json === 'string' ? JSON.parse(articulo.precios_json) : (articulo.precios_json || []);
+        } catch (e) {
+            precios = [];
+        }
+
+        if (precios.length > 0) {
+            seccionPrecios.style.display = 'block';
+            const pillNormal = document.createElement('button');
+            pillNormal.type = 'button';
+            pillNormal.className = 'precio-mayor-pill active';
+            pillNormal.dataset.precio = articulo.precio_venta;
+            pillNormal.dataset.nombre = 'Unidad';
+            pillNormal.dataset.cantidad = 1;
+            pillNormal.innerHTML = `<span class="pill-nombre">PRECIO NORMAL</span><span class="pill-precio">S/ ${parseFloat(articulo.precio_venta).toFixed(2)}</span>`;
+            contenedorPills.appendChild(pillNormal);
+            precios.forEach(p => {
+                const unidad = mapaUnidades[p.unidadescompra_id];
+                const nombreUnidad = unidad ? unidad.presentacion : `ID ${p.unidadescompra_id}`;
+                const cantUnidad = unidad ? parseInt(unidad.cantidad) : 1;
+                const pill = document.createElement('button');
+                pill.type = 'button';
+                pill.className = 'precio-mayor-pill';
+                pill.dataset.precio = p.precio;
+                pill.dataset.nombre = nombreUnidad;
+                pill.dataset.cantidad = cantUnidad;
+                pill.innerHTML = `<span class="pill-nombre">${nombreUnidad}</span><span class="pill-precio">S/ ${parseFloat(p.precio).toFixed(2)}</span><span style="font-size:.68rem;opacity:.7;">(${cantUnidad} unid.)</span>`;
+                contenedorPills.appendChild(pill);
+            });
+            contenedorPills.querySelectorAll('.precio-mayor-pill').forEach(pill => {
+                pill.addEventListener('click', () => {
+                    contenedorPills.querySelectorAll('.precio-mayor-pill').forEach(p => p.classList.remove('active'));
+                    pill.classList.add('active');
+                    precioSeleccionado = parseFloat(pill.dataset.precio);
+                    nombrePresentacionSeleccionada = pill.dataset.nombre;
+                    document.getElementById('inputCantidad').value = parseInt(pill.dataset.cantidad) || 1;
+                });
+            });
+        } else {
+            seccionPrecios.style.display = 'none';
+        }
+
         document.getElementById('btnRestarCantidad').onclick = () => {
             let c = parseInt(document.getElementById('inputCantidad').value);
             if (c > 1) {
@@ -1878,9 +2085,7 @@ $sucursal_id = $_SESSION["sucursal_id"];
                 if (c - 1 === 1 && articulo.corte) {
                     sc.style.display = 'block';
                     document.getElementById('precioCorte').value = 1.5;
-                } else if (c - 1 > 1) {
-                    sc.style.display = 'none';
-                }
+                } else if (c - 1 > 1) sc.style.display = 'none';
             }
         };
         document.getElementById('btnSumarCantidad').onclick = () => {
@@ -1932,12 +2137,17 @@ $sucursal_id = $_SESSION["sucursal_id"];
                 });
                 return;
             }
+            const cantPillActual = parseInt(contenedorPills.querySelector('.precio-mayor-pill.active').dataset.cantidad) || 1;
+            const precioUnitario = precioSeleccionado / cantPillActual;
+            const subtotalArticulo = cant * precioUnitario;
+            const subtotalCorte = min * pCorte;
+            const nombreFinal = articulo.articulo + (nombrePresentacionSeleccionada !== 'Unidad' ? ` [${nombrePresentacionSeleccionada}]` : '') + (nota ? ` - ${nota}` : '');
             agregarATabla([{
                 id: articulo.id,
-                articulo: articulo.articulo + (nota ? ` - ${nota}` : ''),
+                articulo: nombreFinal,
                 cantidad: cant,
-                precio_unitario: articulo.precio_venta,
-                subtotal: (cant * articulo.precio_venta) + (min * pCorte),
+                precio_unitario: precioUnitario,
+                subtotal: subtotalArticulo + subtotalCorte,
                 idmovimiento: 1,
                 nota,
                 stock: articulo.stock,
@@ -1952,6 +2162,7 @@ $sucursal_id = $_SESSION["sucursal_id"];
             if (hint) hint.style.display = 'block';
             showNotification && showNotification("success");
         };
+
         modal.show();
     }
 
@@ -1960,12 +2171,10 @@ $sucursal_id = $_SESSION["sucursal_id"];
        ============================================================ */
     function agregarATabla(datos) {
         const tbody = document.getElementById('tabla_articulos').getElementsByTagName('tbody')[0];
-
         datos.forEach(item => {
             const cantidadEsNumero = !isNaN(parseInt(item.cantidad)) && item.cantidad !== '-';
             const stockMax = item.stock !== undefined ? parseInt(item.stock) : Infinity;
 
-            // ── DETECTAR DUPLICADO ──
             if (item.id !== '0' && item.id !== 0 && cantidadEsNumero) {
                 const filas = tbody.querySelectorAll('tr');
                 let duplicado = null;
@@ -2002,30 +2211,19 @@ $sucursal_id = $_SESSION["sucursal_id"];
                 }
             }
 
-            // ── INSERTAR NUEVA FILA ──
             const fila = tbody.insertRow();
             fila.className = 'fade-in-row';
             fila.dataset.stock = stockMax;
-
-            // col 0 — ID (oculta)
             fila.insertCell(0).textContent = item.id;
-
-            // col 1 — Artículo
             const tdArt = fila.insertCell(1);
             tdArt.textContent = item.articulo;
             tdArt.setAttribute('data-label', 'Artículo');
-
-            // col 2 — Cantidad
             const tdC = fila.insertCell(2);
             tdC.setAttribute('data-label', 'Cant.');
             if (cantidadEsNumero) {
                 const cantInit = parseInt(item.cantidad);
                 const precioUnit = parseFloat(item.precio_unitario) || null;
-                tdC.innerHTML = `<div class="qty-inline">
-                <button class="qty-inline-btn qty-inline-minus" title="Restar">−</button>
-                <span class="qty-inline-val">${cantInit}</span>
-                <button class="qty-inline-btn qty-inline-plus" title="Sumar">+</button>
-            </div>`;
+                tdC.innerHTML = `<div class="qty-inline"><button class="qty-inline-btn qty-inline-minus" title="Restar">−</button><span class="qty-inline-val">${cantInit}</span><button class="qty-inline-btn qty-inline-plus" title="Sumar">+</button></div>`;
                 const btnMinus = tdC.querySelector('.qty-inline-minus');
                 const btnPlus = tdC.querySelector('.qty-inline-plus');
                 const valEl = tdC.querySelector('.qty-inline-val');
@@ -2055,19 +2253,13 @@ $sucursal_id = $_SESSION["sucursal_id"];
             } else {
                 tdC.textContent = item.cantidad;
             }
-
-            // col 3 — Precio unitario
             const tdP = fila.insertCell(3);
             tdP.textContent = item.precio_unitario;
             tdP.setAttribute('data-label', 'P. Unit.');
-
-            // col 4 — Subtotal
             const tdS = fila.insertCell(4);
             tdS.className = 'col-subtotal';
             tdS.textContent = 'S/ ' + parseFloat(item.subtotal).toFixed(2);
             tdS.setAttribute('data-label', 'Subtotal');
-
-            // col 5 — Acciones
             const tdA = fila.insertCell(5);
             tdA.setAttribute('data-label', 'Acc.');
             tdA.style.textAlign = 'center';
@@ -2093,23 +2285,12 @@ $sucursal_id = $_SESSION["sucursal_id"];
                     });
             };
             tdA.appendChild(btn);
-
-            // col 6 — ID Movimiento (oculta)
             fila.insertCell(6).textContent = item.idmovimiento;
-
-            // col 7 — Nota (oculta)
             fila.insertCell(7).textContent = item.nota || '';
-
-            // col 8 — Impuesto (oculta) → IGV | ICBPER | EXONERADO | INAFECTO
             fila.insertCell(8).textContent = (item.impuesto || 'IGV').toUpperCase();
-
-            // col 9 — Modalidad (oculta) → PORCENTAJE | MONTO FIJO
             fila.insertCell(9).textContent = (item.modalidad || 'PORCENTAJE').toUpperCase();
-
-            // col 10 — Tasa (oculta) → 0.18 | 0.50 etc.
             fila.insertCell(10).textContent = item.tasa !== undefined ? item.tasa : 0.18;
         });
-
         calcularTotales();
     }
 
@@ -2129,14 +2310,13 @@ $sucursal_id = $_SESSION["sucursal_id"];
     }
 
     /* ============================================================
-       CALCULAR TOTALES + DESGLOSE IMPUESTOS EN PANEL DER
+       CALCULAR TOTALES
        ============================================================ */
     function calcularTotales() {
         const filas = document.querySelectorAll('#tabla_articulos tbody tr');
         let totalArt = 0,
             totalGen = 0,
             totalUnid = 0;
-
         filas.forEach(f => {
             const qtyEl = f.cells[2].querySelector('.qty-inline-val');
             const cant = parseFloat(qtyEl ? qtyEl.textContent : f.cells[2].textContent) || 0;
@@ -2146,30 +2326,22 @@ $sucursal_id = $_SESSION["sucursal_id"];
             totalGen += sub;
             if (!isNaN(cant)) totalUnid += cant;
         });
-
-        // Calcular el total REAL incluyendo ICBPER
         const imp = calcularImpuestos();
         const totalReal = imp.total;
-
         document.getElementById('id_subtotal_articulos').textContent = 'S/ ' + totalArt.toFixed(2);
-        // El hidden y el display usan el total real (con ICBPER)
         document.getElementById('id_subtotal_general').value = totalReal.toFixed(2);
         document.getElementById('resumenItems').textContent = filas.length;
         document.getElementById('resumenCantidad').textContent = totalUnid + ' unid.';
-
         const el = document.getElementById('id_subtotal_general_display');
         el.textContent = 'S/ ' + totalReal.toFixed(2);
         el.classList.remove('pulse-total');
         void el.offsetWidth;
         el.classList.add('pulse-total');
-
         const hay = filas.length > 0;
         document.getElementById('btnRealizarPago').disabled = !hay;
         document.getElementById('emptyStateVenta').style.display = hay ? 'none' : 'block';
         document.getElementById('wrapperTablaVenta').style.display = hay ? 'block' : 'none';
         document.getElementById('contadorItems').textContent = filas.length + (filas.length === 1 ? ' ítem' : ' ítems');
-
-        // Actualizar desglose en panel derecho
         actualizarDesgloseResumen();
     }
 
@@ -2195,25 +2367,15 @@ $sucursal_id = $_SESSION["sucursal_id"];
     }
 
     /* ============================================================
-       CALCULAR IMPUESTOS — función central
-       ============================================================
-       Reglas:
-       - IGV + PORCENTAJE  : precio_venta YA incluye IGV → base = subtotal / (1 + tasa)
-       - ICBPER + MONTO FIJO: S/ fijo por unidad (0.50 desde 2022), además el
-         producto también tributa IGV → descomponer subtotal y sumar ICBPER aparte
-       - EXONERADO          : sin IGV, suma a opExoneradas
-       - INAFECTO           : sin IGV, suma a opInafectas
-       - Artículo manual (id=0): se asume IGV 18%
+       CALCULAR IMPUESTOS
        ============================================================ */
     function calcularImpuestos() {
         const filas = Array.from(document.querySelectorAll('#tabla_articulos tbody tr'));
-
-        let opGravadas = 0; // Base imponible (sin IGV)
-        let montoIGV = 0; // IGV total
-        let opExoneradas = 0; // Exoneradas
-        let opInafectas = 0; // Inafectas
-        let montoICBPER = 0; // Bolsas plásticas
-
+        let opGravadas = 0,
+            montoIGV = 0,
+            opExoneradas = 0,
+            opInafectas = 0,
+            montoICBPER = 0;
         filas.forEach(fila => {
             const qtyEl = fila.cells[2].querySelector('.qty-inline-val');
             const cantRaw = qtyEl ? qtyEl.textContent : fila.cells[2].textContent;
@@ -2222,42 +2384,26 @@ $sucursal_id = $_SESSION["sucursal_id"];
             const impuesto = (fila.cells[8].textContent || 'IGV').toUpperCase().trim();
             const modalidad = (fila.cells[9].textContent || 'PORCENTAJE').toUpperCase().trim();
             const tasa = parseFloat(fila.cells[10].textContent) || 0.18;
-
             if (impuesto === 'IGV') {
-                // precio_venta incluye IGV → descomponer
                 const base = subtotal / (1 + tasa);
                 opGravadas += base;
                 montoIGV += subtotal - base;
-
             } else if (impuesto === 'ICBPER') {
-                // ICBPER es adicional al precio (monto fijo por unidad)
-                if (modalidad === 'MONTO FIJO') {
-                    montoICBPER += cantidad * tasa; // ej: 5 bolsas × 0.50 = 2.50
-                } else {
-                    montoICBPER += subtotal * tasa;
-                }
-                // Las bolsas también pagan IGV 18% sobre su precio
+                montoICBPER += modalidad === 'MONTO FIJO' ? cantidad * tasa : subtotal * tasa;
                 const base = subtotal / 1.18;
                 opGravadas += base;
                 montoIGV += subtotal - base;
-
             } else if (impuesto === 'EXONERADO') {
                 opExoneradas += subtotal;
-
             } else if (impuesto === 'INAFECTO') {
                 opInafectas += subtotal;
-
             } else {
-                // Fallback: tratar como gravado IGV 18%
                 const base = subtotal / 1.18;
                 opGravadas += base;
                 montoIGV += subtotal - base;
             }
         });
-
         const totalSinICBPER = opGravadas + montoIGV + opExoneradas + opInafectas;
-        const totalConICBPER = totalSinICBPER + montoICBPER;
-
         return {
             gravadas: opGravadas,
             igv: montoIGV,
@@ -2265,65 +2411,32 @@ $sucursal_id = $_SESSION["sucursal_id"];
             inafectas: opInafectas,
             icbper: montoICBPER,
             totalSinICBPER,
-            total: totalConICBPER
+            total: totalSinICBPER + montoICBPER
         };
     }
 
-    /* ── Desglose en panel derecho — siempre visible, 3 líneas fijas ── */
     function actualizarDesgloseResumen() {
         const cont = document.getElementById('contenidoImpuestosResumen');
         const filas = document.querySelectorAll('#tabla_articulos tbody tr');
-
-        // Si no hay ítems, resetear a ceros
         if (!filas.length) {
-            cont.innerHTML = `
-            <div class="imp-linea"><span class="imp-lbl">Op. Gravadas</span><span class="imp-val cero">S/ 0.00</span></div>
-            <div class="imp-linea"><span class="imp-lbl">Op. Exoneradas</span><span class="imp-val cero">S/ 0.00</span></div>
-            <div class="imp-linea"><span class="imp-lbl">Op. Inafectas</span><span class="imp-val cero">S/ 0.00</span></div>
-            <div class="imp-linea igv-line"><span class="imp-lbl">IGV (18%)</span><span class="imp-val cero">S/ 0.00</span></div>`;
+            cont.innerHTML = `<div class="imp-linea"><span class="imp-lbl">Op. Gravadas</span><span class="imp-val cero">S/ 0.00</span></div><div class="imp-linea"><span class="imp-lbl">Op. Exoneradas</span><span class="imp-val cero">S/ 0.00</span></div><div class="imp-linea"><span class="imp-lbl">Op. Inafectas</span><span class="imp-val cero">S/ 0.00</span></div><div class="imp-linea igv-line"><span class="imp-lbl">IGV (18%)</span><span class="imp-val cero">S/ 0.00</span></div>`;
             return;
         }
-
         const imp = calcularImpuestos();
-
-        const fmtVal = (n) => n > 0 ?
-            `<span class="imp-val">S/ ${n.toFixed(2)}</span>` :
-            `<span class="imp-val cero">S/ 0.00</span>`;
-
-        let html = `
-        <div class="imp-linea"><span class="imp-lbl">Op. Gravadas</span>${fmtVal(imp.gravadas)}</div>
-        <div class="imp-linea"><span class="imp-lbl">Op. Exoneradas</span>${fmtVal(imp.exoneradas)}</div>
-        <div class="imp-linea"><span class="imp-lbl">Op. Inafectas</span>${fmtVal(imp.inafectas)}</div>
-        <div class="imp-linea igv-line"><span class="imp-lbl">IGV (18%)</span>${fmtVal(imp.igv)}</div>`;
-
-        if (imp.icbper > 0)
-            html += `<div class="imp-linea icbper-line"><span class="imp-lbl">ICBPER (bolsas)</span><span class="imp-val">S/ ${imp.icbper.toFixed(2)}</span></div>`;
-
+        const fmtVal = n => n > 0 ? `<span class="imp-val">S/ ${n.toFixed(2)}</span>` : `<span class="imp-val cero">S/ 0.00</span>`;
+        let html = `<div class="imp-linea"><span class="imp-lbl">Op. Gravadas</span>${fmtVal(imp.gravadas)}</div><div class="imp-linea"><span class="imp-lbl">Op. Exoneradas</span>${fmtVal(imp.exoneradas)}</div><div class="imp-linea"><span class="imp-lbl">Op. Inafectas</span>${fmtVal(imp.inafectas)}</div><div class="imp-linea igv-line"><span class="imp-lbl">IGV (18%)</span>${fmtVal(imp.igv)}</div>`;
+        if (imp.icbper > 0) html += `<div class="imp-linea icbper-line"><span class="imp-lbl">ICBPER (bolsas)</span><span class="imp-val">S/ ${imp.icbper.toFixed(2)}</span></div>`;
         cont.innerHTML = html;
     }
 
-    /* ── Desglose en modal de pago — siempre visible, 3 líneas fijas ── */
     function mostrarImpuestosEnModal() {
         const box = document.getElementById('impuestosModalBox');
         const cont = document.getElementById('impuestosModalContenido');
         const imp = calcularImpuestos();
-
-        const fmtLinea = (lbl, n, extraClass = '') =>
-            `<div class="linea ${extraClass}">
-            <span class="etiqueta">${lbl}</span>
-            <span class="monto${n === 0 ? ' text-muted fw-normal' : ''}">S/ ${n.toFixed(2)}</span>
-        </div>`;
-
-        let html = fmtLinea('Op. Gravadas', imp.gravadas);
-        html += fmtLinea('Op. Exoneradas', imp.exoneradas, 'exo');
-        html += fmtLinea('Op. Inafectas', imp.inafectas);
-        html += fmtLinea('IGV (18%)', imp.igv, 'igv');
-
-        if (imp.icbper > 0)
-            html += fmtLinea('ICBPER (bolsas plásticas)', imp.icbper, 'icbper');
-
+        const fmtLinea = (lbl, n, extraClass = '') => `<div class="linea ${extraClass}"><span class="etiqueta">${lbl}</span><span class="monto${n===0?' text-muted fw-normal':''}">S/ ${n.toFixed(2)}</span></div>`;
+        let html = fmtLinea('Op. Gravadas', imp.gravadas) + fmtLinea('Op. Exoneradas', imp.exoneradas, 'exo') + fmtLinea('Op. Inafectas', imp.inafectas) + fmtLinea('IGV (18%)', imp.igv, 'igv');
+        if (imp.icbper > 0) html += fmtLinea('ICBPER (bolsas plásticas)', imp.icbper, 'icbper');
         html += `<div class="linea total-imp"><span class="etiqueta">TOTAL</span><span class="monto">S/ ${imp.total.toFixed(2)}</span></div>`;
-
         cont.innerHTML = html;
         box.style.display = 'block';
     }
@@ -2332,23 +2445,504 @@ $sucursal_id = $_SESSION["sucursal_id"];
        ABRIR MODAL PAGO
        ============================================================ */
     function abrirModalPago() {
-        // imp.total = subtotal artículos + ICBPER (si hay bolsas)
         const imp = calcularImpuestos();
         const totalReal = imp.total.toFixed(2);
 
-        // Actualizar también el hidden y el display del panel derecho
         document.getElementById('id_subtotal_general').value = totalReal;
         document.getElementById('id_subtotal_general_display').textContent = 'S/ ' + totalReal;
-
         document.getElementById('montoTotal').value = totalReal;
         document.getElementById('idMontoVentaTitulo').textContent = totalReal;
         document.getElementById('montoTotalFinal').value = '';
+
+        // Monto bloqueado auto-rellenado (pago único por defecto)
+        const montoInput = document.getElementById('montoSelect_0');
+        montoInput.value = totalReal;
+        montoInput.readOnly = true;
+        montoInput.style.background = '#f8f9ff';
+
+        // Resetear a pago único
+        document.getElementById('pagoUnico').checked = true;
+        document.getElementById('seccionPagosAdicionales').style.display = 'none';
+        document.getElementById('contenedorPagos').innerHTML = '';
+
+        // Ocultar vuelto y resetear botón
+        document.getElementById('seccionVuelto').style.display = 'none';
+        document.getElementById('pagaCon').value = '';
+        document.getElementById('vuelto').value = '0.00';
+        const btnV = document.getElementById('btnToggleVuelto');
+        btnV.classList.remove('activo');
+        btnV.innerHTML = '<i class="fas fa-calculator"></i> Calcular vuelto';
+
         mostrarImpuestosEnModal();
         new bootstrap.Modal(document.getElementById('modalRealizarPago')).show();
     }
 
     /* ============================================================
-       SOLO CORTE
+       TOGGLE VUELTO — activar/desactivar con botón
+       ============================================================ */
+    function toggleVuelto() {
+        const sv = document.getElementById('seccionVuelto');
+        const btn = document.getElementById('btnToggleVuelto');
+        const visible = sv.style.display !== 'none';
+
+        if (visible) {
+            // Desactivar
+            sv.style.display = 'none';
+            document.getElementById('pagaCon').value = '';
+            document.getElementById('vuelto').value = '0.00';
+            btn.classList.remove('activo');
+            btn.innerHTML = '<i class="fas fa-calculator"></i> Calcular vuelto';
+        } else {
+            // Activar
+            sv.style.display = 'block';
+            btn.classList.add('activo');
+            btn.innerHTML = '<i class="fas fa-calculator"></i> Ocultar vuelto';
+            actualizarTotalAPagar();
+            setTimeout(() => document.getElementById('pagaCon').focus(), 100);
+        }
+    }
+
+    /* ============================================================
+       TOGGLE MODALIDAD PAGO
+       ============================================================ */
+    function toggleModalidadPago() {
+        const esPartes = document.getElementById('pagoPartes').checked;
+        document.getElementById('seccionPagosAdicionales').style.display = esPartes ? 'block' : 'none';
+
+        const montoInput = document.getElementById('montoSelect_0');
+        if (esPartes) {
+            // En pago por partes: editable, valor vacío para que el cajero distribuya
+            montoInput.readOnly = false;
+            montoInput.style.background = '';
+            montoInput.style.borderColor = '';
+        } else {
+            // En pago único: bloqueado con el total
+            const total = parseFloat(document.getElementById('montoTotalFinal').value) || parseFloat(document.getElementById('montoTotal').value);
+            montoInput.value = total.toFixed(2);
+            montoInput.readOnly = true;
+            montoInput.style.background = '#f8f9ff';
+            document.getElementById('contenedorPagos').innerHTML = '';
+        }
+
+        // Ocultar vuelto al cambiar modalidad
+        document.getElementById('seccionVuelto').style.display = 'none';
+        document.getElementById('pagaCon').value = '';
+        document.getElementById('vuelto').value = '0.00';
+        const btnV = document.getElementById('btnToggleVuelto');
+        btnV.classList.remove('activo');
+        btnV.innerHTML = '<i class="fas fa-calculator"></i> Calcular vuelto';
+    }
+
+    /* ============================================================
+       VUELTO — cálculo
+       ============================================================ */
+    function actualizarTotalAPagar() {
+        const m = parseFloat(document.getElementById('montoTotalFinal').value) || parseFloat(document.getElementById('montoTotal').value);
+        let montoNoEfectivo = 0;
+        const spPrincipal = document.getElementById('formaPagoSelect');
+        const mpPrincipal = parseFloat(document.getElementById('montoSelect_0').value) || 0;
+        if (mpPrincipal > 0 && !spPrincipal.options[spPrincipal.selectedIndex].text.toUpperCase().includes('EFECTIVO')) montoNoEfectivo += mpPrincipal;
+        document.querySelectorAll('#contenedorPagos .pago-row').forEach(row => {
+            const sel = row.querySelector('select');
+            const mval = parseFloat(row.querySelector('input[type="number"]')?.value) || 0;
+            if (sel && mval > 0 && !sel.options[sel.selectedIndex].text.toUpperCase().includes('EFECTIVO')) montoNoEfectivo += mval;
+        });
+        document.getElementById('totalAPagar').value = Math.max(0, m - montoNoEfectivo).toFixed(2);
+        calcularVuelto();
+    }
+
+    function calcularVuelto() {
+        const t = parseFloat(document.getElementById('totalAPagar').value) || 0;
+        const p = parseFloat(document.getElementById('pagaCon').value) || 0;
+        const v = p - t;
+        const el = document.getElementById('vuelto');
+        if (v < 0) {
+            el.value = '0.00';
+            el.className = 'form-control fw-bold text-danger';
+        } else {
+            el.value = v.toFixed(2);
+            el.className = 'form-control fw-bold text-success';
+        }
+    }
+
+    function setPagaCon(m) {
+        const t = parseFloat(document.getElementById('totalAPagar').value) || 0;
+        document.getElementById('pagaCon').value = Math.max(m, t).toFixed(2);
+        calcularVuelto();
+    }
+
+    /* ============================================================
+       MODAL PAGO (agregar filas adicionales)
+       ============================================================ */
+    function initPagoModal() {
+        let cP = 1;
+        document.getElementById('btnAgregarPago').addEventListener('click', () => {
+            const c = document.getElementById('contenedorPagos');
+            const d = document.createElement('div');
+            d.className = 'pago-row';
+            d.innerHTML = `<div class="row g-2">
+            <div class="col-md-5">
+                <select class="form-control" name="formaPago_${cP}">
+                    <?php foreach (listarFormaPago_v2($sucursal_id) as $fp): ?>
+                    <option value="<?php echo $fp['id'] ?>"><?php echo $fp['nombre'] ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            <div class="col-md-5"><input type="number" class="form-control" name="monto_${cP}" placeholder="Monto S/" min="0" step="0.01"></div>
+            <div class="col-md-2"><button type="button" class="btn btn-sm btn-outline-danger rounded-pill w-100" onclick="this.closest('.pago-row').remove()"><i class="fas fa-times"></i></button></div>
+        </div>`;
+            c.appendChild(d);
+            cP++;
+        });
+
+        let cC = 1;
+        document.getElementById('btnAgregarPagoCredito').addEventListener('click', () => {
+            const c = document.getElementById('contenedorPagosCredito');
+            const d = document.createElement('div');
+            d.className = 'pago-row';
+            d.innerHTML = `<div class="row g-2">
+            <div class="col-md-5">
+                <select class="form-control" name="formaPagoCredito[]">
+                    <?php foreach (listarFormaPago_v2($sucursal_id) as $fp): ?>
+                    <option value="<?php echo $fp['id'] ?>"><?php echo $fp['nombre'] ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            <div class="col-md-5"><input type="number" class="form-control" name="montoCredito[]" placeholder="Monto S/" min="0" step="0.01"></div>
+            <div class="col-md-2"><button type="button" class="btn btn-sm btn-outline-danger rounded-pill w-100" onclick="this.closest('.pago-row').remove()"><i class="fas fa-times"></i></button></div>
+        </div>`;
+            c.appendChild(d);
+            cC++;
+        });
+
+        // Listener montoTotalFinal para actualizar monto bloqueado en pago único
+        document.getElementById('montoTotalFinal').addEventListener('input', () => {
+            if (document.getElementById('pagoUnico').checked) {
+                const mf = parseFloat(document.getElementById('montoTotalFinal').value) || parseFloat(document.getElementById('montoTotal').value);
+                document.getElementById('montoSelect_0').value = mf.toFixed(2);
+            }
+            if (document.getElementById('seccionVuelto').style.display !== 'none') actualizarTotalAPagar();
+        });
+
+        // Listener pagaCon
+        document.getElementById('pagaCon').addEventListener('input', calcularVuelto);
+    }
+
+    /* ============================================================
+       OBTENER ARTÍCULOS
+       ============================================================ */
+    function obtenerArticulos() {
+        return Array.from(document.querySelectorAll('#tabla_articulos tbody tr')).map(f => {
+            const qtyEl = f.cells[2].querySelector('.qty-inline-val');
+            const cantRaw = qtyEl ? qtyEl.textContent : f.cells[2].textContent;
+            const subtotal = parseFloat((f.cells[4].textContent || '').replace('S/ ', '')) || 0;
+            const impuesto = (f.cells[8].textContent || 'IGV').toUpperCase().trim();
+            const modalidad = (f.cells[9].textContent || 'PORCENTAJE').toUpperCase().trim();
+            const tasa = parseFloat(f.cells[10].textContent) || 0.18;
+            let base_imponible = 0,
+                igv_linea = 0,
+                icbper_linea = 0;
+            const cantidad = parseFloat(cantRaw) || 0;
+            if (impuesto === 'IGV') {
+                base_imponible = subtotal / (1 + tasa);
+                igv_linea = subtotal - base_imponible;
+            } else if (impuesto === 'ICBPER') {
+                base_imponible = subtotal / 1.18;
+                igv_linea = subtotal - base_imponible;
+                icbper_linea = modalidad === 'MONTO FIJO' ? cantidad * tasa : subtotal * tasa;
+            } else if (impuesto === 'EXONERADO' || impuesto === 'INAFECTO') {
+                base_imponible = subtotal;
+            }
+            return {
+                articulo_id: f.cells[0].textContent === '0' ? null : parseInt(f.cells[0].textContent),
+                minutos: null,
+                costoxminuto: null,
+                precio_unitario: isNaN(parseFloat(f.cells[3].textContent)) ? null : parseFloat(f.cells[3].textContent),
+                cantidad: isNaN(parseInt(cantRaw)) ? null : parseInt(cantRaw),
+                sub_total: subtotal,
+                movimiento_id: parseInt(f.cells[6].textContent),
+                nota_archivo: f.cells[1].textContent + (f.cells[7].textContent ? ' / ' + f.cells[7].textContent : ''),
+                tipo_impuesto: impuesto,
+                base_imponible: parseFloat(base_imponible.toFixed(4)),
+                igv: parseFloat(igv_linea.toFixed(4)),
+                icbper: parseFloat(icbper_linea.toFixed(4))
+            };
+        });
+    }
+
+    /* ============================================================
+       PAGO DIRECTO
+       ============================================================ */
+    async function fn_pagar_directo() {
+        const fd = $('#form-pago-directo').serializeArray();
+        const montoO = parseFloat(document.getElementById('montoTotal').value);
+        const montoF = parseFloat(document.getElementById('montoTotalFinal').value) || montoO;
+        const tipoC = document.querySelector('input[name="icon-input"]:checked').value;
+        const idP = document.getElementById('idPersona').textContent.trim();
+
+        if (tipoC === 'factura' && idP === '#') {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Para factura necesitas un cliente',
+                timer: 2000,
+                showConfirmButton: false
+            });
+            return;
+        }
+
+        let fps = [],
+            total = 0,
+            fp = null;
+        fd.forEach(i => {
+            if (i.name.startsWith('formaPago')) {
+                fp = i.value;
+            } else if (i.name.startsWith('monto')) {
+                const m = parseFloat(i.value);
+                if (fp && m > 0) {
+                    fps.push({
+                        id_forma_pago: fp,
+                        monto_forma_pago: m
+                    });
+                    total += m;
+                    fp = null;
+                }
+            }
+        });
+
+        if (!fps.length) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Agrega al menos una forma de pago',
+                timer: 2000,
+                showConfirmButton: false
+            });
+            return;
+        }
+        if (Math.abs(total - montoF) > 0.01) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Los montos no coinciden con el total',
+                timer: 2000,
+                showConfirmButton: false
+            });
+            return;
+        }
+
+        // Validar vuelto solo si la sección está visible
+        const sv = document.getElementById('seccionVuelto');
+        if (sv.style.display !== 'none') {
+            const pagaCon = parseFloat(document.getElementById('pagaCon').value) || 0;
+            const vuelto = parseFloat(document.getElementById('vuelto').value) || 0;
+            if (!pagaCon) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Atención',
+                    text: 'Ingresa el monto con que paga el cliente',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+                document.getElementById('pagaCon').focus();
+                return;
+            }
+            if (vuelto < 0) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Monto insuficiente',
+                    text: 'El cliente debe pagar un monto mayor o igual al total',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+                document.getElementById('pagaCon').focus();
+                return;
+            }
+            if (vuelto > 0) {
+                const r = await Swal.fire({
+                    title: 'Confirmar Vuelto',
+                    html: `<div class="text-start"><p><b>Total:</b> S/ ${montoF.toFixed(2)}</p><p><b>Paga con:</b> S/ ${pagaCon.toFixed(2)}</p><p class="text-success fs-4"><b>Vuelto:</b> S/ ${vuelto.toFixed(2)}</p></div>`,
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Confirmar',
+                    cancelButtonText: 'Cancelar',
+                    confirmButtonColor: '#11998e'
+                });
+                if (!r.isConfirmed) return;
+            }
+        }
+
+        const imp = calcularImpuestos();
+        const venta = {
+            tipo_comprobante: tipoC,
+            usuario_id: <?php echo $_SESSION['id']; ?>,
+            cliente_id: idP === '#' ? 9897 : parseInt(idP),
+            monto_original: montoO,
+            monto_venta_final: montoF,
+            op_gravadas: parseFloat(imp.gravadas.toFixed(2)),
+            igv: parseFloat(imp.igv.toFixed(2)),
+            op_exoneradas: parseFloat(imp.exoneradas.toFixed(2)),
+            op_inafectas: parseFloat(imp.inafectas.toFixed(2)),
+            icbper: parseFloat(imp.icbper.toFixed(2))
+        };
+
+        // ── Confirmación ──
+        const confirmResult = await Swal.fire({
+            title: '¿Confirmar venta?',
+            html: `<div style="font-size:.95rem;"><p class="mb-1">Total: <strong style="color:var(--success);font-size:1.1rem;">S/ ${montoF.toFixed(2)}</strong></p><p class="mb-0 text-muted" style="font-size:.82rem;">¿Deseas registrar esta venta?</p></div>`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: '<i class="fas fa-check me-1"></i>Sí, Adelante',
+            cancelButtonText: '<i class="fas fa-times me-1"></i>No, Nueva Venta',
+            confirmButtonColor: '#11998e',
+            cancelButtonColor: '#dc3545',
+            reverseButtons: true
+        });
+
+        if (!confirmResult.isConfirmed) {
+            if (confirmResult.isDismissed && confirmResult.dismiss === Swal.DismissReason.cancel) {
+                bootstrap.Modal.getInstance(document.getElementById('modalRealizarPago')).hide();
+                document.querySelector('#tabla_articulos tbody').innerHTML = '';
+                calcularTotales();
+            }
+            return;
+        }
+
+        $.ajax({
+            url: 'logica/clssInsertPA.php',
+            type: 'POST',
+            data: {
+                accion: 'FINALIZARVENTARAPIDO',
+                jsDatosVenta: JSON.stringify(venta),
+                js_articulos: JSON.stringify(obtenerArticulos()),
+                js_detalle_pago: JSON.stringify(fps)
+            },
+            success: r => {
+                try {
+                    const res = JSON.parse(r);
+                    if (res.estado) {
+                        Swal.fire({
+                            title: 'Venta Exitosa',
+                            icon: 'success',
+                            timer: 1500,
+                            showConfirmButton: false
+                        }).then(() => fn_abrir_pdf(res.id_venta_generado));
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: res.mensaje
+                        });
+                    }
+                } catch (e) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Error al procesar la respuesta'
+                    });
+                }
+            },
+            error: () => Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Error en la comunicación con el servidor'
+            })
+        });
+    }
+
+    /* ============================================================
+       PAGO CRÉDITO
+       ============================================================ */
+    function fn_pagar_credito() {
+        const idP = document.getElementById('idPersona').textContent.trim();
+        if (idP === '#') {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Debes seleccionar un cliente para venta a crédito',
+                timer: 2000,
+                showConfirmButton: false
+            });
+            return;
+        }
+        const fd = $('#form-pago-credito').serializeArray();
+        const montoO = parseFloat(document.getElementById('montoTotal').value);
+        const montoF = parseFloat(document.getElementById('montoTotalFinal').value) || montoO;
+        let dd = [],
+            mi = 0,
+            fp = null;
+        fd.forEach(i => {
+            if (i.name === 'formaPagoCredito[]') {
+                fp = i.value;
+            } else if (i.name === 'montoCredito[]') {
+                const m = parseFloat(i.value) || 0;
+                if (fp && m > 0) {
+                    dd.push({
+                        id_forma_pago: fp,
+                        monto_forma_pago: m
+                    });
+                    mi += m;
+                    fp = null;
+                }
+            }
+        });
+        const imp = calcularImpuestos();
+        const venta = {
+            usuario_id: <?php echo $_SESSION['id']; ?>,
+            cliente_id: parseInt(idP),
+            monto_original: montoO,
+            monto_venta_final: montoF,
+            monto_inicial: mi,
+            op_gravadas: parseFloat(imp.gravadas.toFixed(2)),
+            igv: parseFloat(imp.igv.toFixed(2)),
+            op_exoneradas: parseFloat(imp.exoneradas.toFixed(2)),
+            op_inafectas: parseFloat(imp.inafectas.toFixed(2)),
+            icbper: parseFloat(imp.icbper.toFixed(2))
+        };
+        $.ajax({
+            url: 'logica/clssInsertPA.php',
+            type: 'POST',
+            data: {
+                accion: 'FINALIZARVENTACREDITORAPIDO',
+                jsDatosVenta: JSON.stringify(venta),
+                js_articulos: JSON.stringify(obtenerArticulos()),
+                js_detalle_deuda: dd.length > 0 ? JSON.stringify(dd) : null
+            },
+            success: r => {
+                try {
+                    const res = JSON.parse(r);
+                    if (res.estado) {
+                        Swal.fire({
+                            title: 'Crédito Registrado',
+                            icon: 'success',
+                            timer: 1500,
+                            showConfirmButton: false
+                        }).then(() => location.reload());
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: res.mensaje
+                        });
+                    }
+                } catch (e) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Error al procesar la respuesta'
+                    });
+                }
+            },
+            error: () => Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Error en la comunicación con el servidor'
+            })
+        });
+    }
+
+    /* ============================================================
+       SOLO CORTE / IMPRESIÓN 3D / SERVICIOS
        ============================================================ */
     function initSoloCorteModal() {
         document.getElementById('btnAbrirModalSolo').addEventListener('click', e => {
@@ -2401,9 +2995,6 @@ $sucursal_id = $_SESSION["sucursal_id"];
         });
     }
 
-    /* ============================================================
-       IMPRESIÓN 3D
-       ============================================================ */
     function initImpresion3DModal() {
         document.getElementById('btnAbrirModalSolov2').addEventListener('click', e => {
             e.preventDefault();
@@ -2461,24 +3052,19 @@ $sucursal_id = $_SESSION["sucursal_id"];
         document.getElementById('precioSoloCortev2').value = 0;
     }
 
-    /* ============================================================
-       SERVICIOS GENÉRICOS
-       ============================================================ */
     function fn_servicios(servicio) {
         const medidas = servicio.medidas.slice(1, -1).split(',');
         document.getElementById('modalContent').innerHTML = `
     <div class="modal-header modal-header-gradient"><h5 class="modal-title fw-bold"><i class="fas fa-cube me-2"></i>${servicio.descripcion}</h5></div>
     <div class="p-4">
-      <div class="mb-4 text-center">
-        <label class="fw-bold mb-2 d-block" style="font-size:.85rem;color:var(--primary);">Cantidad</label>
+      <div class="mb-4 text-center"><label class="fw-bold mb-2 d-block" style="font-size:.85rem;color:var(--primary);">Cantidad</label>
         <div class="qty-control mx-auto" style="width:fit-content;">
           <button class="qty-btn qty-btn-minus" onclick="ajustarCantidad('${servicio.descripcion}',-1)">−</button>
           <input type="number" id="cant_${servicio.descripcion}" value="1">
           <button class="qty-btn qty-btn-plus" onclick="ajustarCantidad('${servicio.descripcion}',1)">+</button>
         </div>
       </div>
-      <div class="mb-3">
-        <label class="fw-bold mb-2 d-block" style="font-size:.85rem;color:var(--primary);">Dimensiones</label>
+      <div class="mb-3"><label class="fw-bold mb-2 d-block" style="font-size:.85rem;color:var(--primary);">Dimensiones</label>
         <div class="d-flex flex-wrap gap-3 justify-content-center" id="dims_${servicio.descripcion}">
           ${medidas.map(m=>`<div class="form-check"><input class="form-check-input" type="checkbox" value="${m}" id="dim_${m}"><label class="form-check-label" for="dim_${m}" style="font-size:.88rem;">${m}</label></div>`).join('')}
         </div>
@@ -2528,449 +3114,6 @@ $sucursal_id = $_SESSION["sucursal_id"];
     }
 
     /* ============================================================
-       VUELTO
-       ============================================================ */
-    function initVueltoListeners() {
-        document.getElementById('formaPagoSelect').addEventListener('change', detectarEfectivo);
-        document.getElementById('montoSelect_0').addEventListener('input', detectarEfectivo);
-        document.getElementById('pagaCon').addEventListener('input', calcularVuelto);
-        document.getElementById('montoTotalFinal').addEventListener('input', () => {
-            if (document.getElementById('seccionVuelto').style.display !== 'none') actualizarTotalAPagar();
-        });
-    }
-
-    function detectarEfectivo() {
-        let hay = false;
-        const sp = document.getElementById('formaPagoSelect');
-        const mp = parseFloat(document.getElementById('montoSelect_0').value) || 0;
-        if (mp > 0 && sp.options[sp.selectedIndex].text.toUpperCase().includes('EFECTIVO')) hay = true;
-        document.querySelectorAll('#contenedorPagos .pago-row').forEach(row => {
-            const sel = row.querySelector('select');
-            const m = parseFloat(row.querySelector('input[type="number"]')?.value) || 0;
-            if (m > 0 && sel && sel.options[sel.selectedIndex].text.toUpperCase().includes('EFECTIVO')) hay = true;
-        });
-        const sv = document.getElementById('seccionVuelto');
-        if (hay) {
-            sv.style.display = 'block';
-            actualizarTotalAPagar();
-        } else {
-            sv.style.display = 'none';
-            document.getElementById('pagaCon').value = '';
-            document.getElementById('vuelto').value = '0.00';
-        }
-    }
-
-    function actualizarTotalAPagar() {
-        const m = parseFloat(document.getElementById('montoTotalFinal').value) || parseFloat(document.getElementById('montoTotal').value);
-
-        // Sumar todos los montos de formas de pago que NO son efectivo
-        let montoNoEfectivo = 0;
-
-        // Fila principal
-        const spPrincipal = document.getElementById('formaPagoSelect');
-        const mpPrincipal = parseFloat(document.getElementById('montoSelect_0').value) || 0;
-        if (mpPrincipal > 0 && !spPrincipal.options[spPrincipal.selectedIndex].text.toUpperCase().includes('EFECTIVO')) {
-            montoNoEfectivo += mpPrincipal;
-        }
-
-        // Filas adicionales
-        document.querySelectorAll('#contenedorPagos .pago-row').forEach(row => {
-            const sel = row.querySelector('select');
-            const mval = parseFloat(row.querySelector('input[type="number"]')?.value) || 0;
-            if (sel && mval > 0 && !sel.options[sel.selectedIndex].text.toUpperCase().includes('EFECTIVO')) {
-                montoNoEfectivo += mval;
-            }
-        });
-
-        const restante = Math.max(0, m - montoNoEfectivo);
-        document.getElementById('totalAPagar').value = restante.toFixed(2);
-        calcularVuelto();
-    }
-
-    function calcularVuelto() {
-        const t = parseFloat(document.getElementById('totalAPagar').value) || 0;
-        const p = parseFloat(document.getElementById('pagaCon').value) || 0;
-        const v = p - t;
-        const el = document.getElementById('vuelto');
-        if (v < 0) {
-            el.value = '0.00';
-            el.className = 'form-control fw-bold text-danger';
-        } else {
-            el.value = v.toFixed(2);
-            el.className = 'form-control fw-bold text-success';
-        }
-    }
-
-    function setPagaCon(m) {
-        const t = parseFloat(document.getElementById('totalAPagar').value) || 0;
-        document.getElementById('pagaCon').value = Math.max(m, t).toFixed(2);
-        calcularVuelto();
-    }
-
-    /* ============================================================
-       MODAL PAGO (agregar filas adicionales)
-       ============================================================ */
-    function initPagoModal() {
-        let cP = 1;
-        document.getElementById('btnAgregarPago').addEventListener('click', () => {
-            const c = document.getElementById('contenedorPagos');
-            const d = document.createElement('div');
-            d.className = 'pago-row';
-            d.innerHTML = `<div class="row g-2">
-            <div class="col-md-5">
-                <select class="form-control" name="formaPago_${cP}" onchange="detectarEfectivo()">
-                    <?php foreach (listarFormaPago_v2($sucursal_id) as $fp): ?>
-                    <option value="<?php echo $fp['id'] ?>"><?php echo $fp['nombre'] ?></option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-            <div class="col-md-5"><input type="number" class="form-control" name="monto_${cP}" placeholder="Monto S/" min="0" step="0.01" oninput="detectarEfectivo()"></div>
-            <div class="col-md-2"><button type="button" class="btn btn-sm btn-outline-danger rounded-pill w-100" onclick="this.closest('.pago-row').remove();detectarEfectivo();"><i class="fas fa-times"></i></button></div>
-        </div>`;
-            c.appendChild(d);
-            cP++;
-        });
-
-        let cC = 1;
-        document.getElementById('btnAgregarPagoCredito').addEventListener('click', () => {
-            const c = document.getElementById('contenedorPagosCredito');
-            const d = document.createElement('div');
-            d.className = 'pago-row';
-            d.innerHTML = `<div class="row g-2">
-            <div class="col-md-5">
-                <select class="form-control" name="formaPagoCredito[]">
-                    <?php foreach (listarFormaPago_v2($sucursal_id) as $fp): ?>
-                    <option value="<?php echo $fp['id'] ?>"><?php echo $fp['nombre'] ?></option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-            <div class="col-md-5"><input type="number" class="form-control" name="montoCredito[]" placeholder="Monto S/" min="0" step="0.01"></div>
-            <div class="col-md-2"><button type="button" class="btn btn-sm btn-outline-danger rounded-pill w-100" onclick="this.closest('.pago-row').remove()"><i class="fas fa-times"></i></button></div>
-        </div>`;
-            c.appendChild(d);
-            cC++;
-        });
-    }
-
-    /* ============================================================
-       OBTENER ARTÍCULOS — incluye datos tributarios por línea
-       ============================================================ */
-    function obtenerArticulos() {
-        return Array.from(document.querySelectorAll('#tabla_articulos tbody tr')).map(f => {
-            const qtyEl = f.cells[2].querySelector('.qty-inline-val');
-            const cantRaw = qtyEl ? qtyEl.textContent : f.cells[2].textContent;
-            const subtotal = parseFloat((f.cells[4].textContent || '').replace('S/ ', '')) || 0;
-            const impuesto = (f.cells[8].textContent || 'IGV').toUpperCase().trim();
-            const modalidad = (f.cells[9].textContent || 'PORCENTAJE').toUpperCase().trim();
-            const tasa = parseFloat(f.cells[10].textContent) || 0.18;
-
-            // Calcular impuesto de esta línea
-            let base_imponible = 0,
-                igv_linea = 0,
-                icbper_linea = 0;
-            const cantidad = parseFloat(cantRaw) || 0;
-
-            if (impuesto === 'IGV') {
-                base_imponible = subtotal / (1 + tasa);
-                igv_linea = subtotal - base_imponible;
-            } else if (impuesto === 'ICBPER') {
-                base_imponible = subtotal / 1.18;
-                igv_linea = subtotal - base_imponible;
-                icbper_linea = modalidad === 'MONTO FIJO' ? cantidad * tasa : subtotal * tasa;
-            } else if (impuesto === 'EXONERADO' || impuesto === 'INAFECTO') {
-                base_imponible = subtotal;
-            }
-
-            return {
-                articulo_id: f.cells[0].textContent === '0' ? null : parseInt(f.cells[0].textContent),
-                minutos: null,
-                costoxminuto: null,
-                precio_unitario: isNaN(parseFloat(f.cells[3].textContent)) ? null : parseFloat(f.cells[3].textContent),
-                cantidad: isNaN(parseInt(cantRaw)) ? null : parseInt(cantRaw),
-                sub_total: subtotal,
-                movimiento_id: parseInt(f.cells[6].textContent),
-                nota_archivo: f.cells[1].textContent + (f.cells[7].textContent ? ' / ' + f.cells[7].textContent : ''),
-                // ── Campos tributarios ──
-                tipo_impuesto: impuesto,
-                base_imponible: parseFloat(base_imponible.toFixed(4)),
-                igv: parseFloat(igv_linea.toFixed(4)),
-                icbper: parseFloat(icbper_linea.toFixed(4))
-            };
-        });
-    }
-
-    /* ============================================================
-       PAGO DIRECTO
-       ============================================================ */
-    async function fn_pagar_directo() {
-        const fd = $('#form-pago-directo').serializeArray();
-        const montoO = parseFloat(document.getElementById('montoTotal').value);
-        const montoF = parseFloat(document.getElementById('montoTotalFinal').value) || montoO;
-        const tipoC = document.querySelector('input[name="icon-input"]:checked').value;
-        const idP = document.getElementById('idPersona').textContent.trim();
-
-        if (tipoC === 'factura' && idP === '#') {
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: 'Para factura necesitas un cliente',
-                timer: 2000,
-                showConfirmButton: false
-            });
-            return;
-        }
-
-        let fps = [],
-            total = 0,
-            fp = null;
-        fd.forEach(i => {
-            if (i.name.startsWith('formaPago')) {
-                fp = i.value;
-            } else if (i.name.startsWith('monto')) {
-                const m = parseFloat(i.value);
-                if (fp && m > 0) {
-                    fps.push({
-                        id_forma_pago: fp,
-                        monto_forma_pago: m
-                    });
-                    total += m;
-                    fp = null;
-                }
-            }
-        });
-        if (!fps.length) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: 'Agrega al menos una forma de pago',
-                timer: 2000,
-                showConfirmButton: false
-            });
-            return;
-        }
-        if (Math.abs(total - montoF) > 0.01) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: 'Los montos no coinciden con el total',
-                timer: 2000,
-                showConfirmButton: false
-            });
-            return;
-        }
-
-        const sv = document.getElementById('seccionVuelto');
-        if (sv.style.display !== 'none') {
-            const pagaCon = parseFloat(document.getElementById('pagaCon').value) || 0;
-            const vuelto = parseFloat(document.getElementById('vuelto').value) || 0;
-            if (!pagaCon) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Atención',
-                    text: 'Ingresa el monto con que paga el cliente',
-                    timer: 2000,
-                    showConfirmButton: false
-                });
-                document.getElementById('pagaCon').focus();
-                return;
-            }
-            if (vuelto < 0) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Monto insuficiente',
-                    text: 'El cliente debe pagar un monto mayor o igual al total',
-                    timer: 2000,
-                    showConfirmButton: false
-                });
-                document.getElementById('pagaCon').focus();
-                return;
-            }
-            if (vuelto > 0) {
-                const r = await Swal.fire({
-                    title: 'Confirmar Vuelto',
-                    html: `<div class="text-start"><p><b>Total:</b> S/ ${montoF.toFixed(2)}</p><p><b>Paga con:</b> S/ ${pagaCon.toFixed(2)}</p><p class="text-success fs-4"><b>Vuelto:</b> S/ ${vuelto.toFixed(2)}</p></div>`,
-                    icon: 'question',
-                    showCancelButton: true,
-                    confirmButtonText: 'Confirmar',
-                    cancelButtonText: 'Cancelar',
-                    confirmButtonColor: '#11998e'
-                });
-                if (!r.isConfirmed) return;
-            }
-        }
-
-        // Resumen tributario total
-        const imp = calcularImpuestos();
-
-        const venta = {
-            tipo_comprobante: tipoC,
-            usuario_id: <?php echo $_SESSION['id']; ?>,
-            cliente_id: idP === '#' ? 9897 : parseInt(idP),
-            monto_original: montoO,
-            monto_venta_final: montoF,
-            // ── Campos tributarios totales ──
-            op_gravadas: parseFloat(imp.gravadas.toFixed(2)),
-            igv: parseFloat(imp.igv.toFixed(2)),
-            op_exoneradas: parseFloat(imp.exoneradas.toFixed(2)),
-            op_inafectas: parseFloat(imp.inafectas.toFixed(2)),
-            icbper: parseFloat(imp.icbper.toFixed(2))
-        };
-
-        $.ajax({
-            url: 'logica/clssInsertPA.php',
-            type: 'POST',
-            data: {
-                accion: 'FINALIZARVENTARAPIDO',
-                jsDatosVenta: JSON.stringify(venta),
-                js_articulos: JSON.stringify(obtenerArticulos()),
-                js_detalle_pago: JSON.stringify(fps)
-            },
-            success: r => {
-                try {
-                    const res = JSON.parse(r);
-                    if (res.estado) {
-                        /**
-                         * 
-                         */
-                        Swal.fire({
-                                title: 'Venta Exitosa',
-                                icon: 'success',
-                                timer: 1500,
-                                showConfirmButton: false
-                            })
-                            .then(() => {
-                                //window.open(`ticket.php?id=${res.id_venta_generado}`, '_blank'); location.reload();
-                                fn_abrir_pdf(res.id_venta_generado);
-                                location.reload();
-                                console.log("Ubillus KCHUDO")
-                            });
-                    } else {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Error',
-                            text: res.mensaje
-                        });
-                    }
-                } catch (e) {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: 'Error al procesar la respuesta'
-                    });
-                }
-            },
-            error: () => Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: 'Error en la comunicación con el servidor'
-            })
-        });
-    }
-
-    /* ============================================================
-       PAGO CRÉDITO
-       ============================================================ */
-    function fn_pagar_credito() {
-        const idP = document.getElementById('idPersona').textContent.trim();
-        if (idP === '#') {
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: 'Debes seleccionar un cliente para venta a crédito',
-                timer: 2000,
-                showConfirmButton: false
-            });
-            return;
-        }
-
-        const fd = $('#form-pago-credito').serializeArray();
-        const montoO = parseFloat(document.getElementById('montoTotal').value);
-        const montoF = parseFloat(document.getElementById('montoTotalFinal').value) || montoO;
-        let dd = [],
-            mi = 0,
-            fp = null;
-
-        fd.forEach(i => {
-            if (i.name === 'formaPagoCredito[]') {
-                fp = i.value;
-            } else if (i.name === 'montoCredito[]') {
-                const m = parseFloat(i.value) || 0;
-                if (fp && m > 0) {
-                    dd.push({
-                        id_forma_pago: fp,
-                        monto_forma_pago: m
-                    });
-                    mi += m;
-                    fp = null;
-                }
-            }
-        });
-
-        // Resumen tributario total
-        const imp = calcularImpuestos();
-
-        const venta = {
-            usuario_id: <?php echo $_SESSION['id']; ?>,
-            cliente_id: parseInt(idP),
-            monto_original: montoO,
-            monto_venta_final: montoF,
-            monto_inicial: mi,
-            // ── Campos tributarios totales ──
-            op_gravadas: parseFloat(imp.gravadas.toFixed(2)),
-            igv: parseFloat(imp.igv.toFixed(2)),
-            op_exoneradas: parseFloat(imp.exoneradas.toFixed(2)),
-            op_inafectas: parseFloat(imp.inafectas.toFixed(2)),
-            icbper: parseFloat(imp.icbper.toFixed(2))
-        };
-
-        $.ajax({
-            url: 'logica/clssInsertPA.php',
-            type: 'POST',
-            data: {
-                accion: 'FINALIZARVENTACREDITORAPIDO',
-                jsDatosVenta: JSON.stringify(venta),
-                js_articulos: JSON.stringify(obtenerArticulos()),
-                js_detalle_deuda: dd.length > 0 ? JSON.stringify(dd) : null
-            },
-            success: r => {
-                try {
-                    const res = JSON.parse(r);
-                    if (res.estado) {
-                        Swal.fire({
-                                title: 'Crédito Registrado',
-                                icon: 'success',
-                                timer: 1500,
-                                showConfirmButton: false
-                            })
-                            .then(() => {
-                                //window.open(`ticket.php?id=${res.id_venta_generado}`, '_blank'); location.reload(); 
-                                location.reload();
-                                console.log("Ubillus KCHUDO")
-                            });
-                    } else {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Error',
-                            text: res.mensaje
-                        });
-                    }
-                } catch (e) {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: 'Error al procesar la respuesta'
-                    });
-                }
-            },
-            error: () => Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: 'Error en la comunicación con el servidor'
-            })
-        });
-    }
-
-    /* ============================================================
        CLIENTE
        ============================================================ */
     function initClienteModal() {
@@ -2980,6 +3123,7 @@ $sucursal_id = $_SESSION["sucursal_id"];
         document.getElementById('btnRegistrarCliente').addEventListener('click', registrarCliente);
         document.getElementById('nombreCliente').addEventListener('input', buscarCliente);
     }
+
     async function buscarDNI() {
         const dni = document.getElementById('numeroDocumentoPersona').value.trim();
         if (dni.length !== 8) {
@@ -3016,6 +3160,7 @@ $sucursal_id = $_SESSION["sucursal_id"];
             });
         }
     }
+
     async function buscarRUC() {
         const ruc = document.getElementById('numeroDocumentoEmpresa').value.trim();
         if (ruc.length !== 11) {
@@ -3178,11 +3323,90 @@ $sucursal_id = $_SESSION["sucursal_id"];
         });
     }
 
+    
+
+    async function fn_imprimir_ticketera(id_venta, token) {
+        Swal.fire({
+            title: 'Enviando a ticketera...',
+            html: '<small>Generando PDF y enviando por red</small>',
+            allowOutsideClick: false,
+            didOpen: () => Swal.showLoading(),
+        });
+
+        try {
+            const resp = await fetch('imprimir.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    id_venta,
+                    token
+                }),
+            });
+
+            const datos = await resp.json();
+
+            if (datos.ok) {
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Impreso!',
+                    html: `<p>El ticket fue enviado a la ticketera.</p>
+                       <small style="color:#888">${datos.mensaje ?? ''}</small>`,
+                    timer: 2500,
+                    showConfirmButton: false,
+                });
+                setTimeout(() => location.reload(), 2600);
+
+            } else {
+                // Error con posible guía de solución
+                let html = `<p style="margin-bottom:8px">${datos.error}</p>`;
+                if (datos.fix) {
+                    html += `<details style="text-align:left;font-size:12px;color:#888">
+                    <summary style="cursor:pointer">¿Cómo solucionarlo?</summary>
+                    <ul style="margin-top:6px;padding-left:16px">`;
+                    for (const [k, v] of Object.entries(datos.fix)) {
+                        html += `<li><b>${k}:</b> <code>${v}</code></li>`;
+                    }
+                    html += `</ul></details>`;
+                }
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error al imprimir',
+                    html,
+                    confirmButtonColor: '#2a2f5b',
+                });
+            }
+
+        } catch (err) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error de conexión',
+                text: 'No se pudo conectar con imprimir.php: ' + err.message,
+                confirmButtonColor: '#2a2f5b',
+            });
+        }
+    }
+
     function fn_abrir_pdf(id_venta) {
         fetch("ticket.php?accion=token&id=" + parseInt(id_venta))
             .then(r => r.json())
-            .then(data => window.open(data.url, "_blank"));
+            .then(urls => {
+                Swal.fire({
+                    title: '¿Cómo deseas ver el comprobante?',
+                    html: `<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px;">
+                    <button onclick="window.open('${urls.ticket}','_blank');Swal.close();location.reload();" style="background:#2a2f5b;color:white;border:none;border-radius:12px;padding:14px 10px;cursor:pointer;font-weight:700;font-size:.88rem;">🖨️ Ticket<br><small style="font-weight:400;opacity:.8;">80mm / POS</small></button>
+                    <button onclick="window.open('${urls.a4}','_blank');Swal.close();location.reload();" style="background:#2a2f5b;color:white;border:none;border-radius:12px;padding:14px 10px;cursor:pointer;font-weight:700;font-size:.88rem;">📄 A4<br><small style="font-weight:400;opacity:.8;">Hoja completa</small></button>
+                    <button onclick="window.open('${urls.a5}','_blank');Swal.close();location.reload();" style="background:#2a2f5b;color:white;border:none;border-radius:12px;padding:14px 10px;cursor:pointer;font-weight:700;font-size:.88rem;">📋 A5<br><small style="font-weight:400;opacity:.8;">Medio oficio</small></button>
+                    <button onclick="window.open('${urls.pantalla}','_blank');Swal.close();location.reload();" style="background:#11998e;color:white;border:none;border-radius:12px;padding:14px 10px;cursor:pointer;font-weight:700;font-size:.88rem;">🌐 Pantalla<br><small style="font-weight:400;opacity:.8;">HTML / WhatsApp</small></button>
+                </div>`,
+                    showConfirmButton: false,
+                    showCloseButton: true,
+                    width: 360,
+                });
+            });
     }
+
     /* ============================================================
        INIT
        ============================================================ */
